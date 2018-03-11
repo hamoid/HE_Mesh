@@ -1,5 +1,5 @@
 /*
-Then convex hull of points on a sphere is a Dealaunay triangulation.
+Then convex hull of points on a sphere is a Delaunay triangulation.
 The dual of this triangulation is the Voronoi diagram of the points on the sphere.
 The cells are technically parts of the sphere and not planar so the approach below
 introduces some errors. But it's close.

@@ -11,6 +11,7 @@ package wblut.hemesh;
 
 import wblut.geom.WB_Classification;
 import wblut.geom.WB_Coord;
+import wblut.geom.WB_CoordOp3D;
 import wblut.geom.WB_GeometryOp;
 import wblut.geom.WB_GeometryOp3D;
 import wblut.geom.WB_Point;
@@ -540,7 +541,7 @@ public class HE_Halfedge extends HE_MeshElement implements Comparable<HE_Halfedg
 	 * @return
 	 */
 	public double getLength() {
-		return WB_GeometryOp3D.getDistance3D(getVertex(), getEndVertex());
+		return WB_CoordOp3D.getDistance3D(getVertex(), getEndVertex());
 	}
 
 	/**
@@ -549,7 +550,7 @@ public class HE_Halfedge extends HE_MeshElement implements Comparable<HE_Halfedg
 	 * @return
 	 */
 	public double getSqLength() {
-		return WB_GeometryOp3D.getSqDistance3D(getVertex(), getEndVertex());
+		return WB_CoordOp3D.getSqDistance3D(getVertex(), getEndVertex());
 	}
 
 	/**
@@ -738,7 +739,7 @@ public class HE_Halfedge extends HE_MeshElement implements Comparable<HE_Halfedg
 		if (c == null) {
 			return Double.NaN;
 		}
-		return WB_GeometryOp3D.getAngleBetween(c.xd(), c.yd(), c.zd(), p1.xd(), p1.yd(), p1.zd(), p2.xd(), p2.yd(),
+		return WB_CoordOp3D.getAngleBetween(c.xd(), c.yd(), c.zd(), p1.xd(), p1.yd(), p1.zd(), p2.xd(), p2.yd(),
 				p2.zd());
 	}
 

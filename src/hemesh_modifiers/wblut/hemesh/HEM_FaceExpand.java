@@ -15,7 +15,7 @@ import java.util.List;
 import org.eclipse.collections.impl.list.mutable.FastList;
 
 import wblut.geom.WB_Coord;
-import wblut.geom.WB_GeometryOp;
+import wblut.geom.WB_CoordOp3D;
 import wblut.geom.WB_GeometryOp3D;
 import wblut.geom.WB_Plane;
 import wblut.geom.WB_Point;
@@ -136,13 +136,13 @@ public class HEM_FaceExpand extends HEM_Modifier {
 							edge.getEdgeNormal());
 				}
 			} else {
-				LS = WB_GeometryOp.getClosestPoint3D(uniquePlanes, ld);
+				LS = WB_GeometryOp3D.getClosestPoint3D(uniquePlanes, ld);
 			}
 
 			if (LS == null) {// least-square multiplane intersection point or
 								// plane/plane intersection line not found
 				LS = WB_Point.addMul(v, ld, v.getVertexNormal());
-			} else if (WB_GeometryOp.getSqDistance3D(v, LS) > cutoff2 * ld * ld) {
+			} else if (WB_CoordOp3D.getSqDistance3D(v, LS) > cutoff2 * ld * ld) {
 				// potential precision problem
 				LS = WB_Point.addMul(v, ld, v.getVertexNormal());
 
@@ -221,13 +221,13 @@ public class HEM_FaceExpand extends HEM_Modifier {
 							edge.getEdgeNormal());
 				}
 			} else {
-				LS = WB_GeometryOp.getClosestPoint3D(uniquePlanes, ld);
+				LS = WB_GeometryOp3D.getClosestPoint3D(uniquePlanes, ld);
 			}
 
 			if (LS == null) {// least-square multiplane intersection point or
 								// plane/plane intersection line not found
 				LS = WB_Point.addMul(v, ld, v.getVertexNormal());
-			} else if (WB_GeometryOp.getSqDistance3D(v, LS) > cutoff2 * ld * ld) {
+			} else if (WB_CoordOp3D.getSqDistance3D(v, LS) > cutoff2 * ld * ld) {
 				// potential precision problem
 				LS = WB_Point.addMul(v, ld, v.getVertexNormal());
 

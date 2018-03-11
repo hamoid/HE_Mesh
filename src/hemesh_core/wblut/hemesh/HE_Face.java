@@ -25,6 +25,7 @@ import wblut.geom.WB_AABB;
 import wblut.geom.WB_Classification;
 import wblut.geom.WB_Coord;
 import wblut.geom.WB_CoordCollection;
+import wblut.geom.WB_CoordOp3D;
 import wblut.geom.WB_CoordinateSystem3D;
 import wblut.geom.WB_GeometryOp3D;
 import wblut.geom.WB_Map2D;
@@ -891,7 +892,7 @@ public class HE_Face extends HE_MeshElement implements Comparable<HE_Face>, WB_T
 		for (int i = 0; i < n; i += 3) {
 			tmp = WB_GeometryOp3D.getClosestPointToTriangle3D(p, points.get(tris[i]), points.get(tris[i + 1]),
 					points.get(tris[i + 2]));
-			final double d2 = WB_GeometryOp3D.getSqDistance3D(tmp, p);
+			final double d2 = WB_CoordOp3D.getSqDistance3D(tmp, p);
 			if (d2 < dmax2) {
 				closest = tmp;
 				dmax2 = d2;

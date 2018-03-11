@@ -4,7 +4,7 @@ import wblut.core.*;
 import wblut.hemesh.*;
 import wblut.geom.*;
 
-WB_Frame frame;
+WB_Network network;
 HE_Mesh mesh;
 HE_Mesh container;
 WB_Render render;
@@ -17,10 +17,10 @@ float ax;
 float scale;
 float startradius;
 float minradius;
-HEC_FromFrame ffc;
+HEC_FromNetwork ffc;
 
 void setup() {
-  size(800,800, OPENGL);
+  fullScreen(P3D);
   smooth(8);
   background(0);
  reset();
@@ -54,7 +54,7 @@ void mouseReleased() {
 }
 
 void draw() {
-  background(0);
+  background(25);
   directionalLight(255, 255, 255, 1, 1, -1);
   directionalLight(127, 127, 127, -1, -1, 1);
   translate(height/2, height/2, 0);
@@ -64,11 +64,11 @@ void draw() {
   rotateY(ay);
   rotateX(ax);
   noStroke();
-  fill(255);
+  fill(55);
    render.drawFaces(mesh);
   stroke(255, 0, 0);
   render.drawEdges(container);
-  stroke(0);
+  stroke(240);
   render.drawEdges(mesh);
 }
 
@@ -82,7 +82,7 @@ if (key=='+') {
     scale/=1.1;
   } 
   else if (key=='s') {
-   frame.smoothBiNodes();
+   network.smoothBiNodes();
     createMesh();
   }
   else if (key=='m') {
@@ -116,11 +116,11 @@ int freeAllNodes() {
 }
 
 void firstNode() {
-  frame=new WB_Frame();
+  network=new WB_Network();
   node = new Node(new WB_Point(random(-200,200),random(-200,200),random(-200,200)),1.0, null, 0, 0);
   nodes= new ArrayList<Node>(numNodes); 
   nodes.add(node);
-  frame.addNode(node.pos,1.0);
+  network.addNode(node.pos,1.0);
 }
 
 void growToNumNodes(float rf, HE_Mesh container) {
@@ -142,8 +142,8 @@ void addNodes(boolean noSiblings, float rf, HE_Mesh container) {
       if (newNode!=null) {
         newNode.id=nodes.size();
         nodes.add(newNode);
-        frame.addNode(newNode.pos,currentNode.radiusfactor*rf);
-        frame.addStrut(newNode.id, currentNode.id);
+        network.addNode(newNode.pos,currentNode.radiusfactor*rf);
+        network.addConnection(newNode.id, currentNode.id);
       }
       else {
         currentNode.active=false;
@@ -204,7 +204,7 @@ Node findNeighbor(Node node, float rf, HE_Mesh container) {
 }
 
 void createMesh() {
-  ffc=new HEC_FromFrame().setFrame(frame).setStrutRadius(0.5*startradius).setStrutFacets(6).setTaper(true).setSuppressBalljoint(true);//.setUseNoPairing(true)
+  ffc=new HEC_FromNetwork().setNetwork(network).setConnectionRadius(0.5*startradius).setConnectionFacets(6).setTaper(true).setSuppressBalljoint(true);//.setUseNoPairing(true)
   mesh=new HE_Mesh(ffc);
 
 }

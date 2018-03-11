@@ -86,7 +86,7 @@ public class WB_Segment extends WB_Line {
 	public WB_Segment(final WB_Coord p1, final WB_Coord p2) {
 		super(p1, new WB_Vector(p1, p2));
 		endpoint = new WB_Point(p2);
-		length = Math.sqrt(WB_GeometryOp3D.getSqDistance3D(p1, p2));
+		length = Math.sqrt(WB_CoordOp3D.getSqDistance3D(p1, p2));
 	}
 
 	/**
@@ -103,7 +103,7 @@ public class WB_Segment extends WB_Line {
 			final double p2z) {
 		super(new WB_Point(p1x, p1y, p1z), new WB_Vector(p2x - p1x, p2y - p1y, p2z - p1z));
 		endpoint = new WB_Point(p2x, p2y, p2z);
-		length = Math.sqrt(WB_GeometryOp3D.getSqDistance3D(origin, endpoint));
+		length = Math.sqrt(WB_CoordOp3D.getSqDistance3D(origin, endpoint));
 	}
 
 	/**

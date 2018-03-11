@@ -1809,7 +1809,7 @@ public class WB_GeometryFactory3D extends WB_GeometryFactory2D {
 		final double y0 = inversionCircle.getCenter().yd();
 		final double k = inversionCircle.getRadius();
 		final double k2 = k * k;
-		final double s = k2 / (WB_GeometryOp3D.getSqDistance3D(C.getCenter(), inversionCircle.getCenter())
+		final double s = k2 / (WB_CoordOp3D.getSqDistance3D(C.getCenter(), inversionCircle.getCenter())
 				- C.getRadius() * C.getRadius());
 		return createCircleWithRadius(x0 + s * (C.getCenter().xd() - x0), y0 + s * (C.getCenter().yd() - y0),
 				Math.abs(s) * C.getRadius());

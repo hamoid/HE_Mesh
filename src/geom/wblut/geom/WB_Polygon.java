@@ -706,7 +706,7 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 		double d = Double.POSITIVE_INFINITY;
 		int id = -1;
 		for (int i = 0; i < this.numberOfShellPoints; i++) {
-			final double cd = WB_GeometryOp3D.getSqDistance3D(p, getPoint(i));
+			final double cd = WB_CoordOp3D.getSqDistance3D(p, getPoint(i));
 			if (cd < d) {
 				id = i;
 				d = cd;
@@ -725,7 +725,7 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 		double d = Double.POSITIVE_INFINITY;
 		int id = -1;
 		for (int i = 0; i < this.numberOfShellPoints; i++) {
-			final double cd = WB_GeometryOp3D.getSqDistance3D(p, getPoint(i));
+			final double cd = WB_CoordOp3D.getSqDistance3D(p, getPoint(i));
 			if (cd < d) {
 				id = i;
 				d = cd;

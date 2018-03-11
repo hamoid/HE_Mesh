@@ -92,7 +92,8 @@ public class HEMC_SplitMesh extends HEMC_MultiCreator {
 		}
 		if (P == null) {
 			result.add(mesh.copy());
-			_numberOfMeshes = 1;
+			result.add(new HE_Mesh());
+			_numberOfMeshes = 2;
 			return;
 		}
 		final HEM_Slice sm = new HEM_Slice();

@@ -334,14 +334,14 @@ public class WB_Point extends WB_Vector {
 	}
 
 	public static WB_Point interpolate(final WB_Coord v, final WB_Coord w, final double f) {
-		return new WB_Point(WB_GeometryOp3D.interpolate(v.xd(), v.yd(), v.zd(), w.xd(), w.yd(), w.zd(), f));
+		return new WB_Point(WB_CoordOp3D.interpolate(v.xd(), v.yd(), v.zd(), w.xd(), w.yd(), w.zd(), f));
 	}
 
 	public static WB_Point interpolateEase(final WB_Coord v, final WB_Coord w, final double f, final WB_Ease ease,
 			final WB_Ease.EaseType type) {
 
 		return new WB_Point(
-				WB_GeometryOp3D.interpolateEase(v.xd(), v.yd(), v.zd(), w.xd(), w.yd(), w.zd(), f, ease, type));
+				WB_CoordOp3D.interpolateEase(v.xd(), v.yd(), v.zd(), w.xd(), w.yd(), w.zd(), f, ease, type));
 	}
 
 	/*
@@ -487,7 +487,7 @@ public class WB_Point extends WB_Vector {
 	 */
 	@Override
 	public WB_M33 tensor(final WB_Coord v) {
-		return new WB_M33(WB_GeometryOp3D.tensor3D(xd(), yd(), zd(), v.xd(), v.yd(), v.zd()));
+		return new WB_M33(WB_CoordOp3D.tensor3D(xd(), yd(), zd(), v.xd(), v.yd(), v.zd()));
 	}
 
 	/*
@@ -498,7 +498,7 @@ public class WB_Point extends WB_Vector {
 	 */
 	@Override
 	public double scalarTriple(final WB_Coord v, final WB_Coord w) {
-		return WB_GeometryOp3D.scalarTriple(xd(), yd(), zd(), v.xd(), v.yd(), v.zd(), w.xd(), w.yd(), w.zd());
+		return WB_CoordOp3D.scalarTriple(xd(), yd(), zd(), v.xd(), v.yd(), v.zd(), w.xd(), w.yd(), w.zd());
 	}
 
 	/*

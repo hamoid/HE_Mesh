@@ -18,8 +18,6 @@ import wblut.math.WB_MTRandom;
 
 public class WB_Danzer3D {
 
-	private WB_GeometryFactory geometryfactory = new WB_GeometryFactory();
-
 	public static enum Type {
 		A, B, C, K
 	};
@@ -506,7 +504,7 @@ public class WB_Danzer3D {
 
 		public static WB_Point interpolateNonNorm(final WB_Coord v, final WB_Coord w, final double a, final double b) {
 			return new WB_Point(
-					WB_GeometryOp3D.interpolate(v.xd(), v.yd(), v.zd(), w.xd(), w.yd(), w.zd(), a / (a + b)));
+					WB_CoordOp3D.interpolate(v.xd(), v.yd(), v.zd(), w.xd(), w.yd(), w.zd(), a / (a + b)));
 		}
 
 	}

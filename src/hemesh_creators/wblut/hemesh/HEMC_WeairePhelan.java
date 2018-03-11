@@ -97,8 +97,8 @@ public class HEMC_WeairePhelan extends HEMC_MultiCreator {
 		super();
 		dodecahedron = new HE_Mesh(new HEC_ConvexHull().setPoints(dodecahedronPoints));
 		tetrakaidecahedron = new HE_Mesh(new HEC_ConvexHull().setPoints(tetrakaidecahedronPoints));
-		dodecahedron.fuseCoplanarFaces(0.1);
-		tetrakaidecahedron.fuseCoplanarFaces(0.1);
+		HET_MeshOp.fuseCoplanarFaces(dodecahedron,0.1);
+		HET_MeshOp.fuseCoplanarFaces(tetrakaidecahedron,0.1);
 		cropUp = false;
 		cropVp = false;
 		cropWp = false;

@@ -334,13 +334,13 @@ public class WB_IndexedAABBTree2D {
 
 	private double addNode(final WB_Coord p, final WB_IndexedAABBNode2D node, final PriorityQueue<Entry> entries,
 			double closest2) {
-		double d2 = WB_GeometryOp2D.getSqDistance2D(p, node.aabb);
+		double d2 = WB_CoordOp2D.getSqDistance2D(p, node.aabb);
 		if (d2 <= closest2) {
 			entries.add(new Entry(null, d2, 0, null, node));
 			if (node.isLeaf()) {
 				for (WB_IndexedTriangle f : node.faces) {
 					WB_Coord q = WB_GeometryOp2D.getClosestPoint2D(p, f);
-					double fd2 = WB_GeometryOp2D.getSqDistance2D(p, q);
+					double fd2 = WB_CoordOp2D.getSqDistance2D(p, q);
 					if (fd2 < closest2) {
 						entries.add(new Entry(q, fd2, 1, f, node));
 						closest2 = fd2;

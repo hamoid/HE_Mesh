@@ -16,7 +16,7 @@ import wblut.math.WB_Math;
 /**
  *
  */
-public class WB_Vector4D extends WB_MutableCoordinate4D implements WB_MutableCoordinateFull4D {
+public class WB_Vector4D extends WB_MutableCoordinate4D implements WB_MutableCoord, WB_MutableCoordinateMath4D, WB_MutableCoordTransform4D, WB_CoordMetric4D {
 	/**
 	 *
 	 *

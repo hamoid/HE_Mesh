@@ -44,6 +44,10 @@ public abstract class WB_CoordCollection {
 	public WB_CoordCollection noise(final WB_RandomPoint generator) {
 		return new WB_CoordCollectionNoise(this, generator);
 	}
+	
+	public WB_CoordCollection jitter(final double d) {
+		return new WB_CoordCollectionJitter(this, d);
+	}
 
 	public WB_CoordCollection map(final WB_Map map) {
 		return new WB_CoordCollectionMap(this, map);
@@ -343,6 +347,52 @@ public abstract class WB_CoordCollection {
 			return list;
 		}
 
+	}
+
+	static class WB_CoordCollectionJitter extends WB_CoordCollection {
+		WB_CoordCollection source;
+		WB_Coord[] noise;
+	
+		WB_CoordCollectionJitter(final WB_CoordCollection source, final double d) {
+			this.source = source;
+			noise = new WB_Coord[source.size()];
+			WB_RandomPoint generator=new WB_RandomOnSphere();
+			for (int i = 0; i < source.size(); i++) {
+				noise[i] = generator.nextVector().mulSelf(d);
+			}
+	
+		}
+	
+		@Override
+		public WB_Coord get(final int i) {
+			return WB_Point.add(source.get(i), noise[i]);
+		}
+	
+		@Override
+		public int size() {
+			return source.size();
+		}
+	
+		@Override
+		public WB_Coord[] toArray() {
+			WB_Coord[] array = new WB_Coord[source.size()];
+	
+			for (int i = 0; i < source.size(); i++) {
+				array[i] = WB_Point.add(source.get(i), noise[i]);
+			}
+			return array;
+		}
+	
+		@Override
+		public List<WB_Coord> toList() {
+			List<WB_Coord> list = new FastList<WB_Coord>();
+			for (int i = 0; i < source.size(); i++) {
+				list.add(WB_Point.add(source.get(i), noise[i]));
+			}
+	
+			return list;
+		}
+	
 	}
 
 }

@@ -23,7 +23,7 @@ import org.eclipse.collections.impl.list.mutable.FastList;
 
 import wblut.geom.WB_Coord;
 import wblut.geom.WB_Geodesic;
-import wblut.geom.WB_GeometryOp3D;
+import wblut.geom.WB_CoordOp3D;
 import wblut.geom.WB_Mesh;
 import wblut.geom.WB_Network;
 import wblut.geom.WB_Point;
@@ -63,7 +63,7 @@ public class HET_MeshGraph {
 			if (meshedges[i][0] != meshedges[i][1]) {
 				p0 = mesh.getVertex(meshedges[i][0]);
 				p1 = mesh.getVertex(meshedges[i][1]);
-				d = WB_GeometryOp3D.getDistance3D(p0, p1);
+				d = WB_CoordOp3D.getDistance3D(p0, p1);
 				v0 = nodes[meshedges[i][0]];
 				v1 = nodes[meshedges[i][1]];
 				v0.neighbors.add(new Edge(v1, d));
@@ -95,7 +95,7 @@ public class HET_MeshGraph {
 			if (meshedges[i][0] != meshedges[i][1]) {
 				p0 = mesh.getVertex(meshedges[i][0]);
 				p1 = mesh.getVertex(meshedges[i][1]);
-				d = WB_GeometryOp3D.getDistance3D(p0, p1);
+				d = WB_CoordOp3D.getDistance3D(p0, p1);
 				v0 = nodes[meshedges[i][0]];
 				v1 = nodes[meshedges[i][1]];
 				v0.neighbors.add(new Edge(v1, d));
@@ -144,7 +144,7 @@ public class HET_MeshGraph {
 			if (meshedges[i][0] != meshedges[i][1]) {
 				p0 = mesh.getVertex(meshedges[i][0]);
 				p1 = mesh.getVertex(meshedges[i][1]);
-				d = WB_GeometryOp3D.getDistance3D(p0, p1);
+				d = WB_CoordOp3D.getDistance3D(p0, p1);
 				v0 = nodes[meshedges[i][0]];
 				v1 = nodes[meshedges[i][1]];
 				v0.neighbors.add(new Edge(v1, d));
@@ -169,7 +169,7 @@ public class HET_MeshGraph {
 			if (meshedges[i] != meshedges[i + 1]) {
 				p0 = points.get(meshedges[i]);
 				p1 = points.get(meshedges[i + 1]);
-				d = WB_GeometryOp3D.getDistance3D(p0, p1);
+				d = WB_CoordOp3D.getDistance3D(p0, p1);
 				v0 = nodes[meshedges[i]];
 				v1 = nodes[meshedges[i + 1]];
 				v0.neighbors.add(new Edge(v1, d));
@@ -194,7 +194,7 @@ public class HET_MeshGraph {
 			if (meshedges[i] != meshedges[i + 1]) {
 				p0 = points[meshedges[i]];
 				p1 = points[meshedges[i + 1]];
-				d = WB_GeometryOp3D.getDistance3D(p0, p1);
+				d = WB_CoordOp3D.getDistance3D(p0, p1);
 				v0 = nodes[meshedges[i]];
 				v1 = nodes[meshedges[i + 1]];
 				v0.neighbors.add(new Edge(v1, d));
@@ -219,7 +219,7 @@ public class HET_MeshGraph {
 			if (meshedges[i] != meshedges[i + 1]) {
 				p0 = points[meshedges[i]];
 				p1 = points[meshedges[i + 1]];
-				d = WB_GeometryOp3D.getDistance3D(p0, p1);
+				d = WB_CoordOp3D.getDistance3D(p0, p1);
 				v0 = nodes[meshedges[i]];
 				v1 = nodes[meshedges[i + 1]];
 				v0.neighbors.add(new Edge(v1, d));

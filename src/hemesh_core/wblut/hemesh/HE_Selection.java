@@ -1826,4 +1826,9 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 
 	}
 
+	public HE_Mesh getParent() {
+		
+		return parent;
+	}
+
 }

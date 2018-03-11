@@ -414,7 +414,9 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 		}
 		HE_Halfedge he = getHalfedge();
 		do {
+			
 			result++;
+		
 			he = he.getNextInVertex();
 		} while (he != getHalfedge());
 		return result;

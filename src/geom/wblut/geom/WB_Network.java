@@ -612,7 +612,7 @@ public class WB_Network {
 		double mind = Double.POSITIVE_INFINITY;
 		int q = -1;
 		for (int i = 0; i < nodes.size(); i++) {
-			final double d = WB_GeometryOp3D.getSqDistance3D(p, nodes.get(i));
+			final double d = WB_CoordOp3D.getSqDistance3D(p, nodes.get(i));
 			if (d < mind) {
 				mind = d;
 				q = i;
@@ -1238,7 +1238,7 @@ public class WB_Network {
 		 * @return
 		 */
 		public double getSqLength() {
-			return WB_GeometryOp3D.getSqDistance3D(end(), start());
+			return WB_CoordOp3D.getSqDistance3D(end(), start());
 		}
 
 		/**
@@ -1247,7 +1247,7 @@ public class WB_Network {
 		 * @return
 		 */
 		public double getLength() {
-			return WB_GeometryOp3D.getDistance3D(end(), start());
+			return WB_CoordOp3D.getDistance3D(end(), start());
 		}
 
 		/**

@@ -268,7 +268,7 @@ public class WB_AABBTree {
 			if (node.isLeaf()) {
 				for (HE_Face f : node.faces) {
 					WB_Coord q = f.getClosestPoint(p);
-					double fd2 = WB_GeometryOp.getSqDistance3D(p, q);
+					double fd2 = WB_CoordOp3D.getSqDistance3D(p, q);
 					if (fd2 < closest2) {
 						entries.add(new Entry(q, fd2, 1, f, node));
 						closest2 = fd2;

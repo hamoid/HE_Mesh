@@ -25,7 +25,7 @@ import wblut.geom.WB_AABBTree;
 import wblut.geom.WB_Coord;
 import wblut.geom.WB_GeometryOp;
 import wblut.geom.WB_Point;
-import wblut.geom.WB_Voronoi;
+import wblut.geom.WB_VoronoiCreator;
 import wblut.math.WB_ConstantScalarParameter;
 import wblut.math.WB_ScalarParameter;
 
@@ -260,7 +260,7 @@ public class HEMC_VoronoiCellsPre extends HEMC_MultiCreator {
 		multiCreator.setOffset(offset);
 		multiCreator.setBruteForce(bruteForce);
 		HE_MeshCollection cells = multiCreator.create();
-		int[][] indices = WB_Voronoi.getVoronoi3DNeighbors(points);
+		int[][] indices = WB_VoronoiCreator.getVoronoi3DNeighbors(points);
 		final HEC_VoronoiCell cvc = new HEC_VoronoiCell();
 		cvc.setPoints(points).setContainer(container).setOffset(offset).setLimitPoints(true);
 		WB_AABBTree tree = new WB_AABBTree(container, 1);

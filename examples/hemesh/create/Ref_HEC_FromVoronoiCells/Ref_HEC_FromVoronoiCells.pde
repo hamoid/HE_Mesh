@@ -11,21 +11,22 @@ HE_Mesh container;
 HE_MeshCollection cells;
 int numcells;
 HE_Mesh fusedcells;
-
+HE_Selection sel;
 WB_Render3D render;
 
 void setup() {
   fullScreen(P3D);
   smooth(8);
   createContainer();
-  numpoints=800;
+  numpoints=1000;
   createMesh();
   render=new WB_Render(this);
+  noCursor();
 }
 
 void createContainer() {
-  container=new HE_Mesh(new HEC_Geodesic().setB(2).setC(0).setRadius(320)); 
-  container.modify(new HEM_Extrude().setDistance(150).setChamfer(0.5));
+  container=new HE_Mesh(new HEC_Geodesic().setB(2).setC(0).setRadius(420)); 
+ // container.modify(new HEM_Extrude().setDistance(150).setChamfer(0.5));
   HE_FaceIterator fitr=container.fItr();
   while (fitr.hasNext()) {
     fitr.next().setColor(color(0, 200, 50));
@@ -35,7 +36,7 @@ void createContainer() {
 void createMesh() {  
   // generate points
   points=new WB_Point[numpoints];
-  WB_RandomPoint generator=new WB_RandomInSphere().setRadius(250);
+  WB_RandomPoint generator=new WB_RandomInSphere().setRadius(400);
   for (int i=0; i<numpoints; i++) {
     points[i]=generator.nextPoint();
   }
@@ -64,6 +65,9 @@ void createMesh() {
 
   HEC_FromVoronoiCells creator=new HEC_FromVoronoiCells().setCells(cells).setActive(isCellOn);
   fusedcells=new HE_Mesh(creator);
+  HET_MeshOp.fuseCoplanarFaces(fusedcells,0.1);
+ sel=HET_Fixer.selectVerticesWithDegree(2,fusedcells);
+  fusedcells.validate();
 /*
   //clean-up mesh by joining fragmented faces back together. This does not always work
   HE_Mesh tmp=fusedcells.get();
@@ -88,7 +92,7 @@ boolean isActive(int i){
   float r2=(float)WB_Point.getSqLength(point);
   float zcutoff=50+0.0025*r2;
   
-  return abs(point.zf())<zcutoff;
+  return abs(point.xf())<50 || (abs(point.xf())>150 &&abs(point.xf())<250) || (abs(point.xf())>350 );
   
 }
 
@@ -97,15 +101,14 @@ void draw() {
   directionalLight(255, 255, 255, 1, 1, -1);
   directionalLight(127, 127, 127, -1, -1, 1);
   translate(width/2, height/2, 0);
-  rotateY(mouseX*1.0f/width*TWO_PI);
+  rotateY(mouseX*1.0f/width*TWO_PI+radians(0.1*frameCount));
   rotateX(mouseY*1.0f/height*TWO_PI);
   strokeWeight(1);
-  stroke(0);
+  stroke(255);
   render.drawEdges(fusedcells);
   noStroke();
-  render.drawFacesFC(fusedcells);
-}
-
-void mousePressed() {
-  createMesh();
+  fill(55);
+  render.drawFaces(fusedcells);
+  fill(255,0,0);
+  render.drawVertices(sel,5);
 }

@@ -14,7 +14,7 @@ import java.util.Iterator;
 
 import org.eclipse.collections.impl.map.mutable.primitive.LongIntHashMap;
 
-import wblut.geom.WB_GeometryOp3D;
+import wblut.geom.WB_CoordOp3D;
 import wblut.geom.WB_Point;
 import wblut.geom.WB_Vector;
 import wblut.math.WB_Epsilon;
@@ -136,7 +136,7 @@ public class HES_DooSabin extends HES_Subdividor {
 				p.addSelf(WB_Vector.mul(he.getPrevInFace().getHalfedgeCenter(), edgeFactor));
 				p.divSelf(div);
 				if (absolute) {
-					final double dcurrent = WB_GeometryOp3D.getDistance3D(p, he.getVertex());
+					final double dcurrent = WB_CoordOp3D.getDistance3D(p, he.getVertex());
 					p.subSelf(he.getVertex());
 					p.mulSelf(d / dcurrent);
 					p.addSelf(he.getVertex());

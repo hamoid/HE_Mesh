@@ -24,7 +24,7 @@ package wblut.geom;
  * @author Frederik Vanhoutte
  *
  */
-public interface WB_MutableCoordinateMath4D extends WB_CoordinateMath4D {
+public interface WB_MutableCoordinateMath4D extends WB_CoordMath4D {
 	/**
 	 *
 	 *

@@ -16,6 +16,7 @@ import java.util.List;
 import org.eclipse.collections.impl.list.mutable.FastList;
 
 import wblut.geom.WB_Coord;
+import wblut.geom.WB_CoordOp3D;
 import wblut.geom.WB_GeometryOp3D;
 import wblut.geom.WB_KDTreeInteger;
 import wblut.geom.WB_KDTreeInteger.WB_KDEntryInteger;
@@ -248,7 +249,7 @@ public class HEC_VoronoiSphere extends HEC_Creator {
 			while (stepSize > WB_Epsilon.EPSILON) {
 				while (j == index && d2self < cutoff * cutoff) {
 					p.addSelf(stepSize * r.xd(), stepSize * r.yd(), stepSize * r.zd());
-					d2self = WB_GeometryOp3D.getSqDistance3D(p, c);
+					d2self = WB_CoordOp3D.getSqDistance3D(p, c);
 					final WB_KDEntryInteger<WB_Coord>[] closest = kdtree.getNearestNeighbors(p, 1);
 					j = closest[0].value;
 				}

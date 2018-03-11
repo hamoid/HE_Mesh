@@ -25,6 +25,7 @@ import wblut.geom.WB_AABBTree;
 import wblut.geom.WB_AABBTree.WB_AABBNode;
 import wblut.geom.WB_Classification;
 import wblut.geom.WB_Coord;
+import wblut.geom.WB_CoordOp3D;
 import wblut.geom.WB_CoordinateSystem3D;
 import wblut.geom.WB_GeometryFactory;
 import wblut.geom.WB_GeometryOp;
@@ -3888,11 +3889,11 @@ public class HET_MeshOp {
 	 */
 	public static boolean pointIsStrictlyInFace(final WB_Coord p, final HE_Face f) {
 		final WB_Polygon poly = f.toPolygon();
-		if (!WB_Epsilon.isZeroSq(WB_GeometryOp3D.getSqDistance3D(p, WB_GeometryOp3D.getClosestPoint3D(p, poly)))) {
+		if (!WB_Epsilon.isZeroSq(WB_CoordOp3D.getSqDistance3D(p, WB_GeometryOp3D.getClosestPoint3D(p, poly)))) {
 			return false;
 		}
 		if (!WB_Epsilon
-				.isZeroSq(WB_GeometryOp3D.getSqDistance3D(p, WB_GeometryOp3D.getClosestPointOnPeriphery3D(p, poly)))) {
+				.isZeroSq(WB_CoordOp3D.getSqDistance3D(p, WB_GeometryOp3D.getClosestPointOnPeriphery3D(p, poly)))) {
 			return false;
 		}
 		return true;
@@ -4315,6 +4316,125 @@ public class HET_MeshOp {
 		mesh2.addSelection("intersection", sifs2);
 
 		return ints;
+	}
+	
+	/**
+	 * Fuse all planar faces. Can lead to concave faces.
+	 *
+	 */
+	public static void fuseCoplanarFaces(final HE_Mesh mesh) {
+		fuseCoplanarFaces(mesh, 0);
+	}
+
+	/**
+	 * Fuse all planar faces. Can lead to concave faces.
+	 *
+	 * @param a
+	 *            
+	 */
+	public static void fuseCoplanarFaces(final HE_Mesh mesh, final double a) {
+		int ni;
+		int no;
+		do {
+			ni = mesh.getNumberOfEdges();
+			final List<HE_Halfedge> edges = mesh.getEdges();
+			for (HE_Halfedge e : edges) {
+				if (Math.abs(e.getEdgeDihedralAngle() - Math.PI) < a + WB_Epsilon.EPSILON) {
+					if (e.getFace() != e.getPair().getFace()) {
+						deleteEdge(mesh, e);
+					}
+				}
+			}
+
+			no = mesh.getNumberOfEdges();
+		} while (no < ni);
+
+		HET_Fixer.deleteDanglingEdges(mesh);
+		HET_Fixer.deleteCollinearVertices(mesh);
+	}
+
+	public static void fuseCoplanarFaces(final HE_Selection sel) {
+		fuseCoplanarFaces(sel, 0);
+	}
+
+	/**
+	 * Fuse all planar faces. Can lead to concave faces.
+	 *
+	 * @param a
+	 *            the a
+	 */
+	public static void fuseCoplanarFaces(final HE_Selection sel, final double a) {
+
+		sel.collectEdgesByFace();
+
+		final List<HE_Halfedge> edges = sel.getInnerEdges();
+
+		for (HE_Halfedge e : edges) {
+			if (Math.abs(e.getEdgeDihedralAngle() - Math.PI) < a + WB_Epsilon.EPSILON) {
+				if (e.getFace() != e.getPair().getFace()) {
+					deleteEdge(sel.getParent(), e);
+
+				}
+			}
+		}
+		sel.cleanSelection();
+		HET_Fixer.deleteDanglingEdges(sel.getParent());
+		HET_Fixer.deleteCollinearVertices(sel.getParent());
+
+	}
+	
+	/**
+	 * Delete edge. Adjacent faces are fused.
+	 *
+	 * @param e
+	 *            edge to delete
+	 * @return fused face (or null)
+	 */
+	public static HE_Face deleteEdge(final HE_Mesh mesh, final HE_Halfedge e) {
+
+		HE_Face f = null;
+
+		final HE_Halfedge he1 = e;
+		final HE_Halfedge he2 = he1.getPair();
+
+		final HE_Halfedge he1n = he1.getNextInFace();
+		final HE_Halfedge he2n = he2.getNextInFace();
+		final HE_Halfedge he1p = he1.getPrevInFace();
+		final HE_Halfedge he2p = he2.getPrevInFace();
+		HE_Vertex v = he1.getVertex();
+		if (v.getHalfedge() == he1) {
+			mesh.setHalfedge(v, he1.getNextInVertex());
+			
+		}
+		v = he2.getVertex();
+		if (v.getHalfedge() == he2) {
+			mesh.setHalfedge(v, he2.getNextInVertex());
+			
+		}
+		mesh.setNext(he1p, he2n);
+		mesh.setNext(he2p, he1n);
+		if (he1.getFace() != null && he2.getFace() != null) {
+			f = new HE_Face();
+			f.copyProperties(he1.getFace());
+			mesh.setHalfedge(f, he1p);
+			HE_Halfedge he = he1p;
+			do {
+				mesh.setFace(he, f);
+				he = he.getNextInFace();
+			} while (he != he1p);
+		}
+
+		mesh.remove(he1);
+		mesh.remove(he2);
+	
+		mesh.addDerivedElement(f, he1.getFace(), he2.getFace());
+		if (he1.getFace() != null) {
+			mesh.remove(he1.getFace());
+		}
+		if (he2.getFace() != null) {
+			mesh.remove(he2.getFace());
+		}
+		return f;
 	}
 
 }

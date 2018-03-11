@@ -19,6 +19,7 @@ import org.eclipse.collections.impl.map.mutable.primitive.LongObjectHashMap;
 import wblut.core.WB_ProgressReporter.WB_ProgressCounter;
 import wblut.geom.WB_Classification;
 import wblut.geom.WB_Coord;
+import wblut.geom.WB_CoordOp3D;
 import wblut.geom.WB_GeometryOp3D;
 import wblut.geom.WB_IntersectionResult;
 import wblut.geom.WB_Point;
@@ -1076,7 +1077,7 @@ public class HEM_Extrude extends HEM_Modifier {
 			for (int i = 0; i < newhes.size(); i++) {
 				final HE_Halfedge e = newhes.get(i);
 				// if (e.isEdge()) {
-				if (WB_Epsilon.isZeroSq(WB_GeometryOp3D.getSqDistance3D(e.getStartVertex(), e.getEndVertex()))) {
+				if (WB_Epsilon.isZeroSq(WB_CoordOp3D.getSqDistance3D(e.getStartVertex(), e.getEndVertex()))) {
 					edgesToRemove.add(e);
 				}
 				// }

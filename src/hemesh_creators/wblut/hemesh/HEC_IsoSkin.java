@@ -15,7 +15,7 @@ import org.eclipse.collections.impl.map.mutable.primitive.LongIntHashMap;
 import org.eclipse.collections.impl.map.mutable.primitive.LongObjectHashMap;
 
 import wblut.geom.WB_Coord;
-import wblut.geom.WB_GeometryOp;
+import wblut.geom.WB_CoordOp3D;
 import wblut.geom.WB_Point;
 import wblut.math.WB_Epsilon;
 
@@ -780,7 +780,7 @@ public class HEC_IsoSkin extends HEC_Creator {
 					VertexRemap vr = vertexremaps.get(vertexindex(layeri, i));
 					if (vr == null) {
 						vr = new VertexRemap();
-						vr.closestd = mu * WB_GeometryOp.getDistance3D(pi, pj);
+						vr.closestd = mu * WB_CoordOp3D.getDistance3D(pi, pj);
 						vr.i = i;
 						vr.layeri = layeri;
 
@@ -789,7 +789,7 @@ public class HEC_IsoSkin extends HEC_Creator {
 						vr.snapvertex = vertex(layeri, i, mesh);
 						vertexremaps.put(vertexindex(layeri, i), vr);
 					} else {
-						double d = mu * WB_GeometryOp.getDistance3D(pi, pj);
+						double d = mu * WB_CoordOp3D.getDistance3D(pi, pj);
 						if (vr.closestd > d) {
 							vr.closestd = d;
 							vr.i = i;
@@ -804,7 +804,7 @@ public class HEC_IsoSkin extends HEC_Creator {
 					VertexRemap vr = vertexremaps.get(vertexindex(layerj, j));
 					if (vr == null) {
 						vr = new VertexRemap();
-						vr.closestd = (1 - mu) * WB_GeometryOp.getDistance3D(pi, pj);
+						vr.closestd = (1 - mu) * WB_CoordOp3D.getDistance3D(pi, pj);
 						vr.i = j;
 						vr.layeri = layerj;
 
@@ -813,7 +813,7 @@ public class HEC_IsoSkin extends HEC_Creator {
 						vr.snapvertex = vertex(layerj, j, mesh);
 						vertexremaps.put(vertexindex(layerj, j), vr);
 					} else {
-						double d = (1 - mu) * WB_GeometryOp.getDistance3D(pi, pj);
+						double d = (1 - mu) * WB_CoordOp3D.getDistance3D(pi, pj);
 						if (vr.closestd > d) {
 							vr.closestd = d;
 							vr.layeri = layerj;

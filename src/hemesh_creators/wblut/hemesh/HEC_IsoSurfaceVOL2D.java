@@ -20,6 +20,7 @@ import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import processing.core.PApplet;
 import processing.core.PImage;
 import wblut.geom.WB_Coord;
+import wblut.geom.WB_CoordOp3D;
 import wblut.geom.WB_GeometryOp3D;
 import wblut.geom.WB_HashGridDouble2D;
 import wblut.geom.WB_IsoValues2D;

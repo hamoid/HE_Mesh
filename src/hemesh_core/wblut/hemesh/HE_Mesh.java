@@ -33,6 +33,7 @@ import wblut.geom.WB_AABB;
 import wblut.geom.WB_Classification;
 import wblut.geom.WB_Coord;
 import wblut.geom.WB_CoordCollection;
+import wblut.geom.WB_CoordOp3D;
 import wblut.geom.WB_GeometryFactory;
 import wblut.geom.WB_GeometryOp3D;
 import wblut.geom.WB_KDTree;
@@ -530,7 +531,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		for (int i = 0; i < faces.size(); i++) {
 			final WB_Polygon poly = faces.get(i).toPolygon();
 			final WB_Coord tmp = WB_GeometryOp3D.getClosestPoint3D(p, poly);
-			d = WB_GeometryOp3D.getSqDistance3D(tmp, p);
+			d = WB_CoordOp3D.getSqDistance3D(tmp, p);
 			if (d < dmin) {
 				dmin = d;
 				face = faces.get(i);
@@ -1325,104 +1326,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	}
 
 	/**
-	 * Fuse all coplanar faces connected to face. New face can be concave.
-	 *
-	 * @param face
-	 *            starting face
-	 * @param a
-	 *            the a
-	 * @return new face
-	 */
-	public HE_Face fuseCoplanarFace(final HE_Face face, final double a) {
-
-		List<HE_Face> neighbors;
-		FastList<HE_Face> facesToCheck = new FastList<HE_Face>();
-		final FastList<HE_Face> newFacesToCheck = new FastList<HE_Face>();
-		facesToCheck.add(face);
-		final HE_Selection sel = HE_Selection.getSelection(this);
-		sel.add(face);
-		HE_Face f;
-		HE_Face fn;
-		int ni = -1;
-		int nf = 0;
-		double sa = Math.sin(a);
-		sa *= sa;
-		while (ni < nf) {
-			newFacesToCheck.clear();
-			for (int i = 0; i < facesToCheck.size(); i++) {
-				f = facesToCheck.get(i);
-				neighbors = f.getNeighborFaces();
-				for (int j = 0; j < neighbors.size(); j++) {
-					fn = neighbors.get(j);
-					if (!sel.contains(fn)) {
-						if (WB_Vector.isParallel(f.getFaceNormal(), fn.getFaceNormal(), sa)) {
-							sel.add(fn);
-							newFacesToCheck.add(fn);
-						}
-					}
-				}
-			}
-			facesToCheck = newFacesToCheck;
-			ni = nf;
-			nf = sel.getNumberOfFaces();
-		}
-		if (sel.getNumberOfFaces() == 1) {
-			return face;
-		}
-		final List<HE_Halfedge> halfedges = sel.getOuterHalfedgesInside();
-		final HE_Face newFace = new HE_Face();
-		add(newFace);
-		newFace.copyProperties(sel.getFaceWithIndex(0));
-		setHalfedge(newFace, halfedges.get(0));
-		for (int i = 0; i < halfedges.size(); i++) {
-			final HE_Halfedge hei = halfedges.get(i);
-			final HE_Halfedge hep = halfedges.get(i).getPair();
-			for (int j = 0; j < halfedges.size(); j++) {
-				final HE_Halfedge hej = halfedges.get(j);
-				if (i != j && hep.getVertex() == hej.getVertex()) {
-					setNext(hei, hej);
-				}
-			}
-			setFace(hei, newFace);
-			setHalfedge(hei.getVertex(), hei);
-		}
-		removeFaces(sel.getFacesAsArray());
-		cleanUnusedElementsByFace();
-		capHalfedges();
-		return newFace;
-	}
-
-	/**
-	 * Fuse all planar faces. Can lead to concave faces.
-	 *
-	 */
-	public void fuseCoplanarFaces() {
-		fuseCoplanarFaces(0);
-	}
-
-	/**
-	 * Fuse all planar faces. Can lead to concave faces.
-	 *
-	 * @param a
-	 *            the a
-	 */
-	public void fuseCoplanarFaces(final double a) {
-		int ni;
-		int no;
-		do {
-			ni = getNumberOfFaces();
-			final List<HE_Face> faces = this.getFaces();
-			for (int i = 0; i < faces.size(); i++) {
-				final HE_Face f = faces.get(i);
-				if (contains(f)) {
-					fuseCoplanarFace(f, a);
-				}
-			}
-			no = getNumberOfFaces();
-		} while (no < ni);
-	}
-
-	/**
 	 * Deep copy of mesh.
 	 *
 	 * @return copy as new HE_Mesh
@@ -1612,7 +1515,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		for (int i = 0; i < faces.size(); i++) {
 			final WB_Polygon poly = faces.get(i).toPolygon();
 			final WB_Coord tmp = WB_GeometryOp3D.getClosestPoint3D(p, poly);
-			d = WB_GeometryOp3D.getSqDistance3D(tmp, p);
+			d = WB_CoordOp3D.getSqDistance3D(tmp, p);
 			if (d < dmin) {
 				dmin = d;
 				result = tmp;
@@ -1834,6 +1737,19 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		while (fItr.hasNext()) {
 			f = fItr.next();
 			result[i] = f.getFaceNormal();
+			i++;
+		}
+		return result;
+	}
+	
+	public WB_Plane[] getFacePlanes() {
+		final WB_Plane[] result = new WB_Plane[getNumberOfFaces()];
+		int i = 0;
+		HE_Face f;
+		final Iterator<HE_Face> fItr = fItr();
+		while (fItr.hasNext()) {
+			f = fItr.next();
+			result[i] = f.getPlane();
 			i++;
 		}
 		return result;

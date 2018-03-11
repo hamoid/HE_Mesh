@@ -17,7 +17,7 @@ import wblut.math.WB_Math;
 /**
  *
  */
-public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoordinateFull2D {
+public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoord, WB_MutableCoordMath2D, WB_MutableCoordTransform2D, WB_CoordMetric2D {
 	private static final WB_Coord X = new WB_MutableCoordinate2D(1, 0);
 	private static final WB_Coord Y = new WB_MutableCoordinate2D(0, 1);
 	private static final WB_Coord ORIGIN = new WB_MutableCoordinate2D(0, 0);
@@ -199,7 +199,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static double dot2D(final WB_Coord p, final WB_Coord q) {
-		return WB_GeometryOp2D.dot2D(p.xd(), p.yd(), q.xd(), q.yd());
+		return WB_CoordOp2D.dot2D(p.xd(), p.yd(), q.xd(), q.yd());
 	}
 
 	/**
@@ -210,7 +210,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static double absDot2D(final WB_Coord p, final WB_Coord q) {
-		return WB_Math.fastAbs(WB_GeometryOp2D.dot2D(p.xd(), p.yd(), q.xd(), q.yd()));
+		return WB_Math.fastAbs(WB_CoordOp2D.dot2D(p.xd(), p.yd(), q.xd(), q.yd()));
 	}
 
 	/**
@@ -221,7 +221,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static double getAngle(final WB_Coord q, final WB_Coord p) {
-		return WB_GeometryOp2D.getAngleBetween2D(q.xd(), q.yd(), p.xd(), p.yd());
+		return WB_CoordOp2D.getAngleBetween2D(q.xd(), q.yd(), p.xd(), p.yd());
 	}
 
 	/**
@@ -232,7 +232,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static double getAngleNorm(final WB_Coord q, final WB_Coord p) {
-		return WB_GeometryOp2D.getAngleBetweenNorm2D(q.xd(), q.yd(), p.xd(), p.yd());
+		return WB_CoordOp2D.getAngleBetweenNorm2D(q.xd(), q.yd(), p.xd(), p.yd());
 	}
 
 	/**
@@ -243,7 +243,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static double getDistance2D(final WB_Coord q, final WB_Coord p) {
-		return WB_GeometryOp2D.getDistance2D(q.xd(), q.yd(), p.xd(), p.yd());
+		return WB_CoordOp2D.getDistance2D(q.xd(), q.yd(), p.xd(), p.yd());
 	}
 
 	/**
@@ -253,7 +253,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static double getLength2D(final WB_Coord p) {
-		return WB_GeometryOp2D.getLength2D(p.xd(), p.yd());
+		return WB_CoordOp2D.getLength2D(p.xd(), p.yd());
 	}
 
 	/**
@@ -264,7 +264,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static double getSqDistance2D(final WB_Coord q, final WB_Coord p) {
-		return WB_GeometryOp2D.getSqDistance2D(q.xd(), q.yd(), p.xd(), p.yd());
+		return WB_CoordOp2D.getSqDistance2D(q.xd(), q.yd(), p.xd(), p.yd());
 	}
 
 	/**
@@ -274,7 +274,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static double getSqLength2D(final WB_Coord v) {
-		return WB_GeometryOp2D.getSqLength2D(v.xd(), v.yd());
+		return WB_CoordOp2D.getSqLength2D(v.xd(), v.yd());
 	}
 
 	/**
@@ -296,7 +296,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static boolean isCollinear2D(final WB_Coord o, final WB_Coord p, final WB_Coord q) {
-		return WB_GeometryOp2D.isCollinear2D(o, p, q);
+		return WB_CoordOp2D.isCollinear2D(o, p, q);
 	}
 
 	/**
@@ -307,7 +307,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static boolean isParallel2D(final WB_Coord p, final WB_Coord q) {
-		return WB_GeometryOp2D.isParallel2D(p, q);
+		return WB_CoordOp2D.isParallel2D(p, q);
 	}
 
 	/**
@@ -319,7 +319,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static boolean isParallel2D(final WB_Coord p, final WB_Coord q, final double t) {
-		return WB_GeometryOp2D.isParallel2D(p, q, t);
+		return WB_CoordOp2D.isParallel2D(p, q, t);
 	}
 
 	/**
@@ -330,7 +330,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static boolean isParallelNorm2D(final WB_Coord p, final WB_Coord q) {
-		return WB_GeometryOp2D.isParallelNorm2D(p, q);
+		return WB_CoordOp2D.isParallelNorm2D(p, q);
 	}
 
 	/**
@@ -342,7 +342,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static boolean isParallelNorm2D(final WB_Coord p, final WB_Coord q, final double t) {
-		return WB_GeometryOp2D.isParallelNorm2D(p, q, t);
+		return WB_CoordOp2D.isParallelNorm2D(p, q, t);
 	}
 
 	/**
@@ -353,7 +353,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static boolean isOrthogonal2D(final WB_Coord p, final WB_Coord q) {
-		return WB_GeometryOp2D.isOrthogonal2D(p, q);
+		return WB_CoordOp2D.isOrthogonal2D(p, q);
 	}
 
 	/**
@@ -365,7 +365,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static boolean isOrthogonal2D(final WB_Coord p, final WB_Coord q, final double t) {
-		return WB_GeometryOp2D.isOrthogonal2D(p, q, t);
+		return WB_CoordOp2D.isOrthogonal2D(p, q, t);
 	}
 
 	/**
@@ -376,7 +376,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static boolean isOrthogonalNorm2D(final WB_Coord p, final WB_Coord q) {
-		return WB_GeometryOp2D.isOrthogonalNorm2D(p, q);
+		return WB_CoordOp2D.isOrthogonalNorm2D(p, q);
 	}
 
 	/**
@@ -388,7 +388,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 * @return
 	 */
 	public static boolean isOrthogonalNorm2D(final WB_Coord p, final WB_Coord q, final double t) {
-		return WB_GeometryOp2D.isOrthogonalNorm2D(p, q, t);
+		return WB_CoordOp2D.isOrthogonalNorm2D(p, q, t);
 	}
 
 	/**
@@ -404,12 +404,12 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	}
 
 	public static WB_Vector2D interpolate(final WB_Coord v, final WB_Coord w, final double f) {
-		return new WB_Vector2D(WB_GeometryOp2D.interpolate2D(v.xd(), v.yd(), w.xd(), w.yd(), f));
+		return new WB_Vector2D(WB_CoordOp2D.interpolate2D(v.xd(), v.yd(), w.xd(), w.yd(), f));
 	}
 
 	public static WB_Vector2D interpolateEase(final WB_Coord v, final WB_Coord w, final double f, final WB_Ease ease,
 			final WB_Ease.EaseType type) {
-		return new WB_Vector2D(WB_GeometryOp2D.interpolateEase2D(v.xd(), v.yd(), w.xd(), w.yd(), f, ease, type));
+		return new WB_Vector2D(WB_CoordOp2D.interpolateEase2D(v.xd(), v.yd(), w.xd(), w.yd(), f, ease, type));
 	}
 
 	@Override
@@ -612,12 +612,12 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 */
 	@Override
 	public double dot2D(final WB_Coord p) {
-		return WB_GeometryOp2D.dot2D(xd(), yd(), p.xd(), p.yd());
+		return WB_CoordOp2D.dot2D(xd(), yd(), p.xd(), p.yd());
 	}
 
 	@Override
 	public double absDot2D(final WB_Coord p) {
-		return WB_Math.fastAbs(WB_GeometryOp2D.dot2D(xd(), yd(), p.xd(), p.yd()));
+		return WB_Math.fastAbs(WB_CoordOp2D.dot2D(xd(), yd(), p.xd(), p.yd()));
 	}
 
 	@Override
@@ -1010,7 +1010,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 */
 	@Override
 	public double getDistance2D(final WB_Coord p) {
-		return WB_GeometryOp2D.getDistance2D(xd(), yd(), p.xd(), p.yd());
+		return WB_CoordOp2D.getDistance2D(xd(), yd(), p.xd(), p.yd());
 	}
 
 	/*
@@ -1021,7 +1021,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 */
 	@Override
 	public double getSqDistance2D(final WB_Coord p) {
-		return WB_GeometryOp2D.getSqDistance2D(xd(), yd(), p.xd(), p.yd());
+		return WB_CoordOp2D.getSqDistance2D(xd(), yd(), p.xd(), p.yd());
 	}
 
 	/*
@@ -1031,7 +1031,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 */
 	@Override
 	public double getLength2D() {
-		return WB_GeometryOp2D.getLength2D(xd(), yd());
+		return WB_CoordOp2D.getLength2D(xd(), yd());
 	}
 
 	/*
@@ -1041,7 +1041,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 */
 	@Override
 	public double getSqLength2D() {
-		return WB_GeometryOp2D.getSqLength2D(xd(), yd());
+		return WB_CoordOp2D.getSqLength2D(xd(), yd());
 	}
 
 	/*
@@ -1051,7 +1051,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 */
 	@Override
 	public double getAngle(final WB_Coord p) {
-		return WB_GeometryOp2D.getAngleBetween2D(xd(), yd(), p.xd(), p.yd());
+		return WB_CoordOp2D.getAngleBetween2D(xd(), yd(), p.xd(), p.yd());
 	}
 
 	/*
@@ -1062,7 +1062,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 */
 	@Override
 	public double getAngleNorm(final WB_Coord p) {
-		return WB_GeometryOp2D.getAngleBetweenNorm2D(xd(), yd(), p.xd(), p.yd());
+		return WB_CoordOp2D.getAngleBetweenNorm2D(xd(), yd(), p.xd(), p.yd());
 	}
 
 	/*
@@ -1089,7 +1089,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 
 	@Override
 	public boolean isZero() {
-		return WB_GeometryOp2D.isZero2D(xd(), yd());
+		return WB_CoordOp2D.isZero2D(xd(), yd());
 	}
 
 	/**
@@ -1126,7 +1126,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 */
 	@Override
 	public boolean isCollinear2D(final WB_Coord p, final WB_Coord q) {
-		return WB_GeometryOp2D.isCollinear2D(this, p, q);
+		return WB_CoordOp2D.isCollinear2D(this, p, q);
 	}
 
 	/**
@@ -1137,7 +1137,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 */
 	@Override
 	public boolean isParallel2D(final WB_Coord p) {
-		return WB_GeometryOp2D.isParallel2D(this, p);
+		return WB_CoordOp2D.isParallel2D(this, p);
 	}
 
 	/**
@@ -1149,7 +1149,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 */
 	@Override
 	public boolean isParallel2D(final WB_Coord p, final double t) {
-		return WB_GeometryOp2D.isParallel2D(this, p, t);
+		return WB_CoordOp2D.isParallel2D(this, p, t);
 	}
 
 	/**
@@ -1160,7 +1160,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 */
 	@Override
 	public boolean isParallelNorm2D(final WB_Coord p) {
-		return WB_GeometryOp2D.isParallelNorm2D(this, p);
+		return WB_CoordOp2D.isParallelNorm2D(this, p);
 	}
 
 	/**
@@ -1172,7 +1172,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 */
 	@Override
 	public boolean isParallelNorm2D(final WB_Coord p, final double t) {
-		return WB_GeometryOp2D.isParallelNorm2D(this, p, t);
+		return WB_CoordOp2D.isParallelNorm2D(this, p, t);
 	}
 
 	/**
@@ -1183,7 +1183,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 */
 	@Override
 	public boolean isOrthogonal2D(final WB_Coord p) {
-		return WB_GeometryOp2D.isOrthogonal2D(this, p);
+		return WB_CoordOp2D.isOrthogonal2D(this, p);
 	}
 
 	/**
@@ -1195,7 +1195,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 */
 	@Override
 	public boolean isOrthogonal2D(final WB_Coord p, final double t) {
-		return WB_GeometryOp2D.isOrthogonal2D(this, p, t);
+		return WB_CoordOp2D.isOrthogonal2D(this, p, t);
 	}
 
 	/**
@@ -1206,7 +1206,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 */
 	@Override
 	public boolean isOrthogonalNorm2D(final WB_Coord p) {
-		return WB_GeometryOp2D.isOrthogonalNorm2D(this, p);
+		return WB_CoordOp2D.isOrthogonalNorm2D(this, p);
 	}
 
 	/**
@@ -1218,7 +1218,7 @@ public class WB_Vector2D extends WB_MutableCoordinate2D implements WB_MutableCoo
 	 */
 	@Override
 	public boolean isOrthogonalNorm2D(final WB_Coord p, final double t) {
-		return WB_GeometryOp2D.isOrthogonalNorm2D(this, p, t);
+		return WB_CoordOp2D.isOrthogonalNorm2D(this, p, t);
 	}
 
 	/*
