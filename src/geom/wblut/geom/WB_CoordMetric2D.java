@@ -17,7 +17,7 @@ package wblut.geom;
  * @author Frederik Vanhoutte
  *
  */
-public interface WB_CoordinateMetric2D {
+public interface WB_CoordMetric2D {
 
 	/**
 	 * Length of 2D coordinate.

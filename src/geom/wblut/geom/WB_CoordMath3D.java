@@ -13,7 +13,7 @@ import wblut.math.WB_M33;
 /**
  * Interface for implementing non-mutable mathematical operations on 3D
  * coordinates.If the operations should change the calling object use
- * {@link wblut.geom.WB_MutableCoordinateMath3D}.
+ * {@link wblut.geom.WB_MutableCoordMath3D}.
  *
  * None of the operators change the calling object. Unlabelled operators, such
  * as "add",create a new WB_Coord. Operators with the label "Into", such as
@@ -23,7 +23,7 @@ import wblut.math.WB_M33;
  * @author Frederik Vanhoutte
  *
  */
-public interface WB_CoordinateMath3D extends WB_CoordinateMath2D {
+public interface WB_CoordMath3D extends WB_CoordMath2D {
 	/**
 	 * dot product.
 	 *

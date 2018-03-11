@@ -18,7 +18,7 @@ package wblut.geom;
  * @author Frederik Vanhoutte
  *
  */
-public interface WB_MutableCoordinateTransform4D {
+public interface WB_MutableCoordTransform4D {
 	public WB_Vector4D rotateXWSelf(double angle);
 
 	public WB_Vector4D rotateXYSelf(double angle);

@@ -11,7 +11,7 @@ package wblut.geom;
 /**
  * Interface for implementing non-mutable mathematical operations on 2D
  * coordinates.If the operations should change the calling object use
- * {@link wblut.geom.WB_MutableCoordinateMath2D}.
+ * {@link wblut.geom.WB_MutableCoordMath2D}.
  *
  * None of the operators change the calling object. Unlabelled operators, such
  * as "add",create a new WB_Coord. Operators with the label "Into", such as
@@ -21,7 +21,7 @@ package wblut.geom;
  * @author Frederik Vanhoutte
  *
  */
-public interface WB_CoordinateMath2D {
+public interface WB_CoordMath2D {
 
 	/**
 	 * Add coordinate values.

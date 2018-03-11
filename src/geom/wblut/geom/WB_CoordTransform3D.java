@@ -12,7 +12,7 @@ package wblut.geom;
 /**
  * Interface for implementing non-mutable transformation operations on 3D
  * coordinates.If the operations should change the calling object use
- * {@link wblut.geom.WB_MutableCoordinateTransform3D}.
+ * {@link wblut.geom.WB_MutableCoordTransform3D}.
  *
  * None of the operators change the calling object. Unlabelled operators, such
  * as "scale",create a new WB_Coord. Operators with the label "Into", such as
@@ -23,7 +23,7 @@ package wblut.geom;
  *
  */
 
-public interface WB_CoordinateTransform3D extends WB_CoordinateTransform2D {
+public interface WB_CoordTransform3D extends WB_CoordTransform2D {
 
 	/**
 	 * Apply WB_Transform. Mode (point, vector or normal) is decided by

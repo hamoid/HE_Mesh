@@ -23,7 +23,7 @@ package wblut.geom;
  * @author Frederik Vanhoutte
  *
  */
-public interface WB_MutableCoordinateMath2D extends WB_CoordinateMath2D {
+public interface WB_MutableCoordMath2D extends WB_CoordMath2D {
 	/**
 	 * Add coordinate values.
 	 *

@@ -27,43 +27,43 @@ import wblut.external.straightskeleton.Skeleton;
  * @author FVH
  *
  */
-public class WB_PyramidFactory {
+public class WB_PyramidMachine {
 	private WB_CoordCollection points;
 	private boolean cap;
 	private WB_Map2D map;
 
-	public WB_PyramidFactory() {
+	public WB_PyramidMachine() {
 		points = null;
 		cap = true;
 		map = new WB_DefaultMap2D();
 	}
 
-	public WB_PyramidFactory setPoints(final WB_CoordCollection points) {
+	public WB_PyramidMachine setPoints(final WB_CoordCollection points) {
 		this.points = points;
 		return this;
 	}
 
-	public WB_PyramidFactory setPoints(final WB_Polygon polygon) {
+	public WB_PyramidMachine setPoints(final WB_Polygon polygon) {
 		this.points = WB_CoordCollection.getCollection(polygon);
 		return this;
 	}
 
-	public WB_PyramidFactory setPoints(final Collection<? extends WB_Coord> points) {
+	public WB_PyramidMachine setPoints(final Collection<? extends WB_Coord> points) {
 		this.points = WB_CoordCollection.getCollection(points);
 		return this;
 	}
 
-	public WB_PyramidFactory setPoints(final WB_Coord[] points) {
+	public WB_PyramidMachine setPoints(final WB_Coord[] points) {
 		this.points = WB_CoordCollection.getCollection(points);
 		return this;
 	}
 
-	public WB_PyramidFactory setCap(final boolean cap) {
+	public WB_PyramidMachine setCap(final boolean cap) {
 		this.cap = cap;
 		return this;
 	}
 
-	public WB_PyramidFactory setMap(final WB_Map2D map) {
+	public WB_PyramidMachine setMap(final WB_Map2D map) {
 		this.map = map;
 		return this;
 	}

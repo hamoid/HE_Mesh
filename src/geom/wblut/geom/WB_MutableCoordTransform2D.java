@@ -24,7 +24,7 @@ package wblut.geom;
  * @author Frederik Vanhoutte
  *
  */
-public interface WB_MutableCoordinateTransform2D extends WB_CoordinateTransform2D {
+public interface WB_MutableCoordTransform2D extends WB_CoordTransform2D {
 	/**
 	 *
 	 *

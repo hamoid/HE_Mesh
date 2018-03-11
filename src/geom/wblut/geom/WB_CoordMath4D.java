@@ -21,7 +21,7 @@ package wblut.geom;
  * @author Frederik Vanhoutte
  *
  */
-public interface WB_CoordinateMath4D {
+public interface WB_CoordMath4D {
 	/**
 	 * Add coordinate values.
 	 *

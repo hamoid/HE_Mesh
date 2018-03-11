@@ -17,7 +17,7 @@ package wblut.geom;
  * @author Frederik Vanhoutte
  *
  */
-public interface WB_CoordinateMetric3D extends WB_CoordinateMetric2D {
+public interface WB_CoordMetric3D extends WB_CoordMetric2D {
 
 	/**
 	 *

@@ -18,7 +18,7 @@ package wblut.geom;
  * @author Frederik Vanhoutte
  *
  */
-public interface WB_MutableCoordinateTransform3D extends WB_CoordinateTransform3D {
+public interface WB_MutableCoordTransform3D extends WB_CoordTransform3D {
 	/**
 	 *
 	 *

@@ -17,7 +17,7 @@ package wblut.geom;
  * @author Frederik Vanhoutte
  *
  */
-public interface WB_CoordinateMetric4D {
+public interface WB_CoordMetric4D {
 
 	/**
 	 * Length of 4D coordinate.
