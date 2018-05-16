@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.geom;
 
 /**
@@ -16,15 +13,18 @@ package wblut.geom;
 public class WB_IndexedTriangle extends WB_Triangle {
 	int i1, i2, i3;
 
-	public WB_IndexedTriangle(final int i1, final int i2, final int i3, final WB_CoordCollection points) {
+	public WB_IndexedTriangle(final int i1, final int i2, final int i3,
+			final WB_CoordCollection points) {
 		super(points.get(i1), points.get(i2), points.get(i3));
 		this.i1 = i1;
 		this.i2 = i2;
 		this.i3 = i3;
 	}
 
-	public WB_IndexedTriangle(final int i, final int[] tris, final WB_CoordCollection points) {
-		super(points.get(tris[i]), points.get(tris[i + 1]), points.get(tris[i + 2]));
+	public WB_IndexedTriangle(final int i, final int[] tris,
+			final WB_CoordCollection points) {
+		super(points.get(tris[i]), points.get(tris[i + 1]),
+				points.get(tris[i + 2]));
 		this.i1 = tris[i];
 		this.i2 = tris[i + 1];
 		this.i3 = tris[i + 2];
@@ -69,5 +69,4 @@ public class WB_IndexedTriangle extends WB_Triangle {
 	public int i3() {
 		return i3;
 	}
-
 }

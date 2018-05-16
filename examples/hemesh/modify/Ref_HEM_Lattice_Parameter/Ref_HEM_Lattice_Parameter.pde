@@ -19,13 +19,13 @@ void setup() {
   // Tries to create a mesh lattice by insetting all faces,making an expanded copy and
   // then connect the inset faces...
   HEM_Lattice modifier=new HEM_Lattice();
-  modifier.setWidth(new XGradient());// desired width of struts
+  modifier.setWidth(20);//new XGradient());// desired width of struts
   modifier.setDepth(new XGradient());// depth of struts
   modifier.setThresholdAngle(1.5*HALF_PI);// treat edges sharper than this angle as hard edges
   
   mesh.modify(modifier);
- // mesh.smooth(2);
-
+//mesh.smooth();
+ mesh.stats();
   render=new WB_Render(this);
 }
 

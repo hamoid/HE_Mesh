@@ -30,7 +30,7 @@ void setup() {
   // alternatively this can be left out (flat grid). values can also be double[][]
   // or and implementation of the WB_Function2D<Double> interface.
   mesh=new HE_Mesh(creator);
-
+  mesh.stats();
   render=new WB_Render(this);
 }
 
@@ -45,5 +45,3 @@ void draw() {
   stroke(0);
   render.drawEdges(mesh);
 }
-
-

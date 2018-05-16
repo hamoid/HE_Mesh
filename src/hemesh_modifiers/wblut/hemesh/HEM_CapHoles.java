@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.List;
@@ -17,7 +14,6 @@ import wblut.core.WB_ProgressReporter.WB_ProgressCounter;
  *
  */
 public class HEM_CapHoles extends HEM_Modifier {
-
 	private HE_Selection caps;
 
 	/**
@@ -30,7 +26,6 @@ public class HEM_CapHoles extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Modifier#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
@@ -46,8 +41,10 @@ public class HEM_CapHoles extends HEM_Modifier {
 		HE_RAS<HE_Halfedge> newHalfedges;
 		HE_Halfedge phe;
 		HE_Halfedge nhe;
-		WB_ProgressCounter counter = new WB_ProgressCounter(unpairedEdges.size(), 10);
-		tracker.setCounterStatus(this, "Finding loops and closing holes.", counter);
+		WB_ProgressCounter counter = new WB_ProgressCounter(
+				unpairedEdges.size(), 10);
+		tracker.setCounterStatus(this, "Finding loops and closing holes.",
+				counter);
 		while (unpairedEdges.size() > 0) {
 			boolean abort = false;
 			loopedHalfedges = new HE_RAS<HE_Halfedge>();
@@ -72,26 +69,31 @@ public class HEM_CapHoles extends HEM_Modifier {
 					noNextFound = true;
 				}
 				he = hen;
-			} while (hen.getNextInFace().getVertex() != start.getVertex() && !noNextFound && !abort);
-
+			} while (hen.getNextInFace().getVertex() != start.getVertex()
+					&& !noNextFound && !abort);
 			if (!abort) {
 				nf = new HE_Face();
-				boolean noLoopFound = start.getVertex() != loopedHalfedges.getWithIndex(loopedHalfedges.size() - 1)
+				boolean noLoopFound = start.getVertex() != loopedHalfedges
+						.getWithIndex(loopedHalfedges.size() - 1)
 						.getNextInFace().getVertex();
 				int ii = 0;
 				StringBuilder sb = new StringBuilder(100);
 				if (noLoopFound) {
 					sb.append("Polyline found: ");
 					for (ii = 0; ii < loopedHalfedges.size() - 1; ii++) {
-						sb.append(unpairedEdges.indexOf(loopedHalfedges.getWithIndex(ii)) + "-> ");
+						sb.append(unpairedEdges.indexOf(
+								loopedHalfedges.getWithIndex(ii)) + "-> ");
 					}
-					sb.append(unpairedEdges.indexOf(loopedHalfedges.getWithIndex(ii)));
+					sb.append(unpairedEdges
+							.indexOf(loopedHalfedges.getWithIndex(ii)));
 				} else {
 					sb.append("Cycle found: ");
 					for (ii = 0; ii < loopedHalfedges.size(); ii++) {
-						sb.append(unpairedEdges.indexOf(loopedHalfedges.getWithIndex(ii)) + "-> ");
+						sb.append(unpairedEdges.indexOf(
+								loopedHalfedges.getWithIndex(ii)) + "-> ");
 					}
-					sb.append(unpairedEdges.indexOf(loopedHalfedges.getWithIndex(0)));
+					sb.append(unpairedEdges
+							.indexOf(loopedHalfedges.getWithIndex(0)));
 				}
 				tracker.setDuringStatus(this, sb.toString());
 				unpairedEdges.removeAll(loopedHalfedges);
@@ -105,7 +107,6 @@ public class HEM_CapHoles extends HEM_Modifier {
 					nhe = new HE_Halfedge();
 					newHalfedges.add(nhe);
 					mesh.setVertex(nhe, phe.getNextInFace().getVertex());
-
 					mesh.setPair(nhe, phe);
 					mesh.add(nhe);
 					if (!noLoopFound) {
@@ -115,14 +116,13 @@ public class HEM_CapHoles extends HEM_Modifier {
 						}
 					}
 				}
-
-				mesh.orderHalfedgesReverse(newHalfedges.getObjects(), !noLoopFound);
-
+				HE_MeshOp.orderHalfedgesReverse(mesh, newHalfedges.getObjects(),
+						!noLoopFound);
 				counter.increment(newHalfedges.size());
 			}
 		}
 		mesh.cleanUnusedElementsByFace();
-		mesh.capHalfedges();
+		HE_MeshOp.capHalfedges(mesh);
 		mesh.addSelection("caps", this, caps);
 		tracker.setStopStatus(this, "Exiting HEM_CapHoles.");
 		return mesh;
@@ -130,11 +130,10 @@ public class HEM_CapHoles extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Modifier#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
-		return applySelf(selection.parent);
+		return applySelf(selection.getParent());
 	}
 }

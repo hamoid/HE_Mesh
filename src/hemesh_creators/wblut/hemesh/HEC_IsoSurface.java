@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.io.BufferedReader;
@@ -20,9 +17,13 @@ import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 
 import processing.core.PApplet;
 import wblut.geom.WB_Coord;
+import wblut.geom.WB_GeometryOp;
 import wblut.geom.WB_HashGridDouble;
 import wblut.geom.WB_IsoValues3D;
 import wblut.geom.WB_Point;
+import wblut.geom.WB_RandomCircle;
+import wblut.geom.WB_RandomPoint;
+import wblut.geom.WB_Segment;
 import wblut.math.WB_Epsilon;
 import wblut.math.WB_ScalarParameter;
 
@@ -33,27 +34,27 @@ public class HEC_IsoSurface extends HEC_Creator {
 	/**
 	 *
 	 */
-	final static int ONVERTEX = 0;
+	final static int						ONVERTEX		= 0;
 	/**
 	 *
 	 */
-	final static int ONEDGE = 1;
+	final static int						ONEDGE			= 1;
 	/**
 	 *
 	 */
-	final static int NEGATIVE = 0;
+	final static int						NEGATIVE		= 0;
 	/**
 	 *
 	 */
-	final static int EQUAL = 1;
+	final static int						EQUAL			= 1;
 	/**
 	 *
 	 */
-	final static int POSITIVE = 2;
+	final static int						POSITIVE		= 2;
 	/**
 	 *
 	 */
-	int[] digits = new int[8];
+	int[]									digits			= new int[8];
 	/*
 	 * VERTICES 000 ijk=0 100 Ijk=1 010 iJk=2 110 IJk=3 001 ijK=4 101 IjK=5 011
 	 * iJK=6 111 IJK=7
@@ -61,25 +62,38 @@ public class HEC_IsoSurface extends HEC_Creator {
 	/**
 	 *
 	 */
-	final static WB_Point[] gridvertices = new WB_Point[] { new WB_Point(0, 0, 0), new WB_Point(1, 0, 0),
-			new WB_Point(0, 1, 0), new WB_Point(1, 1, 0), new WB_Point(0, 0, 1), new WB_Point(1, 0, 1),
+	final static WB_Point[]					gridvertices	= new WB_Point[] {
+			new WB_Point(0, 0, 0), new WB_Point(1, 0, 0), new WB_Point(0, 1, 0),
+			new WB_Point(1, 1, 0), new WB_Point(0, 0, 1), new WB_Point(1, 0, 1),
 			new WB_Point(0, 1, 1), new WB_Point(1, 1, 1), };
 	// EDGES: 2 vertices per edge
 	/**
 	 *
 	 */
-	final static int[][] edges = { { 0, 1 }, // x ijk
-			{ 0, 2 }, // y ijk
-			{ 1, 3 }, // y Ijk
-			{ 2, 3 }, // x iJk
-			{ 0, 4 }, // z ijk
-			{ 1, 5 }, // z Ijk
-			{ 2, 6 }, // z iJk
-			{ 3, 7 }, // z IJk
-			{ 4, 5 }, // x ijK
-			{ 4, 6 }, // y ijK
-			{ 5, 7 }, // y IjK
-			{ 6, 7 } // x iJK
+	final static int[][]					edges			= { { 0, 1 },																	// x
+																																			// ijk
+			{ 0, 2 },																														// y
+																																			// ijk
+			{ 1, 3 },																														// y
+																																			// Ijk
+			{ 2, 3 },																														// x
+																																			// iJk
+			{ 0, 4 },																														// z
+																																			// ijk
+			{ 1, 5 },																														// z
+																																			// Ijk
+			{ 2, 6 },																														// z
+																																			// iJk
+			{ 3, 7 },																														// z
+																																			// IJk
+			{ 4, 5 },																														// x
+																																			// ijK
+			{ 4, 6 },																														// y
+																																			// ijK
+			{ 5, 7 },																														// y
+																																			// IjK
+			{ 6, 7 }																														// x
+																																			// iJK
 	};
 	// ISOVERTICES: 20
 	// type=ONVERTEX iso vertex on vertex, index in vertex list
@@ -87,84 +101,83 @@ public class HEC_IsoSurface extends HEC_Creator {
 	/**
 	 *
 	 */
-	final static int[][] isovertices = new int[][] { { 0, 0 }, { 0, 1 }, { 0, 2 }, { 0, 3 }, { 0, 4 }, { 0, 5 },
-			{ 0, 6 }, { 0, 7 }, { 1, 0 }, { 1, 1 }, { 1, 2 }, { 1, 3 }, { 1, 4 }, { 1, 5 }, { 1, 6 }, { 1, 7 },
-			{ 1, 8 }, { 1, 9 }, { 1, 10 }, { 1, 11 } };
+	final static int[][]					isovertices		= new int[][] {
+			{ 0, 0 }, { 0, 1 }, { 0, 2 }, { 0, 3 }, { 0, 4 }, { 0, 5 },
+			{ 0, 6 }, { 0, 7 }, { 1, 0 }, { 1, 1 }, { 1, 2 }, { 1, 3 },
+			{ 1, 4 }, { 1, 5 }, { 1, 6 }, { 1, 7 }, { 1, 8 }, { 1, 9 },
+			{ 1, 10 }, { 1, 11 } };
 	/**
 	 *
 	 */
-	int[][] entries;
+	int[][]									entries;
 	/**
 	 *
 	 */
-	private WB_IsoValues3D values;
+	private WB_IsoValues3D					values;
 	/**
 	 *
 	 */
-	private int resx, resy, resz;
+	private int								resx, resy, resz;
 	/**
 	 *
 	 */
-	private double cx, cy, cz;
+	private double							cx, cy, cz;
 	/**
 	 *
 	 */
-	private double dx, dy, dz;
+	private double							dx, dy, dz;
 	/**
 	 *
 	 */
-	private double isolevel;
+	private double							isolevel;
 	/**
 	 *
 	 */
-	private double boundary;
+	private double							boundary;
 	/**
 	 *
 	 */
-	private IntObjectHashMap<HE_Vertex> xedges;
+	private IntObjectHashMap<HE_Vertex>		xedges;
 	/**
 	 *
 	 */
-	private IntObjectHashMap<HE_Vertex> yedges;
+	private IntObjectHashMap<HE_Vertex>		yedges;
 	/**
 	 *
 	 */
-	private IntObjectHashMap<HE_Vertex> zedges;
+	private IntObjectHashMap<HE_Vertex>		zedges;
 	/**
 	 *
 	 */
-	private IntObjectHashMap<HE_Vertex> vertices;
+	private IntObjectHashMap<HE_Vertex>		vertices;
 	/**
 	 *
 	 */
-	private IntObjectHashMap<VertexRemap> vertexremaps;
-
+	private IntObjectHashMap<VertexRemap>	vertexremaps;
 	/**
 	 *
 	 */
-	private IntDoubleHashMap valueremaps;
+	private IntDoubleHashMap				valueremaps;
 	/**
 	 *
 	 */
-	private double gamma;
+	private double							gamma;
 	/**
 	 *
 	 */
-	HE_Mesh mesh;
+	HE_Mesh									mesh;
 	/**
 	 *
 	 */
-	private boolean invert;
-
-	WB_ScalarParameter valueFactor;
-	WB_ScalarParameter valueShift;
+	private boolean							invert;
+	WB_ScalarParameter						valueFactor;
+	WB_ScalarParameter						valueShift;
 
 	/**
 	 *
 	 */
 	public HEC_IsoSurface() {
 		super();
-
 		String line = "";
 		final String cvsSplitBy = " ";
 		BufferedReader br = null;
@@ -172,7 +185,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 		InputStreamReader isr = null;
 		entries = new int[6561][];
 		try {
-			is = this.getClass().getClassLoader().getResourceAsStream("resources/isonepcube3D.txt");
+			is = this.getClass().getClassLoader()
+					.getResourceAsStream("resources/isonepcube3D.txt");
 			isr = new InputStreamReader(is);
 			br = new BufferedReader(isr);
 			int i = 0;
@@ -205,6 +219,7 @@ public class HEC_IsoSurface extends HEC_Creator {
 		boundary = Double.NaN;
 		valueFactor = WB_ScalarParameter.ONE;
 		valueShift = WB_ScalarParameter.ZERO;
+		manifoldCheck = true;
 	}
 
 	/**
@@ -229,7 +244,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 	 *            the resz
 	 * @return self
 	 */
-	public HEC_IsoSurface setResolution(final int resx, final int resy, final int resz) {
+	public HEC_IsoSurface setResolution(final int resx, final int resy,
+			final int resz) {
 		this.resx = resx;
 		this.resy = resy;
 		this.resz = resz;
@@ -244,7 +260,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 	 * @param dz
 	 * @return self
 	 */
-	public HEC_IsoSurface setSize(final double dx, final double dy, final double dz) {
+	public HEC_IsoSurface setSize(final double dx, final double dy,
+			final double dz) {
 		this.dx = dx;
 		this.dy = dy;
 		this.dz = dz;
@@ -315,10 +332,12 @@ public class HEC_IsoSurface extends HEC_Creator {
 	 * @param dz
 	 * @return
 	 */
-	public HEC_IsoSurface setValues(final WB_ScalarParameter function, final double xi, final double yi,
-			final double zi, final double dx, final double dy, final double dz, final int sizeI, final int sizeJ,
+	public HEC_IsoSurface setValues(final WB_ScalarParameter function,
+			final double xi, final double yi, final double zi, final double dx,
+			final double dy, final double dz, final int sizeI, final int sizeJ,
 			final int sizeK) {
-		this.values = new WB_IsoValues3D.Function3D(function, xi, yi, zi, dx, dy, dz, sizeI, sizeJ, sizeK);
+		this.values = new WB_IsoValues3D.Function3D(function, xi, yi, zi, dx,
+				dy, dz, sizeI, sizeJ, sizeK);
 		resx = sizeI - 1;
 		resy = sizeJ - 1;
 		resz = sizeK - 1;
@@ -347,9 +366,10 @@ public class HEC_IsoSurface extends HEC_Creator {
 	 * @param sizeK
 	 * @return
 	 */
-	public HEC_IsoSurface setValues(final String[] images, final PApplet home, final int sizeI, final int sizeJ,
-			final int sizeK) {
-		this.values = new WB_IsoValues3D.ImageStack3D(images, home, sizeI, sizeJ, sizeK);
+	public HEC_IsoSurface setValues(final String[] images, final PApplet home,
+			final int sizeI, final int sizeJ, final int sizeK) {
+		this.values = new WB_IsoValues3D.ImageStack3D(images, home, sizeI,
+				sizeJ, sizeK);
 		resx = values.getSizeI() - 1;
 		resy = values.getSizeJ() - 1;
 		resz = values.getSizeK() - 1;
@@ -366,9 +386,11 @@ public class HEC_IsoSurface extends HEC_Creator {
 	 * @param mode
 	 * @return
 	 */
-	public HEC_IsoSurface setValues(final String[] images, final PApplet home, final int sizeI, final int sizeJ,
-			final int sizeK, final WB_IsoValues3D.Mode mode) {
-		this.values = new WB_IsoValues3D.ImageStack3D(images, home, sizeI, sizeJ, sizeK, mode);
+	public HEC_IsoSurface setValues(final String[] images, final PApplet home,
+			final int sizeI, final int sizeJ, final int sizeK,
+			final WB_IsoValues3D.Mode mode) {
+		this.values = new WB_IsoValues3D.ImageStack3D(images, home, sizeI,
+				sizeJ, sizeK, mode);
 		resx = values.getSizeI() - 1;
 		resy = values.getSizeJ() - 1;
 		resz = values.getSizeK() - 1;
@@ -419,7 +441,6 @@ public class HEC_IsoSurface extends HEC_Creator {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HEC_Creator#setCenter(wblut.geom.WB_Point3d)
 	 */
 	@Override
@@ -432,7 +453,6 @@ public class HEC_IsoSurface extends HEC_Creator {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.creators.HEB_Creator#createBase()
 	 */
 	@Override
@@ -450,11 +470,11 @@ public class HEC_IsoSurface extends HEC_Creator {
 			snapvertices();
 		} else {
 			polygonise();
-
 		}
-		mesh.clean();
-
-		HET_Fixer.fixNonManifoldVertices(mesh);
+		HE_MeshOp.pairHalfedges(mesh);
+		HE_MeshOp.capHalfedges(mesh);
+		HE_MeshOp.cleanUnusedElementsByFace(mesh);
+		mesh.validate();
 		return mesh;
 	}
 
@@ -462,10 +482,10 @@ public class HEC_IsoSurface extends HEC_Creator {
 	 *
 	 */
 	private void mapvertices() {
-
 		vertexremaps = new IntObjectHashMap<VertexRemap>();
 		valueremaps = new IntDoubleHashMap();
-		final WB_Point offset = new WB_Point(cx - 0.5 * resx * dx, cy - 0.5 * resy * dy, cz - 0.5 * resz * dz);
+		final WB_Point offset = new WB_Point(cx - 0.5 * resx * dx,
+				cy - 0.5 * resy * dy, cz - 0.5 * resz * dz);
 		if (Double.isNaN(boundary)) {
 			for (int k = 0; k < resz; k++) {
 				for (int i = 0; i < resx; i++) {
@@ -473,8 +493,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 					// +
 					// resx);
 					for (int j = 0; j < resy; j++) {
-
-						getPolygons(i, j, k, classifyCell(i, j, k), offset, true);
+						getPolygons(i, j, k, classifyCell(i, j, k), offset,
+								true);
 					}
 				}
 			}
@@ -485,8 +505,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 					// +
 					// resx);
 					for (int j = -1; j < resy + 1; j++) {
-
-						getPolygons(i, j, k, classifyCell(i, j, k), offset, true);
+						getPolygons(i, j, k, classifyCell(i, j, k), offset,
+								true);
 					}
 				}
 			}
@@ -509,7 +529,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 	 * Polygonise.
 	 */
 	private void polygonise() {
-		final WB_Point offset = new WB_Point(cx - 0.5 * resx * dx, cy - 0.5 * resy * dy, cz - 0.5 * resz * dz);
+		final WB_Point offset = new WB_Point(cx - 0.5 * resx * dx,
+				cy - 0.5 * resy * dy, cz - 0.5 * resz * dz);
 		if (Double.isNaN(boundary)) {
 			for (int k = 0; k < resz; k++) {
 				for (int i = 0; i < resx; i++) {
@@ -517,8 +538,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 					// +
 					// resx);
 					for (int j = 0; j < resy; j++) {
-
-						getPolygons(i, j, k, classifyCell(i, j, k), offset, false);
+						getPolygons(i, j, k, classifyCell(i, j, k), offset,
+								false);
 					}
 				}
 			}
@@ -529,8 +550,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 					// +
 					// resx);
 					for (int j = -1; j < resy + 1; j++) {
-
-						getPolygons(i, j, k, classifyCell(i, j, k), offset, false);
+						getPolygons(i, j, k, classifyCell(i, j, k), offset,
+								false);
 					}
 				}
 			}
@@ -563,16 +584,20 @@ public class HEC_IsoSurface extends HEC_Creator {
 	 * @param dummyrun
 	 * @return the polygons
 	 */
-	private void getPolygons(final int i, final int j, final int k, final int cubeindex, final WB_Point offset,
+	private void getPolygons(final int i, final int j, final int k,
+			final int cubeindex, final WB_Point offset,
 			final boolean dummyrun) {
 		final int[] indices = entries[cubeindex];
 		final int numtris = indices[0];
 		int currentindex = 1;
 		for (int t = 0; t < numtris; t++) {
 			final HE_Face f = new HE_Face();
-			final HE_Vertex v2 = getIsoVertex(indices[currentindex++], i, j, k, offset, dummyrun);
-			final HE_Vertex v1 = getIsoVertex(indices[currentindex++], i, j, k, offset, dummyrun);
-			final HE_Vertex v3 = getIsoVertex(indices[currentindex++], i, j, k, offset, dummyrun);
+			final HE_Vertex v2 = getIsoVertex(indices[currentindex++], i, j, k,
+					offset, dummyrun);
+			final HE_Vertex v1 = getIsoVertex(indices[currentindex++], i, j, k,
+					offset, dummyrun);
+			final HE_Vertex v3 = getIsoVertex(indices[currentindex++], i, j, k,
+					offset, dummyrun);
 			if (!dummyrun) {
 				final HE_Halfedge he1 = new HE_Halfedge();
 				final HE_Halfedge he2 = new HE_Halfedge();
@@ -611,7 +636,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 	 */
 	private int classifyCell(final int i, final int j, final int k) {
 		if (Double.isNaN(boundary)) {
-			if (i < 0 || j < 0 || k < 0 || i >= resx || j >= resy || k >= resz) {
+			if (i < 0 || j < 0 || k < 0 || i >= resx || j >= resy
+					|| k >= resz) {
 				return -1;
 			}
 		}
@@ -761,57 +787,57 @@ public class HEC_IsoSurface extends HEC_Creator {
 	 * @param dummyrun
 	 * @return
 	 */
-	HE_Vertex getIsoVertex(final int isopointindex, final int i, final int j, final int k, final WB_Point offset,
-			final boolean dummyrun) {
+	HE_Vertex getIsoVertex(final int isopointindex, final int i, final int j,
+			final int k, final WB_Point offset, final boolean dummyrun) {
 		if (isovertices[isopointindex][0] == ONVERTEX) {
 			switch (isovertices[isopointindex][1]) {
-			case 0:
-				return vertex(i, j, k, offset);
-			case 1:
-				return vertex(i + 1, j, k, offset);
-			case 2:
-				return vertex(i, j + 1, k, offset);
-			case 3:
-				return vertex(i + 1, j + 1, k, offset);
-			case 4:
-				return vertex(i, j, k + 1, offset);
-			case 5:
-				return vertex(i + 1, j, k + 1, offset);
-			case 6:
-				return vertex(i, j + 1, k + 1, offset);
-			case 7:
-				return vertex(i + 1, j + 1, k + 1, offset);
-			default:
-				return null;
+				case 0:
+					return vertex(i, j, k, offset);
+				case 1:
+					return vertex(i + 1, j, k, offset);
+				case 2:
+					return vertex(i, j + 1, k, offset);
+				case 3:
+					return vertex(i + 1, j + 1, k, offset);
+				case 4:
+					return vertex(i, j, k + 1, offset);
+				case 5:
+					return vertex(i + 1, j, k + 1, offset);
+				case 6:
+					return vertex(i, j + 1, k + 1, offset);
+				case 7:
+					return vertex(i + 1, j + 1, k + 1, offset);
+				default:
+					return null;
 			}
 		} else if (isovertices[isopointindex][0] == ONEDGE) {
 			switch (isovertices[isopointindex][1]) {
-			case 0:
-				return xedge(i, j, k, offset, dummyrun);
-			case 1:
-				return yedge(i, j, k, offset, dummyrun);
-			case 2:
-				return yedge(i + 1, j, k, offset, dummyrun);
-			case 3:
-				return xedge(i, j + 1, k, offset, dummyrun);
-			case 4:
-				return zedge(i, j, k, offset, dummyrun);
-			case 5:
-				return zedge(i + 1, j, k, offset, dummyrun);
-			case 6:
-				return zedge(i, j + 1, k, offset, dummyrun);
-			case 7:
-				return zedge(i + 1, j + 1, k, offset, dummyrun);
-			case 8:
-				return xedge(i, j, k + 1, offset, dummyrun);
-			case 9:
-				return yedge(i, j, k + 1, offset, dummyrun);
-			case 10:
-				return yedge(i + 1, j, k + 1, offset, dummyrun);
-			case 11:
-				return xedge(i, j + 1, k + 1, offset, dummyrun);
-			default:
-				return null;
+				case 0:
+					return xedge(i, j, k, offset, dummyrun);
+				case 1:
+					return yedge(i, j, k, offset, dummyrun);
+				case 2:
+					return yedge(i + 1, j, k, offset, dummyrun);
+				case 3:
+					return xedge(i, j + 1, k, offset, dummyrun);
+				case 4:
+					return zedge(i, j, k, offset, dummyrun);
+				case 5:
+					return zedge(i + 1, j, k, offset, dummyrun);
+				case 6:
+					return zedge(i, j + 1, k, offset, dummyrun);
+				case 7:
+					return zedge(i + 1, j + 1, k, offset, dummyrun);
+				case 8:
+					return xedge(i, j, k + 1, offset, dummyrun);
+				case 9:
+					return yedge(i, j, k + 1, offset, dummyrun);
+				case 10:
+					return yedge(i + 1, j, k + 1, offset, dummyrun);
+				case 11:
+					return xedge(i, j + 1, k + 1, offset, dummyrun);
+				default:
+					return null;
 			}
 		}
 		return null;
@@ -826,7 +852,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 	 * @param offset
 	 * @return
 	 */
-	private HE_Vertex vertex(final int i, final int j, final int k, final WB_Point offset) {
+	private HE_Vertex vertex(final int i, final int j, final int k,
+			final WB_Point offset) {
 		HE_Vertex vertex = vertices.get(index(i, j, k));
 		if (vertex != null) {
 			return vertex;
@@ -851,7 +878,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 	 * @param dummyrun
 	 * @return edge vertex
 	 */
-	private HE_Vertex xedge(final int i, final int j, final int k, final WB_Point offset, final boolean dummyrun) {
+	private HE_Vertex xedge(final int i, final int j, final int k,
+			final WB_Point offset, final boolean dummyrun) {
 		final WB_Point p0 = new WB_Point(i * dx, j * dy, k * dz);
 		final WB_Point p1 = new WB_Point(i * dx + dx, j * dy, k * dz);
 		final double val0 = value(i, j, k);
@@ -869,7 +897,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 						vr.j = j;
 						vr.k = k;
 						vr.originalvalue = value(i, j, k);
-						vr.p = interp(isolevel, p0, p1, val0, val1).addSelf(offset);
+						vr.p = interp(isolevel, p0, p1, val0, val1)
+								.addSelf(offset);
 						vr.snapvertex = vertex(i, j, k, offset);
 						vertexremaps.put(index(i, j, k), vr);
 					} else {
@@ -879,7 +908,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 							vr.j = j;
 							vr.k = k;
 							vr.originalvalue = value(i, j, k);
-							vr.p = interp(isolevel, p0, p1, val0, val1).addSelf(offset);
+							vr.p = interp(isolevel, p0, p1, val0, val1)
+									.addSelf(offset);
 							vr.snapvertex = vertex(i, j, k, offset);
 						}
 					}
@@ -892,7 +922,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 						vr.j = j;
 						vr.k = k;
 						vr.originalvalue = value(i + 1, j, k);
-						vr.p = interp(isolevel, p0, p1, val0, val1).addSelf(offset);
+						vr.p = interp(isolevel, p0, p1, val0, val1)
+								.addSelf(offset);
 						vr.snapvertex = vertex(i + 1, j, k, offset);
 						vertexremaps.put(index(i + 1, j, k), vr);
 					} else {
@@ -902,7 +933,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 							vr.j = j;
 							vr.k = k;
 							vr.originalvalue = value(i + 1, j, k);
-							vr.p = interp(isolevel, p0, p1, val0, val1).addSelf(offset);
+							vr.p = interp(isolevel, p0, p1, val0, val1)
+									.addSelf(offset);
 							vr.snapvertex = vertex(i + 1, j, k, offset);
 						}
 					}
@@ -936,7 +968,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 	 * @param dummyrun
 	 * @return edge vertex
 	 */
-	private HE_Vertex yedge(final int i, final int j, final int k, final WB_Point offset, final boolean dummyrun) {
+	private HE_Vertex yedge(final int i, final int j, final int k,
+			final WB_Point offset, final boolean dummyrun) {
 		HE_Vertex yedge = yedges.get(index(i, j, k));
 		if (yedge != null) {
 			return yedge;
@@ -958,7 +991,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 						vr.j = j;
 						vr.k = k;
 						vr.originalvalue = value(i, j, k);
-						vr.p = interp(isolevel, p0, p1, val0, val1).addSelf(offset);
+						vr.p = interp(isolevel, p0, p1, val0, val1)
+								.addSelf(offset);
 						vr.snapvertex = vertex(i, j, k, offset);
 						vertexremaps.put(index(i, j, k), vr);
 					} else {
@@ -968,7 +1002,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 							vr.j = j;
 							vr.k = k;
 							vr.originalvalue = value(i, j, k);
-							vr.p = interp(isolevel, p0, p1, val0, val1).addSelf(offset);
+							vr.p = interp(isolevel, p0, p1, val0, val1)
+									.addSelf(offset);
 							vr.snapvertex = vertex(i, j, k, offset);
 						}
 					}
@@ -981,7 +1016,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 						vr.j = j + 1;
 						vr.k = k;
 						vr.originalvalue = value(i, j + 1, k);
-						vr.p = interp(isolevel, p0, p1, val0, val1).addSelf(offset);
+						vr.p = interp(isolevel, p0, p1, val0, val1)
+								.addSelf(offset);
 						vr.snapvertex = vertex(i, j + 1, k, offset);
 						vertexremaps.put(index(i, j + 1, k), vr);
 					} else {
@@ -991,7 +1027,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 							vr.j = j + 1;
 							vr.k = k;
 							vr.originalvalue = value(i, j + 1, k);
-							vr.p = interp(isolevel, p0, p1, val0, val1).addSelf(offset);
+							vr.p = interp(isolevel, p0, p1, val0, val1)
+									.addSelf(offset);
 							vr.snapvertex = vertex(i, j + 1, k, offset);
 						}
 					}
@@ -1021,7 +1058,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 	 * @param dummyrun
 	 * @return edge vertex
 	 */
-	private HE_Vertex zedge(final int i, final int j, final int k, final WB_Point offset, final boolean dummyrun) {
+	private HE_Vertex zedge(final int i, final int j, final int k,
+			final WB_Point offset, final boolean dummyrun) {
 		HE_Vertex zedge = zedges.get(index(i, j, k));
 		if (zedge != null) {
 			return zedge;
@@ -1043,7 +1081,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 						vr.j = j;
 						vr.k = k;
 						vr.originalvalue = value(i, j, k);
-						vr.p = interp(isolevel, p0, p1, val0, val1).addSelf(offset);
+						vr.p = interp(isolevel, p0, p1, val0, val1)
+								.addSelf(offset);
 						vr.snapvertex = vertex(i, j, k, offset);
 						vertexremaps.put(index(i, j, k), vr);
 					} else {
@@ -1053,7 +1092,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 							vr.j = j;
 							vr.k = k;
 							vr.originalvalue = value(i, j, k);
-							vr.p = interp(isolevel, p0, p1, val0, val1).addSelf(offset);
+							vr.p = interp(isolevel, p0, p1, val0, val1)
+									.addSelf(offset);
 							vr.snapvertex = vertex(i, j, k, offset);
 						}
 					}
@@ -1066,7 +1106,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 						vr.j = j;
 						vr.k = k + 1;
 						vr.originalvalue = value(i, j, k + 1);
-						vr.p = interp(isolevel, p0, p1, val0, val1).addSelf(offset);
+						vr.p = interp(isolevel, p0, p1, val0, val1)
+								.addSelf(offset);
 						vr.snapvertex = vertex(i, j, k + 1, offset);
 						vertexremaps.put(index(i, j, k + 1), vr);
 					} else {
@@ -1076,7 +1117,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 							vr.j = j;
 							vr.k = k + 1;
 							vr.originalvalue = value(i, j, k + 1);
-							vr.p = interp(isolevel, p0, p1, val0, val1).addSelf(offset);
+							vr.p = interp(isolevel, p0, p1, val0, val1)
+									.addSelf(offset);
 							vr.snapvertex = vertex(i, j, k + 1, offset);
 						}
 					}
@@ -1112,8 +1154,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 	 *            the valp2
 	 * @return the h e_ vertex
 	 */
-	private WB_Point interp(final double isolevel, final WB_Point p1, final WB_Point p2, final double valp1,
-			final double valp2) {
+	private WB_Point interp(final double isolevel, final WB_Point p1,
+			final WB_Point p2, final double valp1, final double valp2) {
 		double mu;
 		if (WB_Epsilon.isEqualAbs(isolevel, valp1)) {
 			return p1;
@@ -1125,7 +1167,8 @@ public class HEC_IsoSurface extends HEC_Creator {
 			return p1;
 		}
 		mu = (isolevel - valp1) / (valp2 - valp1);
-		return new WB_Point(p1.xd() + mu * (p2.xd() - p1.xd()), p1.yd() + mu * (p2.yd() - p1.yd()),
+		return new WB_Point(p1.xd() + mu * (p2.xd() - p1.xd()),
+				p1.yd() + mu * (p2.yd() - p1.yd()),
 				p1.zd() + mu * (p2.zd() - p1.zd()));
 	}
 
@@ -1158,16 +1201,17 @@ public class HEC_IsoSurface extends HEC_Creator {
 			if (!Double.isNaN(val)) {
 				return isolevel;
 			}
-
 		}
 		if (Double.isNaN(boundary)) { // if no boundary is set i,j,k should
 			// always be between o and resx,rey,resz
-			return values.getValue(i, j, k) * valueFactor.evaluate(i, j, k) + valueShift.evaluate(i, j, k);
+			return values.getValue(i, j, k) * valueFactor.evaluate(i, j, k)
+					+ valueShift.evaluate(i, j, k);
 		}
 		if (i < 0 || j < 0 || k < 0 || i > resx || j > resy || k > resz) {
 			return invert ? -boundary : boundary;
 		}
-		return values.getValue(i, j, k) * valueFactor.evaluate(i, j, k) + valueShift.evaluate(i, j, k);
+		return values.getValue(i, j, k) * valueFactor.evaluate(i, j, k)
+				+ valueShift.evaluate(i, j, k);
 	}
 
 	/**
@@ -1177,52 +1221,61 @@ public class HEC_IsoSurface extends HEC_Creator {
 		/**
 		 *
 		 */
-		int i, j, k;
+		int			i, j, k;
 		/**
 		 *
 		 */
-		double closestd;
+		double		closestd;
 		/**
 		 *
 		 */
-		WB_Point p;
+		WB_Point	p;
 		/**
 		 *
 		 */
-		double originalvalue;
+		double		originalvalue;
 		/**
 		 *
 		 */
-		HE_Vertex snapvertex;
+		HE_Vertex	snapvertex;
 	}
 
 	public static void main(final String[] args) {
-		float[][][] values = new float[51][51][51];
-		for (int i = 0; i < 51; i++) {
-			for (int j = 0; j < 51; j++) {
-				for (int k = 0; k < 51; k++) {
-					values[i][j][k] = i * j * k;
+		float[][][] values = new float[121][121][201];
+		for (int i = 0; i < 121; i++) {
+			for (int j = 0; j < 121; j++) {
+				for (int k = 0; k < 201; k++) {
+					values[i][j][k] = 1000000;
 				}
 			}
 		}
-
+		WB_RandomPoint rpo = new WB_RandomCircle().setRadius(56).setOffset(60,
+				60, 0);
+		WB_RandomPoint rpi = new WB_RandomCircle().setRadius(56).setOffset(60,
+				60, 200);
+		for (int s = 0; s < 80; s++) {
+			WB_Segment seg = new WB_Segment(rpi.nextPoint(), rpo.nextPoint());
+			for (int i = 0; i < 121; i++) {
+				for (int j = 0; j < 121; j++) {
+					for (int k = 0; k < 201; k++) {
+						float r = 1.0f;
+						float d = (float) WB_GeometryOp
+								.getDistance3D(new WB_Point(i, j, k), seg);
+						float e = PApplet
+								.max(r - PApplet.abs(values[i][j][k] - d), 0);
+						values[i][j][k] = PApplet.min(values[i][j][k], d)
+								- e * e * 0.25f / r;
+					}
+				}
+			}
+		}
 		HEC_IsoSurface creator = new HEC_IsoSurface();
-
-		creator.setSize(8, 8, 8);// cell size
-		creator.setValues(values);// values corresponding to the grid points
-		// values can also be double[][][]
-		creator.setIsolevel(.6);// isolevel to mesh
-		creator.setInvert(false);// invert mesh
-		creator.setBoundary(-200);// value of isoFunction outside grid
-		// use creator.clearBoundary() to rest boundary values to "no value".
-		// A boundary value of "no value" results in an open mesh
-
-		// Gamma controls level of grid snap, 0.0-0.5. Can improve the
-		// quality of the triangles, but can give small changes in topology.
+		creator.setResolution(120, 120, 200);
+		creator.setSize(4, 4, 4);
+		creator.setValues(values);
+		creator.setIsolevel(2);
+		creator.setBoundary(1000);
 		creator.setGamma(0.3);
-
-		new HE_Mesh(creator);
-
+		HE_Mesh mesh = new HE_Mesh(creator);
 	}
-
 }

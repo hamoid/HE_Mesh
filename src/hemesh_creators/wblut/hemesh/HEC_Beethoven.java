@@ -93,8 +93,8 @@ public class HEC_Beethoven extends HEC_Creator {
 				}
 				if (hepairid > -1) {
 
-					he._setPair(halfedges.get(hepairid));
-					halfedges.get(hepairid)._setPair(he);
+					he.setPair(halfedges.get(hepairid));
+					halfedges.get(hepairid).setPair(he);
 				}
 				if (fid > -1) {
 					mesh.setFace(he, faces.get(fid));
@@ -124,7 +124,7 @@ public class HEC_Beethoven extends HEC_Creator {
 		} catch (final IOException ex) {
 			ex.printStackTrace();
 		}
-		HET_MeshOp.improveTriangulation(mesh);
+		HE_MeshOp.improveTriangulation(mesh);
 		return mesh;
 	}
 

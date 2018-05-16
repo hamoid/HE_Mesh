@@ -16,7 +16,7 @@ void setup() {
   mesh=new HE_Mesh(new HEC_Beethoven().setScale(10));
   diamesh=mesh.get();
   diamesh.modify(new HEM_Diagrid());
-
+  diamesh.validate();
 }
 
   void draw() {

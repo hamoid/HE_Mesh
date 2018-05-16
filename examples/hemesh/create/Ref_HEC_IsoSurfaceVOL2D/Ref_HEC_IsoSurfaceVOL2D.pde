@@ -21,10 +21,12 @@ void setup() {
   creator.setResolution(80, 50);
   creator.setSize(12, 12);
   creator.setValues(values);
-  creator.setIsolevel(-0.4, 0.4);
+  creator.setIsolevel(-0.2, 0.2);
   creator.setZFactor(25.0); 
   mesh=creator.create();
-  //mesh.modify(new HEM_Shell().setThickness(25));
+  mesh.modify(new HEM_Shell().setThickness(12.5));
+  mesh.stats();
+  mesh.modify(new HEM_HideEdges().setThreshold(0.7));
 
   render=new WB_Render(this);
 }
@@ -35,7 +37,10 @@ void draw() {
   translate(width/2, height/2);
   rotateY(mouseX*1.0f/width*TWO_PI);
   rotateX(mouseY*1.0f/height*TWO_PI);
-  stroke(0);
+  noStroke();
   fill(255);
   render.drawFaces(mesh);
+  stroke(0);
+  strokeWeight(2.0);
+  render.drawEdges(mesh);
 }

@@ -29,6 +29,7 @@ void setup() {
   }
   zono=gf.createZonohedron(vectors, 40);
   mesh=new HE_Mesh(zono);
+  mesh.stats();
 }
 
 void draw() {
@@ -53,7 +54,6 @@ void update() {
 
   zono=gf.createZonohedron(vectors, 40);
   mesh=new HE_Mesh(zono);
-
  
 }
 

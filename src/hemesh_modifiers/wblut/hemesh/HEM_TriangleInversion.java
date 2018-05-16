@@ -163,10 +163,10 @@ public class HEM_TriangleInversion extends HEM_Modifier {
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
 		if (triangle == null) {
-			return selection.parent;
+			return selection.getParent();
 		}
 		if (r == 0) {
-			return selection.parent;
+			return selection.getParent();
 		}
 
 		final Iterator<HE_Vertex> vItr = selection.vItr();
@@ -193,6 +193,6 @@ public class HEM_TriangleInversion extends HEM_Modifier {
 				v.getPosition().addMulSelf(rf, d);
 			}
 		}
-		return selection.parent;
+		return selection.getParent();
 	}
 }

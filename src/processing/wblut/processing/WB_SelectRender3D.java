@@ -117,7 +117,7 @@ public class WB_SelectRender3D {
 		selector.strokeWeight(1.0f);
 		while (fItr.hasNext()) {
 			f = fItr.next();
-			setKey(f.key());
+			setKey(f.getKey());
 			drawFace(f);
 		}
 		selector.endDraw();
@@ -141,7 +141,7 @@ public class WB_SelectRender3D {
 		HE_Halfedge e;
 		while (eItr.hasNext()) {
 			e = eItr.next();
-			setKey(e.key());
+			setKey(e.getKey());
 			selector.line(e.getVertex().xf(), e.getVertex().yf(), e.getVertex().zf(), e.getEndVertex().xf(),
 					e.getEndVertex().yf(), e.getEndVertex().zf());
 		}
@@ -167,7 +167,7 @@ public class WB_SelectRender3D {
 		selector.strokeWeight(1.0f);
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			setKey(v.key());
+			setKey(v.getKey());
 			selector.pushMatrix();
 			selector.translate(v.xf(), v.yf(), v.zf());
 			selector.box((float) d);

@@ -112,6 +112,6 @@ public class HEM_Noise extends HEM_Modifier {
 			v.getPosition().addSelf(n.mulSelf(d.evaluate(v.xd(), v.yd(), v.zd())));
 		}
 
-		return selection.parent;
+		return selection.getParent();
 	}
 }

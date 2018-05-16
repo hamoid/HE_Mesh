@@ -11,7 +11,7 @@ void setup() {
   size(1000,1000,P3D);
   smooth(8);
   HEC_Cylinder creator=new HEC_Cylinder();
-  creator.setRadius(150,50); // upper and lower radius. If one is 0, HEC_Cone is called. 
+  creator.setRadius(70,150); // upper and lower radius. If one is 0, HEC_Cone is called. 
   creator.setHeight(400);
   creator.setFacets(7).setSteps(5);
   creator.setCap(true,true);// cap top, cap bottom?
@@ -34,4 +34,3 @@ void draw() {
   noStroke();
   render.drawFaces(mesh);
 }
-

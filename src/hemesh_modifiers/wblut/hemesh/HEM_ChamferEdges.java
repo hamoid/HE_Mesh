@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.ArrayList;
@@ -49,7 +46,6 @@ public class HEM_ChamferEdges extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.modifiers.HEB_Modifier#modify(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
@@ -62,12 +58,14 @@ public class HEM_ChamferEdges extends HEM_Modifier {
 		HE_Halfedge e;
 		while (eItr.hasNext()) {
 			e = eItr.next();
-			if (e.getVertex().getVertexType() == WB_Classification.CONVEX
-					|| e.getEndVertex().getVertexType() == WB_Classification.CONVEX) {
-				final WB_Vector N = new WB_Vector(e.getEdgeNormal());
+			if (HE_MeshOp
+					.getVertexType(e.getVertex()) == WB_Classification.CONVEX
+					|| HE_MeshOp.getVertexType(
+							e.getEndVertex()) == WB_Classification.CONVEX) {
+				final WB_Vector N = new WB_Vector(HE_MeshOp.getEdgeNormal(e));
 				final WB_Point O = new WB_Point(N).mulSelf(-distance);
 				N.mulSelf(-1);
-				O.addSelf(e.getHalfedgeCenter());
+				O.addSelf(HE_MeshOp.getHalfedgeCenter(e));
 				final WB_Plane P = new WB_Plane(O, N);
 				cutPlanes.add(P);
 			}
@@ -81,35 +79,36 @@ public class HEM_ChamferEdges extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.hemesh.modifiers.HEB_Modifier#modifySelected(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
 		if (distance == 0) {
-			return selection.parent;
+			return selection.getParent();
 		}
 		final ArrayList<WB_Plane> cutPlanes = new ArrayList<WB_Plane>();
 		selection.collectEdgesByFace();
-		final Iterator<HE_Halfedge> eItr = selection.parent.eItr();
+		final Iterator<HE_Halfedge> eItr = selection.getParent().eItr();
 		HE_Halfedge e;
 		while (eItr.hasNext()) {
 			e = eItr.next();
-			if (e.getVertex().getVertexType() == WB_Classification.CONVEX
-					|| e.getEndVertex().getVertexType() == WB_Classification.CONVEX) {
-				final WB_Vector N = new WB_Vector(e.getEdgeNormal());
+			if (HE_MeshOp
+					.getVertexType(e.getVertex()) == WB_Classification.CONVEX
+					|| HE_MeshOp.getVertexType(
+							e.getEndVertex()) == WB_Classification.CONVEX) {
+				final WB_Vector N = new WB_Vector(HE_MeshOp.getEdgeNormal(e));
 				final WB_Point O = new WB_Point(N).mulSelf(-distance);
 				N.mulSelf(-1);
-				O.addSelf(e.getHalfedgeCenter());
+				O.addSelf(HE_MeshOp.getHalfedgeCenter(e));
 				final WB_Plane P = new WB_Plane(O, N);
 				cutPlanes.add(P);
 			}
 		}
 		final HEM_MultiSlice msm = new HEM_MultiSlice();
 		msm.setPlanes(cutPlanes);
-		selection.parent.modify(msm);
-		selection.parent.renameSelection("caps", "chamfer");
-		return selection.parent;
+		selection.getParent().modify(msm);
+		selection.getParent().renameSelection("caps", "chamfer");
+		return selection.getParent();
 	}
 }

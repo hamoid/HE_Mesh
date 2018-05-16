@@ -49,7 +49,7 @@ abstract public class HEM_Modifier extends HE_Machine {
 		if (selection == null) {
 			return new HE_Mesh();
 		}
-		HE_Mesh copy = selection.parent.get();
+		HE_Mesh copy = selection.getParent().get();
 		try {
 			HE_Mesh result = applySelf(selection);
 			tracker.setStopStatus(this, "Mesh modified.");
@@ -57,9 +57,9 @@ abstract public class HEM_Modifier extends HE_Machine {
 			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
-			selection.parent.setNoCopy(copy);
+			selection.getParent().setNoCopy(copy);
 			tracker.setStopStatus(this, "Modifier failed. Resetting mesh.");
-			return selection.parent;
+			return selection.getParent();
 		} finally {
 			copy = null;
 		}

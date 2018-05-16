@@ -3,9 +3,8 @@
  * It is dedicated to the public domain. To the extent possible under law,
  * I , Frederik Vanhoutte, have waived all copyright and related or neighboring
  * rights.
- *
- * This work is published from Belgium. (http://creativecommons.org/publicdomain/zero/1.0/)
- *
+ * This work is published from Belgium.
+ * (http://creativecommons.org/publicdomain/zero/1.0/)
  */
 package wblut.hemesh;
 
@@ -22,27 +21,27 @@ import org.eclipse.collections.impl.map.mutable.primitive.LongIntHashMap;
  * Random Access Set of HE_Element
  *
  * Contains 2 datastructures: a list of HE_Element objects, and a Hashmap
- * <long,int>. The list or array contains all elements. The hashmap allows
+ * <long,int>. The list contains all elements. The hashmap allows
  * lookup by the HE_Element key and returns the index of the HE_Element in the
  * list.
+ * If an element is deleted, the last element in the HE_RAS is moved to the
+ * empty position.
  *
- * Implementations of HE_RAS have to ensure that each element can only be
+ * Each element in a HE_RAS can only be
  * present once.
  *
  * @param <E>
  *            a class extending HE_Element
  */
 public class HE_RAS<E extends HE_Element> extends AbstractSet<E> {
-
 	/**
 	 *
 	 */
-	FastList<E> objects;
-
+	FastList<E>		objects;
 	/**
 	 *
 	 */
-	LongIntHashMap indices;
+	LongIntHashMap	indices;
 
 	/**
 	 *
@@ -50,7 +49,6 @@ public class HE_RAS<E extends HE_Element> extends AbstractSet<E> {
 	public HE_RAS() {
 		objects = new FastList<E>();
 		indices = new LongIntHashMap();
-
 	}
 
 	/**
@@ -77,21 +75,18 @@ public class HE_RAS<E extends HE_Element> extends AbstractSet<E> {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_RAS#add(wblut.hemesh.HE_Element)
 	 */
-
 	@Override
 	public boolean add(final E item) {
 		if (item == null) {
 			return false;
 		}
-		if (!indices.containsKey(item.key)) {
-			indices.put(item.key, objects.size());
+		if (!indices.containsKey(item.getKey())) {
+			indices.put(item.getKey(), objects.size());
 			objects.add(item);
 			return true;
 		}
-
 		return false;
 	}
 
@@ -101,17 +96,16 @@ public class HE_RAS<E extends HE_Element> extends AbstractSet<E> {
 	 * @param id
 	 * @return
 	 */
-
 	public E removeAt(final int id) {
 		if (id >= objects.size()) {
 			return null;
 		}
 		final E res = objects.get(id);
-		indices.remove(res.key);
+		indices.remove(res.getKey());
 		final E last = objects.remove(objects.size() - 1);
 		// skip filling the hole if last is removed
 		if (id < objects.size()) {
-			indices.put(last.key, id);
+			indices.put(last.getKey(), id);
 			objects.set(id, last);
 		}
 		return res;
@@ -122,7 +116,7 @@ public class HE_RAS<E extends HE_Element> extends AbstractSet<E> {
 			return false;
 		}
 		// @SuppressWarnings(value = "element-type-mismatch
-		final int id = indices.getIfAbsent(item.key, -1);
+		final int id = indices.getIfAbsent(item.getKey(), -1);
 		if (id == -1) {
 			return false;
 		}
@@ -143,7 +137,7 @@ public class HE_RAS<E extends HE_Element> extends AbstractSet<E> {
 	}
 
 	public int indexOf(final E object) {
-		return indices.getIfAbsent(object.key, -1);
+		return indices.getIfAbsent(object.getKey(), -1);
 	}
 
 	public E pollRandom(final Random rnd) {
@@ -163,7 +157,7 @@ public class HE_RAS<E extends HE_Element> extends AbstractSet<E> {
 		if (object == null) {
 			return false;
 		}
-		return indices.containsKey(object.key);
+		return indices.containsKey(object.getKey());
 	}
 
 	public boolean containsKey(final Long key) {
@@ -178,5 +172,4 @@ public class HE_RAS<E extends HE_Element> extends AbstractSet<E> {
 	public List<E> getObjects() {
 		return objects.asUnmodifiable();
 	}
-
 }

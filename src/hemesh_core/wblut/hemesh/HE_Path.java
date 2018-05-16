@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.List;
@@ -17,7 +14,7 @@ import org.eclipse.collections.impl.list.mutable.FastList;
  * A HE_Path is a sequence of edges, or rather halfedges, in a mesh. It can be a
  * loop or open.
  *
- * A HE_Path consists of a double linked list of HE_PathHalfedges, a wrapper for
+ * A HE_Path consists of a double linked list of HE_PathHalfedge, a wrapper for
  * a HE_Halfedge that can have different connectivity than the HE_Halfedge
  * itself. The constructors do not check if the path is valid, i.e. a
  * non-interrupted loop or sequence of halfedges.
@@ -88,15 +85,15 @@ public class HE_Path extends HE_MeshElement {
 		createFromList(halfedges, true);
 	}
 
-	public static HE_Path getShortestPath(final HE_Vertex v0, final HE_Vertex v1, final HE_Mesh mesh) {
+	public static HE_Path getShortestPath(final HE_Vertex v0,
+			final HE_Vertex v1, final HE_Mesh mesh) {
 		if (!mesh.contains(v0) || !mesh.contains(v1) || v0 == v1) {
-
 			return null;
 		}
 		HET_MeshGraph graph = new HET_MeshGraph(mesh);
-		int[] shortestpath = graph.getShortestPathBetweenVertices(mesh.getIndex(v0), mesh.getIndex(v1));
-		return mesh.createPathFromIndices(shortestpath, false);
-
+		int[] shortestpath = graph.getShortestPathBetweenVertices(
+				mesh.getIndex(v0), mesh.getIndex(v1));
+		return HE_MeshOp.createPathFromIndices(mesh, shortestpath, false);
 	}
 
 	/**
@@ -114,7 +111,7 @@ public class HE_Path extends HE_MeshElement {
 	}
 
 	/**
-	 * Internally creates a looping path from a list of halfedges. The list is
+	 * Internally creates a path from a list of halfedges. The list is
 	 * assumed to be a proper sequence or loop. No checking is performed.
 	 *
 	 * @param halfedges
@@ -122,7 +119,8 @@ public class HE_Path extends HE_MeshElement {
 	 * @param loop
 	 *            true/false, is the list supposed to be a loop?
 	 */
-	private void createFromList(final List<HE_Halfedge> halfedges, final boolean loop) {
+	private void createFromList(final List<HE_Halfedge> halfedges,
+			final boolean loop) {
 		_phalfedge = new HE_PathHalfedge(halfedges.get(0));
 		HE_PathHalfedge current = _phalfedge;
 		HE_PathHalfedge next;
@@ -176,7 +174,7 @@ public class HE_Path extends HE_MeshElement {
 		}
 		HE_PathHalfedge he = _phalfedge;
 		do {
-			result += he.getHalfedge().getLength();
+			result += HE_MeshOp.getLength(he.getHalfedge());
 			he = he.getNextInPath();
 		} while (he != _phalfedge && he != null);
 		return result;
@@ -195,7 +193,7 @@ public class HE_Path extends HE_MeshElement {
 		result[0] = 0;
 		int i = 1;
 		do {
-			result[i] = result[i - 1] + he.getHalfedge().getLength();
+			result[i] = result[i - 1] + HE_MeshOp.getLength(he.getHalfedge());
 			he = he.getNextInPath();
 			i++;
 		} while (he != _phalfedge && he != null);
@@ -336,31 +334,29 @@ public class HE_Path extends HE_MeshElement {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.Point3D#toString()
 	 */
 	@Override
 	public String toString() {
-		String s = "HE_Path key: " + key() + ". Connects " + getPathOrder() + " vertices: ";
+		String s = "HE_Path key: " + key() + ". Connects " + getPathOrder()
+				+ " vertices: ";
 		HE_PathHalfedge he = _phalfedge;
 		if (he != null) {
 			for (int i = 0; i < getPathOrder() - 1; i++) {
-				s += he.getHalfedge().getVertex().key + "-";
+				s += he.getHalfedge().getVertex().getKey() + "-";
 				he = he.getNextInPath();
 			}
-			s += he.getHalfedge().getEndVertex().key + ".";
+			s += he.getHalfedge().getEndVertex().getKey() + ".";
 		}
 		return s;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Element#clear()
 	 */
 	@Override
 	public void clear() {
-
 		_phalfedge = null;
 	}
 
@@ -402,6 +398,5 @@ public class HE_Path extends HE_MeshElement {
 
 	@Override
 	public void clearPrecomputed() {
-
 	}
 }

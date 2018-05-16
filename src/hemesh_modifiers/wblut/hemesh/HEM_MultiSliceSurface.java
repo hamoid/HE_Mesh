@@ -146,12 +146,12 @@ public class HEM_MultiSliceSurface extends HEM_Modifier {
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
-		selection.parent.resetFaceInternalLabels();
-		selection.parent.resetEdgeInternalLabels();
-		cutFaces = HE_Selection.getSelection(selection.parent);
-		newEdges = HE_Selection.getSelection(selection.parent);
+		selection.getParent().resetFaceInternalLabels();
+		selection.getParent().resetEdgeInternalLabels();
+		cutFaces = HE_Selection.getSelection(selection.getParent());
+		newEdges = HE_Selection.getSelection(selection.getParent());
 		if (planes == null) {
-			return selection.parent;
+			return selection.getParent();
 		}
 		final HEM_SliceSurface slice = new HEM_SliceSurface();
 		boolean unique = true;
@@ -170,12 +170,12 @@ public class HEM_MultiSliceSurface extends HEM_Modifier {
 
 				slice.setPlane(Pi).setOffset(offset);
 				slice.apply(selection);
-				if (selection.parent.getSelection("cuts") != null) {
-					cutFaces.add(selection.parent.getSelection("cuts"));
+				if (selection.getParent().getSelection("cuts") != null) {
+					cutFaces.add(selection.getParent().getSelection("cuts"));
 				}
 			}
 		}
-		selection.parent.resetEdgeInternalLabels();
+		selection.getParent().resetEdgeInternalLabels();
 		cutFaces.cleanSelection();
 		cutFaces.collectEdgesByFace();
 		final Iterator<HE_Halfedge> eItr = cutFaces.eItr();
@@ -191,8 +191,8 @@ public class HEM_MultiSliceSurface extends HEM_Modifier {
 				}
 			}
 		}
-		selection.parent.addSelection("cuts", this, cutFaces);
-		selection.parent.addSelection("edges", this, newEdges);
-		return selection.parent;
+		selection.getParent().addSelection("cuts", this, cutFaces);
+		selection.getParent().addSelection("edges", this, newEdges);
+		return selection.getParent();
 	}
 }

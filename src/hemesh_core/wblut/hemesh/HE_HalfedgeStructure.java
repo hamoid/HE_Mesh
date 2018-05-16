@@ -1,25 +1,18 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import wblut.geom.WB_AABB;
-import wblut.geom.WB_Sphere;
-
 /**
 *
 */
-
 /**
  * Collection of mesh elements. Contains methods to manipulate the data
  * structures.
@@ -28,7 +21,6 @@ import wblut.geom.WB_Sphere;
  *
  */
 public interface HE_HalfedgeStructure {
-
 	void add(HE_Element el);
 
 	/**
@@ -135,7 +127,6 @@ public interface HE_HalfedgeStructure {
 	/**
 	 * Clear entire structure.
 	 */
-
 	void clear();
 
 	/**
@@ -173,20 +164,6 @@ public interface HE_HalfedgeStructure {
 	 * @return face iterator
 	 */
 	Iterator<HE_Face> fItr();
-
-	/**
-	 * Get axis-aligned bounding box surrounding mesh.
-	 *
-	 * @return WB_AABB axis-aligned bounding box
-	 */
-	WB_AABB getAABB();
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	WB_Sphere getBoundingSphere();
 
 	/**
 	 *
@@ -259,13 +236,6 @@ public interface HE_HalfedgeStructure {
 	 * @return
 	 */
 	HE_Halfedge getHalfedgeWithIndex(int i);
-
-	/**
-	 * Get range of vertex coordinates.
-	 *
-	 * @return array of limit values: min x, min y, min z, max x, max y, max z
-	 */
-	double[] getLimits();
 
 	String getName();
 
@@ -548,4 +518,5 @@ public interface HE_HalfedgeStructure {
 	 */
 	int getIndex(HE_Vertex v);
 
+	void stats();
 }

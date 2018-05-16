@@ -1,17 +1,15 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.geom;
 
 import java.util.List;
 
 import org.eclipse.collections.impl.list.mutable.FastList;
+
 import wblut.math.WB_Math;
 
 /**
@@ -21,12 +19,12 @@ public class WB_Segment extends WB_Line {
 	/**
 	 *
 	 */
-	protected double length;
+	protected double			length;
 	/**
 	 *
 	 */
-	protected WB_Point endpoint;
-	private WB_GeometryFactory geometryfactory = new WB_GeometryFactory();
+	protected WB_Point			endpoint;
+	private WB_GeometryFactory	geometryfactory	= new WB_GeometryFactory();
 
 	/**
 	 *
@@ -99,9 +97,10 @@ public class WB_Segment extends WB_Line {
 	 * @param p2y
 	 * @param p2z
 	 */
-	public WB_Segment(final double p1x, final double p1y, final double p1z, final double p2x, final double p2y,
-			final double p2z) {
-		super(new WB_Point(p1x, p1y, p1z), new WB_Vector(p2x - p1x, p2y - p1y, p2z - p1z));
+	public WB_Segment(final double p1x, final double p1y, final double p1z,
+			final double p2x, final double p2y, final double p2z) {
+		super(new WB_Point(p1x, p1y, p1z),
+				new WB_Vector(p2x - p1x, p2y - p1y, p2z - p1z));
 		endpoint = new WB_Point(p2x, p2y, p2z);
 		length = Math.sqrt(WB_CoordOp3D.getSqDistance3D(origin, endpoint));
 	}
@@ -127,8 +126,10 @@ public class WB_Segment extends WB_Line {
 	 * @param result
 	 */
 	@Override
-	public void getParametricPointInto(final double t, final WB_MutableCoord result) {
-		result.set(new WB_Vector(direction).mulSelf(WB_Math.clamp(t, 0, 1) * length).addSelf(origin));
+	public void getParametricPointInto(final double t,
+			final WB_MutableCoord result) {
+		result.set(new WB_Vector(direction)
+				.mulSelf(WB_Math.clamp(t, 0, 1) * length).addSelf(origin));
 	}
 
 	/**
@@ -183,14 +184,8 @@ public class WB_Segment extends WB_Line {
 		set(endpoint, origin);
 	}
 
-	public WB_Segment apply(final WB_Transform T) {
-		return geometryfactory.createSegment(new WB_Point(origin).applyAsPoint(T),
-				new WB_Point(endpoint).applyAsPoint(T));
-	}
-
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Curve#curvePoint(double)
 	 */
 	@Override
@@ -203,7 +198,6 @@ public class WB_Segment extends WB_Line {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Curve#loweru()
 	 */
 	@Override
@@ -213,7 +207,6 @@ public class WB_Segment extends WB_Line {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Curve#upperu()
 	 */
 	@Override
@@ -223,18 +216,15 @@ public class WB_Segment extends WB_Line {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Curve#curveDirection(double)
 	 */
 	@Override
 	public WB_Vector curveDirection(final double u) {
-
 		return new WB_Vector(direction);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Curve#curveDerivative(double)
 	 */
 	@Override
@@ -244,7 +234,6 @@ public class WB_Segment extends WB_Line {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -255,12 +244,12 @@ public class WB_Segment extends WB_Line {
 		if (!(o instanceof WB_Segment)) {
 			return false;
 		}
-		return origin.equals(((WB_Segment) o).getOrigin()) && endpoint.equals(((WB_Segment) o).getEndpoint());
+		return origin.equals(((WB_Segment) o).getOrigin())
+				&& endpoint.equals(((WB_Segment) o).getEndpoint());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -268,4 +257,35 @@ public class WB_Segment extends WB_Line {
 		return 31 * origin.hashCode() + endpoint.hashCode();
 	}
 
+	@Override
+	public WB_Segment apply2D(WB_Transform2D T) {
+		return geometryfactory.createSegment(
+				new WB_Point(origin).applyAsPoint2D(T),
+				new WB_Point(endpoint).applyAsPoint2D(T));
+	}
+
+	@Override
+	public WB_Segment apply2DSelf(WB_Transform2D T) {
+		origin.apply2DSelf(T);
+		endpoint.apply2DSelf(T);
+		direction.apply2DSelf(T);
+		length = Math.sqrt(WB_CoordOp3D.getSqDistance3D(origin, endpoint));
+		return this;
+	}
+
+	@Override
+	public WB_Segment apply(final WB_Transform T) {
+		return geometryfactory.createSegment(
+				new WB_Point(origin).applyAsPoint(T),
+				new WB_Point(endpoint).applyAsPoint(T));
+	}
+
+	@Override
+	public WB_Segment applySelf(WB_Transform T) {
+		origin.applySelf(T);
+		endpoint.applySelf(T);
+		direction.applySelf(T);
+		length = Math.sqrt(WB_CoordOp3D.getSqDistance3D(origin, endpoint));
+		return this;
+	}
 }

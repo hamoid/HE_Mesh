@@ -28,7 +28,7 @@ public class HEM_HybridSplit extends HEM_Modifier {
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Mesh mesh) {
-		HET_MeshOp.splitFacesHybrid(mesh);
+		HE_MeshOp.splitFacesHybrid(mesh);
 		return mesh;
 	}
 
@@ -39,7 +39,7 @@ public class HEM_HybridSplit extends HEM_Modifier {
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
-		HET_MeshOp.splitFacesHybrid(selection);
-		return selection.parent;
+		HE_MeshOp.splitFacesHybrid(selection);
+		return selection.getParent();
 	}
 }

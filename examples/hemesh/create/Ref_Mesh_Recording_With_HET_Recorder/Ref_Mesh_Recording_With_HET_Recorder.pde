@@ -69,6 +69,7 @@ void draw() {
       vertex(80*cos(0.05*TWO_PI*i), 6*i-320, 80*sin(0.05*TWO_PI*i));
     }
     endShape();
+   
 
     // end recording
     recorder.stop();
@@ -83,6 +84,8 @@ void draw() {
       meshes.getMesh(i).modify(new HEM_Shell().setThickness(10));
       meshes.getMesh(i).smooth();
     }
+    
+   
   }
   
 

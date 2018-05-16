@@ -63,14 +63,14 @@ public class HEM_Transform extends HEM_Modifier {
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
 		if (T == null) {
-			return selection.parent;
+			return selection.getParent();
 		}
 		final HE_VertexIterator vItr = selection.vItr();
 		while (vItr.hasNext()) {
 			T.applyAsPointSelf(vItr.next());
 		}
 
-		return selection.parent;
+		return selection.getParent();
 	}
 
 }

@@ -1,38 +1,31 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.geom;
 
 /**
  *
  */
-public class WB_Tetrahedron {
-
+public class WB_Tetrahedron implements WB_Geometry3D {
 	/**
 	 *
 	 */
-	WB_Point p1;
-
+	WB_Point	p1;
 	/**
 	 *
 	 */
-	WB_Point p2;
-
+	WB_Point	p2;
 	/**
 	 *
 	 */
-	WB_Point p3;
-
+	WB_Point	p3;
 	/**
 	 *
 	 */
-	WB_Point p4;
+	WB_Point	p4;
 
 	/**
 	 *
@@ -53,7 +46,8 @@ public class WB_Tetrahedron {
 	 * @param p3
 	 * @param p4
 	 */
-	public WB_Tetrahedron(final WB_Coord p1, final WB_Coord p2, final WB_Coord p3, final WB_Coord p4) {
+	public WB_Tetrahedron(final WB_Coord p1, final WB_Coord p2,
+			final WB_Coord p3, final WB_Coord p4) {
 		this.p1 = geometryfactory.createPoint(p1);
 		this.p2 = geometryfactory.createPoint(p2);
 		this.p3 = geometryfactory.createPoint(p3);
@@ -98,10 +92,8 @@ public class WB_Tetrahedron {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Simplex#getPoint(int)
 	 */
-
 	public WB_Coord getPoint(final int i) {
 		if (i == 0) {
 			return p1;
@@ -117,10 +109,8 @@ public class WB_Tetrahedron {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Simplex#getCenter()
 	 */
-
 	public WB_Point getCenter() {
 		return geometryfactory.createMidpoint(p1, p2, p3, p3);
 	}
@@ -198,7 +188,8 @@ public class WB_Tetrahedron {
 		final double sixV = Math.abs(a.dot(bXc));
 		c.crossSelf(a);
 		a.crossSelf(b);
-		final double denom = bXc.getLength() + c.getLength() + a.getLength() + bXc.addMulSelf(2, a).getLength();
+		final double denom = bXc.getLength() + c.getLength() + a.getLength()
+				+ bXc.addMulSelf(2, a).getLength();
 		return sixV / denom;
 	}
 
@@ -262,8 +253,33 @@ public class WB_Tetrahedron {
 				&& WB_GeometryOp3D.getCosDihedralAngle(p2, p1, p4, p3) > 0.0;
 	}
 
-	public WB_Tetrahedron apply(final WB_Transform T) {
-		return geometryfactory.createTetrahedron(p1.applyAsPoint(T), p2.applyAsPoint(T), p3.applyAsPoint(T),
-				p4.applyAsPoint(T));
+	@Override
+	public WB_Tetrahedron apply2D(WB_Transform2D T) {
+		return new WB_Tetrahedron(p1.apply2D(T), p2.apply2D(T), p3.apply2D(T),
+				p4.apply2D(T));
+	}
+
+	@Override
+	public WB_Tetrahedron apply2DSelf(WB_Transform2D T) {
+		p1.apply2DSelf(T);
+		p2.apply2DSelf(T);
+		p3.apply2DSelf(T);
+		p4.apply2DSelf(T);
+		return this;
+	}
+
+	@Override
+	public WB_Tetrahedron apply(WB_Transform T) {
+		return new WB_Tetrahedron(p1.apply(T), p2.apply(T), p3.apply(T),
+				p4.apply(T));
+	}
+
+	@Override
+	public WB_Tetrahedron applySelf(WB_Transform T) {
+		p1.applySelf(T);
+		p2.applySelf(T);
+		p3.applySelf(T);
+		p4.applySelf(T);
+		return this;
 	}
 }

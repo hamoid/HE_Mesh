@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.geom;
 
 import wblut.math.WB_Epsilon;
@@ -15,27 +12,26 @@ import wblut.math.WB_Math;
 /**
  *
  */
-public class WB_Triangle {
+public class WB_Triangle implements WB_Geometry3D {
 	/** First point. */
-	WB_Coord p1;
+	WB_Coord		p1;
 	/** Second point. */
-	WB_Coord p2;
+	WB_Coord		p2;
 	/** Third point. */
-	WB_Coord p3;
+	WB_Coord		p3;
 	/** Length of side a. */
-	private double a;
+	private double	a;
 	/** Length of side b. */
-	private double b;
+	private double	b;
 	/** Length of side c. */
-	private double c;
+	private double	c;
 	/** Cosine of angle A. */
-	private double cosA;
+	private double	cosA;
 	/** Cosine of angle B. */
-	private double cosB;
+	private double	cosB;
 	/** Cosine of angle C. */
-	private double cosC;
-
-	int index;
+	private double	cosC;
+	int				index;
 
 	/**
 	 *
@@ -55,7 +51,8 @@ public class WB_Triangle {
 	 * @param p2
 	 * @param p3
 	 */
-	public WB_Triangle(final WB_Coord p1, final WB_Coord p2, final WB_Coord p3) {
+	public WB_Triangle(final WB_Coord p1, final WB_Coord p2,
+			final WB_Coord p3) {
 		this.p1 = p1;
 		this.p2 = p2;
 		this.p3 = p3;
@@ -100,15 +97,17 @@ public class WB_Triangle {
 			plane.mapPoint3D(p2, pp2);
 			WB_Point pp3 = new WB_Point();
 			plane.mapPoint3D(p3, pp3);
-
 			cosA = WB_Epsilon.isZero(b * c) ? Double.NaN
-					: ((pp2.xd() - pp1.xd()) * (pp3.xd() - pp1.xd()) + (pp2.yd() - pp1.yd()) * (pp3.yd() - pp1.yd()))
+					: ((pp2.xd() - pp1.xd()) * (pp3.xd() - pp1.xd())
+							+ (pp2.yd() - pp1.yd()) * (pp3.yd() - pp1.yd()))
 							/ (b * c);
 			cosB = WB_Epsilon.isZero(a * c) ? Double.NaN
-					: ((pp1.xd() - pp2.xd()) * (pp3.xd() - pp2.xd()) + (pp1.yd() - pp2.yd()) * (pp3.yd() - pp2.yd()))
+					: ((pp1.xd() - pp2.xd()) * (pp3.xd() - pp2.xd())
+							+ (pp1.yd() - pp2.yd()) * (pp3.yd() - pp2.yd()))
 							/ (a * c);
 			cosC = WB_Epsilon.isZero(a * b) ? Double.NaN
-					: ((pp2.xd() - pp3.xd()) * (pp1.xd() - pp3.xd()) + (pp2.yd() - pp3.yd()) * (pp1.yd() - pp3.yd()))
+					: ((pp2.xd() - pp3.xd()) * (pp1.xd() - pp3.xd())
+							+ (pp2.yd() - pp3.yd()) * (pp1.yd() - pp3.yd()))
 							/ (a * b);
 		}
 	}
@@ -209,10 +208,6 @@ public class WB_Triangle {
 		return geometryfactory.createMidpoint(p1, p2, p3);
 	}
 
-	public WB_Triangle apply(final WB_Transform T) {
-		return geometryfactory.createTriangle(T.applyAsPoint(p1), T.applyAsPoint(p2), T.applyAsPoint(p3));
-	}
-
 	/**
 	 * Get plane of triangle.
 	 *
@@ -233,9 +228,8 @@ public class WB_Triangle {
 	 */
 	public WB_Map2D getEmbeddedPlane() {
 		WB_Plane P = getPlane();
-
-		return P == null ? null : geometryfactory.createEmbeddedPlane(getPlane());
-
+		return P == null ? null
+				: geometryfactory.createEmbeddedPlane(getPlane());
 	}
 
 	/**
@@ -265,7 +259,8 @@ public class WB_Triangle {
 		final double a2 = a * a;
 		final double b2 = b * b;
 		final double c2 = c * c;
-		return getPointFromBarycentric((a2 + b2 - c2) * (a2 - b2 + c2), (a2 + b2 - c2) * (-a2 + b2 + c2),
+		return getPointFromBarycentric((a2 + b2 - c2) * (a2 - b2 + c2),
+				(a2 + b2 - c2) * (-a2 + b2 + c2),
 				(a2 - b2 + c2) * (-a2 + b2 + c2));
 	}
 
@@ -280,7 +275,8 @@ public class WB_Triangle {
 	 *            the z
 	 * @return point
 	 */
-	public WB_Point getPointFromTrilinear(final double x, final double y, final double z) {
+	public WB_Point getPointFromTrilinear(final double x, final double y,
+			final double z) {
 		final double abc = a * x + b * y + c * z;
 		final WB_Point ea = WB_Point.sub(p2, p3);
 		final WB_Point eb = WB_Point.sub(p1, p3);
@@ -303,7 +299,8 @@ public class WB_Triangle {
 	 *            the z
 	 * @return point
 	 */
-	public WB_Point getPointFromBarycentric(final double x, final double y, final double z) {
+	public WB_Point getPointFromBarycentric(final double x, final double y,
+			final double z) {
 		return getPointFromTrilinear(x / a, y / b, z / c);
 	}
 
@@ -314,10 +311,13 @@ public class WB_Triangle {
 	 * @return
 	 */
 	public double[] getBarycentricCoordinates(final WB_Coord p) {
-		final double m = (p3.xd() - p1.xd()) * (p2.yd() - p1.yd()) - (p3.yd() - p1.yd()) * (p2.xd() - p1.xd());
+		final double m = (p3.xd() - p1.xd()) * (p2.yd() - p1.yd())
+				- (p3.yd() - p1.yd()) * (p2.xd() - p1.xd());
 		double nu, nv, ood;
-		nu = WB_GeometryOp3D.twiceSignedTriArea2D(p.xd(), p.yd(), p2.xd(), p2.yd(), p3.xd(), p3.yd());
-		nv = WB_GeometryOp3D.twiceSignedTriArea2D(p.xd(), p.yd(), p3.xd(), p3.yd(), p1.xd(), p1.yd());
+		nu = WB_GeometryOp3D.twiceSignedTriArea2D(p.xd(), p.yd(), p2.xd(),
+				p2.yd(), p3.xd(), p3.yd());
+		nv = WB_GeometryOp3D.twiceSignedTriArea2D(p.xd(), p.yd(), p3.xd(),
+				p3.yd(), p1.xd(), p1.yd());
 		ood = -1.0 / m;
 		nu *= ood;
 		nv *= ood;
@@ -332,22 +332,29 @@ public class WB_Triangle {
 	 * @return the w b_ point
 	 */
 	public WB_Point getBarycentric(final WB_Coord p) {
-		final WB_Vector m = WB_Vector.subToVector3D(p3, p1).cross(WB_Vector.subToVector3D(p2, p1));
+		final WB_Vector m = WB_Vector.subToVector3D(p3, p1)
+				.cross(WB_Vector.subToVector3D(p2, p1));
 		double nu, nv, ood;
 		final double x = WB_Math.fastAbs(m.xd());
 		final double y = WB_Math.fastAbs(m.yd());
 		final double z = WB_Math.fastAbs(m.zd());
 		if (x >= y && x >= z) {
-			nu = WB_GeometryOp3D.twiceSignedTriArea2D(p.yd(), p.zd(), p2.yd(), p2.zd(), p3.yd(), p3.zd());
-			nv = WB_GeometryOp3D.twiceSignedTriArea2D(p.yd(), p.zd(), p3.yd(), p3.zd(), p1.yd(), p1.zd());
+			nu = WB_GeometryOp3D.twiceSignedTriArea2D(p.yd(), p.zd(), p2.yd(),
+					p2.zd(), p3.yd(), p3.zd());
+			nv = WB_GeometryOp3D.twiceSignedTriArea2D(p.yd(), p.zd(), p3.yd(),
+					p3.zd(), p1.yd(), p1.zd());
 			ood = 1.0 / m.xd();
 		} else if (y >= x && y >= z) {
-			nu = WB_GeometryOp3D.twiceSignedTriArea2D(p.xd(), p.zd(), p2.xd(), p2.zd(), p3.xd(), p3.zd());
-			nv = WB_GeometryOp3D.twiceSignedTriArea2D(p.xd(), p.zd(), p3.xd(), p3.zd(), p1.xd(), p1.zd());
+			nu = WB_GeometryOp3D.twiceSignedTriArea2D(p.xd(), p.zd(), p2.xd(),
+					p2.zd(), p3.xd(), p3.zd());
+			nv = WB_GeometryOp3D.twiceSignedTriArea2D(p.xd(), p.zd(), p3.xd(),
+					p3.zd(), p1.xd(), p1.zd());
 			ood = -1.0 / m.yd();
 		} else {
-			nu = WB_GeometryOp3D.twiceSignedTriArea2D(p.xd(), p.yd(), p2.xd(), p2.yd(), p3.xd(), p3.yd());
-			nv = WB_GeometryOp3D.twiceSignedTriArea2D(p.xd(), p.yd(), p3.xd(), p3.yd(), p1.xd(), p1.yd());
+			nu = WB_GeometryOp3D.twiceSignedTriArea2D(p.xd(), p.yd(), p2.xd(),
+					p2.yd(), p3.xd(), p3.yd());
+			nv = WB_GeometryOp3D.twiceSignedTriArea2D(p.xd(), p.yd(), p3.xd(),
+					p3.yd(), p1.xd(), p1.yd());
 			ood = -1.0 / m.zd();
 		}
 		nu *= ood;
@@ -394,25 +401,31 @@ public class WB_Triangle {
 			coord = 2;
 		}
 		switch (coord) {
-		case 1:
-			area = p1.yd() * (p2.zd() - p3.zd()) + p2.yd() * (p3.zd() - p1.zd()) + p3.yd() * (p1.zd() - p2.zd());
-			break;
-		case 2:
-			area = p1.xd() * (p2.zd() - p3.zd()) + p2.xd() * (p3.zd() - p1.zd()) + p3.xd() * (p1.zd() - p2.zd());
-			break;
-		case 3:
-			area = p1.xd() * (p2.yd() - p3.yd()) + p2.xd() * (p3.yd() - p1.yd()) + p3.xd() * (p1.yd() - p2.yd());
-			break;
+			case 1:
+				area = p1.yd() * (p2.zd() - p3.zd())
+						+ p2.yd() * (p3.zd() - p1.zd())
+						+ p3.yd() * (p1.zd() - p2.zd());
+				break;
+			case 2:
+				area = p1.xd() * (p2.zd() - p3.zd())
+						+ p2.xd() * (p3.zd() - p1.zd())
+						+ p3.xd() * (p1.zd() - p2.zd());
+				break;
+			case 3:
+				area = p1.xd() * (p2.yd() - p3.yd())
+						+ p2.xd() * (p3.yd() - p1.yd())
+						+ p3.xd() * (p1.yd() - p2.yd());
+				break;
 		}
 		switch (coord) {
-		case 1:
-			area *= 0.5 / x;
-			break;
-		case 2:
-			area *= 0.5 / y;
-			break;
-		case 3:
-			area *= 0.5 / z;
+			case 1:
+				area *= 0.5 / x;
+				break;
+			case 2:
+				area *= 0.5 / y;
+				break;
+			case 3:
+				area *= 0.5 / z;
 		}
 		return area;
 	}
@@ -424,8 +437,10 @@ public class WB_Triangle {
 	 */
 	public WB_Circle getCircumcircle() {
 		final WB_Circle result = new WB_Circle();
-		result.setRadius(a * b * c / Math.sqrt(2 * a * a * b * b + 2 * b * b * c * c + 2 * a * a * c * c - a * a * a * a
-				- b * b * b * b - c * c * c * c));
+		result.setRadius(a * b * c
+				/ Math.sqrt(2 * a * a * b * b + 2 * b * b * c * c
+						+ 2 * a * a * c * c - a * a * a * a - b * b * b * b
+						- c * c * c * c));
 		final double bx = p2.xd() - p1.xd();
 		final double by = p2.yd() - p1.yd();
 		final double cx = p3.xd() - p1.xd();
@@ -451,7 +466,8 @@ public class WB_Triangle {
 	public WB_Circle getIncircle() {
 		final WB_Circle result = new WB_Circle();
 		final double abc = a + b + c;
-		result.setRadius(0.5 * Math.sqrt((b + c - a) * (c + a - b) * (a + b - c) / abc));
+		result.setRadius(
+				0.5 * Math.sqrt((b + c - a) * (c + a - b) * (a + b - c) / abc));
 		final WB_Point ta = WB_Point.mul(p1, a);
 		final WB_Point tb = WB_Point.mul(p2, b);
 		final WB_Point tc = WB_Point.mul(p3, c);
@@ -491,5 +507,33 @@ public class WB_Triangle {
 
 	public double maxZ() {
 		return Math.max(Math.max(p1.zd(), p2.zd()), p3.zd());
+	}
+
+	@Override
+	public WB_Triangle apply2D(WB_Transform2D T) {
+		return new WB_Triangle(new WB_Point(p1).apply2D(T),
+				new WB_Point(p2).apply2D(T), new WB_Point(p3).apply2D(T));
+	}
+
+	@Override
+	public WB_Triangle apply2DSelf(WB_Transform2D T) {
+		p1 = new WB_Point(p1).apply2DSelf(T);
+		p2 = new WB_Point(p2).apply2DSelf(T);
+		p3 = new WB_Point(p3).apply2DSelf(T);
+		return this;
+	}
+
+	@Override
+	public WB_Triangle apply(WB_Transform T) {
+		return new WB_Triangle(new WB_Point(p1).apply(T),
+				new WB_Point(p2).apply(T), new WB_Point(p3).apply(T));
+	}
+
+	@Override
+	public WB_Triangle applySelf(WB_Transform T) {
+		p1 = new WB_Point(p1).applySelf(T);
+		p2 = new WB_Point(p2).applySelf(T);
+		p3 = new WB_Point(p3).applySelf(T);
+		return this;
 	}
 }

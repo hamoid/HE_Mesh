@@ -16,9 +16,15 @@ You need to add some other external *.jar files to the properties of your Eclips
 * `exp4j.jar`: A simple expression evaluator for Java. (https://github.com/fasseg/exp4j)
 * `ParallelColt-0.9.4.jar` and dependecies: some functions use least-square approximations and other linear algebra approaches. (https://sites.google.com/site/piotrwendykier/software/parallelcolt)
 
-## Build-of-the-day HE_Mesh (2017/12/19)
 
-Download a recent built here: http://www.wblut.com/hemesh/hemesh20171219.zip.
+## Current release 
+
+Download the current release here: http://www.wblut.com/hemesh/hemesh.zip.
+
+
+## Build-of-the-day HE_Mesh (2018/05/16)
+
+Download a recent built here: http://www.wblut.com/hemesh/hemesh20180516.zip.
 
 ## License
 

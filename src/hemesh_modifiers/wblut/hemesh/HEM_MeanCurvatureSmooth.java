@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.Iterator;
@@ -21,23 +18,19 @@ import wblut.geom.WB_Vector;
  *
  */
 public class HEM_MeanCurvatureSmooth extends HEM_Modifier {
-
 	/**
 	 *
 	 */
-	private boolean autoRescale;
-
+	private boolean	autoRescale;
 	/**
 	 *
 	 */
-	private boolean keepBoundary;
-
-	private double lambda;
-
+	private boolean	keepBoundary;
+	private double	lambda;
 	/**
 	 *
 	 */
-	private int iter;
+	private int		iter;
 
 	/**
 	 *
@@ -46,7 +39,6 @@ public class HEM_MeanCurvatureSmooth extends HEM_Modifier {
 		lambda = 0.5;
 		iter = 1;
 		keepBoundary = false;
-
 	}
 
 	/**
@@ -95,7 +87,6 @@ public class HEM_MeanCurvatureSmooth extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HEM_Modifier#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
@@ -103,14 +94,15 @@ public class HEM_MeanCurvatureSmooth extends HEM_Modifier {
 		tracker.setStartStatus(this, "Starting HEM_MeanCurvatureSmooth.");
 		WB_AABB box = new WB_AABB();
 		if (autoRescale) {
-			box = mesh.getAABB();
+			box = HE_MeshOp.getAABB(mesh);
 		}
-		final WB_Coord[] newPositions = new WB_Coord[mesh.getNumberOfVertices()];
+		final WB_Coord[] newPositions = new WB_Coord[mesh
+				.getNumberOfVertices()];
 		if (iter < 1) {
 			iter = 1;
 		}
-		WB_ProgressCounter counter = new WB_ProgressCounter(iter * mesh.getNumberOfVertices(), 10);
-
+		WB_ProgressCounter counter = new WB_ProgressCounter(
+				iter * mesh.getNumberOfVertices(), 10);
 		tracker.setCounterStatus(this, "Smoothing vertices.", counter);
 		for (int r = 0; r < iter; r++) {
 			Iterator<HE_Vertex> vItr = mesh.vItr();
@@ -126,15 +118,14 @@ public class HEM_MeanCurvatureSmooth extends HEM_Modifier {
 					double factor = 0;
 					HE_Halfedge he = v.getHalfedge();
 					do {
-						double cotana = he.getCotan();
-						double cotanb = he.getPair().getCotan();
-						p.addMulSelf(cotana + cotanb, WB_Vector.sub(he.getEndVertex(), v));
+						double cotana = HE_MeshOp.getCotan(he);
+						double cotanb = HE_MeshOp.getCotan(he.getPair());
+						p.addMulSelf(cotana + cotanb,
+								WB_Vector.sub(he.getEndVertex(), v));
 						factor += cotana + cotanb;
-
 						he = he.getNextInVertex();
 					} while (he != v.getHalfedge());
 					newPositions[id] = p.mulSelf(lambda / factor).addSelf(v);
-
 				}
 				id++;
 			}
@@ -146,7 +137,6 @@ public class HEM_MeanCurvatureSmooth extends HEM_Modifier {
 				counter.increment();
 			}
 		}
-
 		if (autoRescale) {
 			mesh.fitInAABB(box);
 		}
@@ -156,7 +146,6 @@ public class HEM_MeanCurvatureSmooth extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.hemesh.modifiers.HEB_Modifier#modifySelected(wblut.hemesh.HE_Mesh)
 	 */
@@ -166,14 +155,15 @@ public class HEM_MeanCurvatureSmooth extends HEM_Modifier {
 		selection.collectVertices();
 		WB_AABB box = new WB_AABB();
 		if (autoRescale) {
-			box = selection.parent.getAABB();
+			box = HE_MeshOp.getAABB(selection.getParent());
 		}
-		final WB_Coord[] newPositions = new WB_Coord[selection.getNumberOfVertices()];
+		final WB_Coord[] newPositions = new WB_Coord[selection
+				.getNumberOfVertices()];
 		if (iter < 1) {
 			iter = 1;
 		}
-		WB_ProgressCounter counter = new WB_ProgressCounter(iter * selection.getNumberOfVertices(), 10);
-
+		WB_ProgressCounter counter = new WB_ProgressCounter(
+				iter * selection.getNumberOfVertices(), 10);
 		tracker.setCounterStatus(this, "Smoothing vertices.", counter);
 		for (int r = 0; r < iter; r++) {
 			Iterator<HE_Vertex> vItr = selection.vItr();
@@ -189,15 +179,14 @@ public class HEM_MeanCurvatureSmooth extends HEM_Modifier {
 					double factor = 0;
 					HE_Halfedge he = v.getHalfedge();
 					do {
-						double cotana = he.getCotan();
-						double cotanb = he.getPair().getCotan();
-						p.addMulSelf(cotana + cotanb, WB_Vector.sub(he.getEndVertex(), v));
+						double cotana = HE_MeshOp.getCotan(he);
+						double cotanb = HE_MeshOp.getCotan(he.getPair());
+						p.addMulSelf(cotana + cotanb,
+								WB_Vector.sub(he.getEndVertex(), v));
 						factor += cotana + cotanb;
-
 						he = he.getNextInVertex();
 					} while (he != v.getHalfedge());
 					newPositions[id] = p.mulSelf(lambda / factor).addSelf(v);
-
 				}
 				id++;
 			}
@@ -210,9 +199,9 @@ public class HEM_MeanCurvatureSmooth extends HEM_Modifier {
 			}
 		}
 		if (autoRescale) {
-			selection.parent.fitInAABB(box);
+			selection.getParent().fitInAABB(box);
 		}
 		tracker.setStopStatus(this, "Exiting HEM_MeanCurvatureSmooth.");
-		return selection.parent;
+		return selection.getParent();
 	}
 }

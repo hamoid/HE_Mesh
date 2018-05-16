@@ -18,8 +18,8 @@ void setup() {
   modifier.setCap(true);// cap holes
   modifier.setReverse(false);// keep other side of plane
   mesh.modify(modifier);
- 
-println(mesh.getSelection("edges").getNumberOfEdges());
+  mesh.validate();
+
   render=new WB_Render(this);
 }
 
@@ -28,8 +28,8 @@ void draw() {
   directionalLight(255, 255, 255, 1, 1, -1);
   directionalLight(127, 127, 127, -1, -1, 1);
   translate(width/2, height/2);
-  rotateY(mouseX*1.0f/width*TWO_PI);
-  rotateX(0.25*TWO_PI);
+  rotateY(map(mouseX,0,width,-PI,PI));
+  rotateX(map(mouseY,0,height,PI,-PI));
   fill(255);
   noStroke();
   render.drawFaces(mesh);
@@ -51,7 +51,7 @@ void draw() {
 
 void createMesh(){
   HEC_Cylinder creator=new HEC_Cylinder();
-  creator.setFacets(32).setSteps(16).setRadius(50).setHeight(400);
+  creator.setFacets(32).setSteps(1).setRadius(50).setHeight(400);
   mesh=new HE_Mesh(creator);
   
 }

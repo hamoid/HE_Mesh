@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.ArrayList;
@@ -15,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.collections.impl.list.mutable.FastList;
+import org.eclipse.collections.impl.map.mutable.primitive.LongObjectHashMap;
 
 import cern.colt.matrix.tdouble.DoubleMatrix2D;
 import cern.colt.matrix.tdouble.impl.SparseDoubleMatrix2D;
@@ -31,19 +29,23 @@ import wblut.geom.WB_GeometryFactory;
 import wblut.geom.WB_GeometryOp;
 import wblut.geom.WB_GeometryOp3D;
 import wblut.geom.WB_IntersectionResult;
+import wblut.geom.WB_KDTree;
+import wblut.geom.WB_KDTree.WB_KDEntry;
 import wblut.geom.WB_Line;
+import wblut.geom.WB_OrthoProject;
 import wblut.geom.WB_Plane;
 import wblut.geom.WB_Point;
 import wblut.geom.WB_Polygon;
 import wblut.geom.WB_Ray;
 import wblut.geom.WB_Segment;
+import wblut.geom.WB_Sphere;
 import wblut.geom.WB_Triangle;
 import wblut.geom.WB_Vector;
 import wblut.math.WB_Epsilon;
 import wblut.math.WB_M33;
 import wblut.math.WB_Math;
 
-public class HET_MeshOp {
+public class HE_MeshOp {
 	/**
 	 *
 	 */
@@ -51,15 +53,15 @@ public class HET_MeshOp {
 		/**
 		 *
 		 */
-		HE_Face f1;
+		HE_Face		f1;
 		/**
 		 *
 		 */
-		HE_Face f2;
+		HE_Face		f2;
 		/**
 		 *
 		 */
-		WB_Segment segment;
+		WB_Segment	segment;
 
 		/**
 		 *
@@ -68,7 +70,8 @@ public class HET_MeshOp {
 		 * @param f2
 		 * @param seg
 		 */
-		public HET_IntersectionResult(final HE_Face f1, final HE_Face f2, final WB_Segment seg) {
+		public HET_IntersectionResult(final HE_Face f1, final HE_Face f2,
+				final WB_Segment seg) {
 			this.f1 = f1;
 			this.f2 = f2;
 			segment = seg;
@@ -102,11 +105,12 @@ public class HET_MeshOp {
 		}
 	}
 
-	private HET_MeshOp() {
+	protected HE_MeshOp() {
 	}
 
-	private static WB_GeometryFactory gf = new WB_GeometryFactory();
-	public static final WB_ProgressTracker tracker = WB_ProgressTracker.instance();
+	private static WB_GeometryFactory		gf		= new WB_GeometryFactory();
+	public static final WB_ProgressTracker	tracker	= WB_ProgressTracker
+			.instance();
 
 	/**
 	 * Split edge in half.
@@ -117,8 +121,10 @@ public class HET_MeshOp {
 	 *
 	 * @return selection of new vertex and new edge
 	 */
-	public static HE_Selection splitEdge(final HE_Mesh mesh, final HE_Halfedge edge) {
-		final WB_Point v = gf.createMidpoint(edge.getVertex(), edge.getEndVertex());
+	public static HE_Selection splitEdge(final HE_Mesh mesh,
+			final HE_Halfedge edge) {
+		final WB_Point v = gf.createMidpoint(edge.getVertex(),
+				edge.getEndVertex());
 		return splitEdge(mesh, edge, v);
 	}
 
@@ -133,11 +139,10 @@ public class HET_MeshOp {
 	 *
 	 * @return selection of new vertex and new edge
 	 */
-	public static HE_Selection splitEdge(final HE_Mesh mesh, final HE_Halfedge edge, final double f) {
-
-		final WB_Point v = gf.createInterpolatedPoint(edge.getVertex(), edge.getEndVertex(),
-				edge.isEdge() ? f : 1.0 - f);
-
+	public static HE_Selection splitEdge(final HE_Mesh mesh,
+			final HE_Halfedge edge, final double f) {
+		final WB_Point v = gf.createInterpolatedPoint(edge.getVertex(),
+				edge.getEndVertex(), edge.isEdge() ? f : 1.0 - f);
 		return splitEdge(mesh, edge, v);
 	}
 
@@ -154,8 +159,8 @@ public class HET_MeshOp {
 	 * @param z
 	 *            z-coordinate of new vertex
 	 */
-	public static void splitEdge(final HE_Mesh mesh, final HE_Halfedge edge, final double x, final double y,
-			final double z) {
+	public static void splitEdge(final HE_Mesh mesh, final HE_Halfedge edge,
+			final double x, final double y, final double z) {
 		splitEdge(mesh, edge, new WB_Point(x, y, z));
 	}
 
@@ -168,7 +173,8 @@ public class HET_MeshOp {
 	 * @param f
 	 *            array of fractions (0..1)
 	 */
-	public static void splitEdge(final HE_Mesh mesh, final HE_Halfedge edge, final double[] f) {
+	public static void splitEdge(final HE_Mesh mesh, final HE_Halfedge edge,
+			final double[] f) {
 		final double[] fArray = Arrays.copyOf(f, f.length);
 		Arrays.sort(fArray);
 		HE_Halfedge e = edge;
@@ -195,7 +201,8 @@ public class HET_MeshOp {
 	 * @param f
 	 *            array of fractions (0..1)
 	 */
-	public static void splitEdge(final HE_Mesh mesh, final HE_Halfedge edge, final float[] f) {
+	public static void splitEdge(final HE_Mesh mesh, final HE_Halfedge edge,
+			final float[] f) {
 		final float[] fArray = Arrays.copyOf(f, f.length);
 		Arrays.sort(fArray);
 		HE_Halfedge e = edge;
@@ -224,7 +231,8 @@ public class HET_MeshOp {
 	 *
 	 * @return selection of new vertex and new edge
 	 */
-	public static HE_Selection splitEdge(final HE_Mesh mesh, final HE_Halfedge edge, final WB_Coord v) {
+	public static HE_Selection splitEdge(final HE_Mesh mesh,
+			final HE_Halfedge edge, final WB_Coord v) {
 		final HE_Selection out = HE_Selection.getSelection(mesh);
 		final HE_Halfedge he0 = edge.isEdge() ? edge : edge.getPair();
 		final HE_Halfedge he1 = he0.getPair();
@@ -245,16 +253,17 @@ public class HET_MeshOp {
 		mesh.setNext(he1new, he1n);
 		he1new.copyProperties(he1);
 		if (he0.hasUVW() && he0n.hasUVW()) {
-			he0new.setUVW(new HE_TextureCoordinate(f0, he0.getUVW(), he0n.getUVW()));
+			he0new.setUVW(
+					new HE_TextureCoordinate(f0, he0.getUVW(), he0n.getUVW()));
 		}
 		if (he1.hasUVW() && he1n.hasUVW()) {
-			he1new.setUVW(new HE_TextureCoordinate(f1, he1.getUVW(), he1n.getUVW()));
+			he1new.setUVW(
+					new HE_TextureCoordinate(f1, he1.getUVW(), he1n.getUVW()));
 		}
 		mesh.setNext(he0, he0new);
 		mesh.setNext(he1, he1new);
 		mesh.setPair(he0, he1new);
 		mesh.setPair(he0new, he1);
-
 		if (he0.getFace() != null) {
 			mesh.setFace(he0new, he0.getFace());
 		}
@@ -265,14 +274,14 @@ public class HET_MeshOp {
 		mesh.addDerivedElement(vNew, edge);
 		mesh.addDerivedElement(he0new, edge);
 		mesh.addDerivedElement(he1new, edge);
-
 		out.addEdge(he0new.isEdge() ? he0new : he1new);
 		out.addEdge(he0.isEdge() ? he0 : he1);
 		out.add(vNew);
 		return out;
 	}
 
-	static HE_Selection splitEdge(final HE_Mesh mesh, final HE_Halfedge edge, final HE_Vertex v) {
+	static HE_Selection splitEdge(final HE_Mesh mesh, final HE_Halfedge edge,
+			final HE_Vertex v) {
 		final HE_Selection out = HE_Selection.getSelection(mesh);
 		final HE_Halfedge he0 = edge.isEdge() ? edge : edge.getPair();
 		final HE_Halfedge he1 = he0.getPair();
@@ -293,16 +302,17 @@ public class HET_MeshOp {
 		mesh.setNext(he1new, he1n);
 		he1new.copyProperties(he1);
 		if (he0.hasUVW() && he0n.hasUVW()) {
-			he0new.setUVW(new HE_TextureCoordinate(f0, he0.getUVW(), he0n.getUVW()));
+			he0new.setUVW(
+					new HE_TextureCoordinate(f0, he0.getUVW(), he0n.getUVW()));
 		}
 		if (he1.hasUVW() && he1n.hasUVW()) {
-			he1new.setUVW(new HE_TextureCoordinate(f1, he1.getUVW(), he1n.getUVW()));
+			he1new.setUVW(
+					new HE_TextureCoordinate(f1, he1.getUVW(), he1n.getUVW()));
 		}
 		mesh.setNext(he0, he0new);
 		mesh.setNext(he1, he1new);
 		mesh.setPair(he0, he1new);
 		mesh.setPair(he0new, he1);
-
 		if (he0.getFace() != null) {
 			mesh.setFace(he0new, he0.getFace());
 		}
@@ -313,7 +323,6 @@ public class HET_MeshOp {
 		mesh.addDerivedElement(vNew, edge);
 		mesh.addDerivedElement(he0new, edge);
 		mesh.addDerivedElement(he1new, edge);
-
 		out.addEdge(he0new.isEdge() ? he0new : he1new);
 		out.addEdge(he0.isEdge() ? he0 : he1);
 		out.add(vNew);
@@ -331,7 +340,8 @@ public class HET_MeshOp {
 	 */
 	public static HE_Selection splitEdge(final HE_Mesh mesh, final long key) {
 		final HE_Halfedge edge = mesh.getHalfedgeWithKey(key);
-		final WB_Point v = gf.createMidpoint(edge.getVertex(), edge.getEndVertex());
+		final WB_Point v = gf.createMidpoint(edge.getVertex(),
+				edge.getEndVertex());
 		return splitEdge(mesh, edge, v);
 	}
 
@@ -346,7 +356,8 @@ public class HET_MeshOp {
 	 *
 	 * @return selection of new vertex and new edge
 	 */
-	public static HE_Selection splitEdge(final HE_Mesh mesh, final long key, final double f) {
+	public static HE_Selection splitEdge(final HE_Mesh mesh, final long key,
+			final double f) {
 		final HE_Halfedge edge = mesh.getHalfedgeWithKey(key);
 		return splitEdge(mesh, edge, f);
 	}
@@ -364,7 +375,8 @@ public class HET_MeshOp {
 	 * @param z
 	 *            z-coordinate of new vertex
 	 */
-	public static void splitEdge(final HE_Mesh mesh, final long key, final double x, final double y, final double z) {
+	public static void splitEdge(final HE_Mesh mesh, final long key,
+			final double x, final double y, final double z) {
 		splitEdge(mesh, key, new WB_Point(x, y, z));
 	}
 
@@ -377,7 +389,8 @@ public class HET_MeshOp {
 	 * @param f
 	 *            array of fractions (0..1)
 	 */
-	public static void splitEdge(final HE_Mesh mesh, final long key, final double[] f) {
+	public static void splitEdge(final HE_Mesh mesh, final long key,
+			final double[] f) {
 		final HE_Halfedge edge = mesh.getHalfedgeWithKey(key);
 		splitEdge(mesh, edge, f);
 	}
@@ -391,7 +404,8 @@ public class HET_MeshOp {
 	 * @param f
 	 *            array of fractions (0..1)
 	 */
-	public static void splitEdge(final HE_Mesh mesh, final long key, final float[] f) {
+	public static void splitEdge(final HE_Mesh mesh, final long key,
+			final float[] f) {
 		final HE_Halfedge edge = mesh.getHalfedgeWithKey(key);
 		splitEdge(mesh, edge, f);
 	}
@@ -407,7 +421,8 @@ public class HET_MeshOp {
 	 *
 	 * @return selection of new vertex and new edge
 	 */
-	public static HE_Selection splitEdge(final HE_Mesh mesh, final Long key, final WB_Point v) {
+	public static HE_Selection splitEdge(final HE_Mesh mesh, final Long key,
+			final WB_Point v) {
 		final HE_Halfedge edge = mesh.getHalfedgeWithKey(key);
 		return splitEdge(mesh, edge, v);
 	}
@@ -438,13 +453,14 @@ public class HET_MeshOp {
 	 *
 	 * @return selection of new vertices and new edges
 	 */
-	public static HE_Selection splitEdges(final HE_Mesh mesh, final double offset) {
+	public static HE_Selection splitEdges(final HE_Mesh mesh,
+			final double offset) {
 		final HE_Selection selectionOut = HE_Selection.getSelection(mesh);
 		final HE_Halfedge[] edges = mesh.getEdgesAsArray();
 		final int n = mesh.getNumberOfEdges();
 		for (int i = 0; i < n; i++) {
-			final WB_Point p = new WB_Point(edges[i].getEdgeNormal());
-			p.mulSelf(offset).addSelf(edges[i].getHalfedgeCenter());
+			final WB_Point p = new WB_Point(getEdgeNormal(edges[i]));
+			p.mulSelf(offset).addSelf(getHalfedgeCenter(edges[i]));
 			selectionOut.add(splitEdge(mesh, edges[i], p));
 		}
 		return selectionOut;
@@ -458,11 +474,13 @@ public class HET_MeshOp {
 	 * @return selection of new vertices and new edges
 	 */
 	public static HE_Selection splitEdges(final HE_Selection selection) {
-		final HE_Selection selectionOut = HE_Selection.getSelection(selection.parent);
+		final HE_Selection selectionOut = HE_Selection
+				.getSelection(selection.getParent());
 		selection.collectEdgesByFace();
 		final Iterator<HE_Halfedge> eItr = selection.heItr();
 		while (eItr.hasNext()) {
-			selectionOut.add(splitEdge(selection.parent, eItr.next(), 0.5));
+			selectionOut
+					.add(splitEdge(selection.getParent(), eItr.next(), 0.5));
 		}
 		selection.addHalfedges(selectionOut.getEdgesAsArray());
 		return selectionOut;
@@ -478,16 +496,18 @@ public class HET_MeshOp {
 	 *            the offset
 	 * @return selection of new vertices and new edges
 	 */
-	public static HE_Selection splitEdges(final HE_Selection selection, final double offset) {
-		final HE_Selection selectionOut = HE_Selection.getSelection(selection.parent);
+	public static HE_Selection splitEdges(final HE_Selection selection,
+			final double offset) {
+		final HE_Selection selectionOut = HE_Selection
+				.getSelection(selection.getParent());
 		selection.collectEdgesByFace();
 		final Iterator<HE_Halfedge> eItr = selection.heItr();
 		HE_Halfedge e;
 		while (eItr.hasNext()) {
 			e = eItr.next();
-			final WB_Point p = new WB_Point(e.getEdgeNormal());
-			p.mulSelf(offset).addSelf(e.getHalfedgeCenter());
-			selectionOut.add(splitEdge(selection.parent, e, p));
+			final WB_Point p = new WB_Point(getEdgeNormal(e));
+			p.mulSelf(offset).addSelf(getHalfedgeCenter(e));
+			selectionOut.add(splitEdge(selection.getParent(), e, p));
 		}
 		selection.addHalfedges(selectionOut.getEdgesAsArray());
 		return selectionOut;
@@ -502,7 +522,8 @@ public class HET_MeshOp {
 	 * @param n
 	 *            number of parts
 	 */
-	public static void divideEdge(final HE_Mesh mesh, final HE_Halfedge origE, final int n) {
+	public static void divideEdge(final HE_Mesh mesh, final HE_Halfedge origE,
+			final int n) {
 		if (n > 1) {
 			final double[] f = new double[n - 1];
 			final double in = 1.0 / n;
@@ -520,7 +541,8 @@ public class HET_MeshOp {
 	 * @param key
 	 * @param n
 	 */
-	public static void divideEdge(final HE_Mesh mesh, final long key, final int n) {
+	public static void divideEdge(final HE_Mesh mesh, final long key,
+			final int n) {
 		divideEdge(mesh, mesh.getHalfedgeWithKey(key), n);
 	}
 
@@ -537,8 +559,8 @@ public class HET_MeshOp {
 	 *
 	 * @return new face and edge
 	 */
-	public static HE_Selection splitFace(final HE_Mesh mesh, final HE_Face face, final HE_Vertex vi,
-			final HE_Vertex vj) {
+	public static HE_Selection splitFace(final HE_Mesh mesh, final HE_Face face,
+			final HE_Vertex vi, final HE_Vertex vj) {
 		final HE_Selection out = HE_Selection.getSelection(mesh);
 		final HE_Halfedge hei = vi.getHalfedge(face);
 		final HE_Halfedge hej = vj.getHalfedge(face);
@@ -632,8 +654,10 @@ public class HET_MeshOp {
 	 *
 	 * @return new face and edge
 	 */
-	public static HE_Selection splitFace(final HE_Mesh mesh, final long fkey, final long vkeyi, final long vkeyj) {
-		return splitFace(mesh, mesh.getFaceWithKey(fkey), mesh.getVertexWithKey(vkeyi), mesh.getVertexWithKey(vkeyj));
+	public static HE_Selection splitFace(final HE_Mesh mesh, final long fkey,
+			final long vkeyi, final long vkeyj) {
+		return splitFace(mesh, mesh.getFaceWithKey(fkey),
+				mesh.getVertexWithKey(vkeyi), mesh.getVertexWithKey(vkeyj));
 	}
 
 	/**
@@ -655,7 +679,8 @@ public class HET_MeshOp {
 	 * @param d
 	 * @return
 	 */
-	public static HE_Selection splitFacesCenter(final HE_Mesh mesh, final double d) {
+	public static HE_Selection splitFacesCenter(final HE_Mesh mesh,
+			final double d) {
 		final HEM_CenterSplit cs = new HEM_CenterSplit().setOffset(d);
 		mesh.modify(cs);
 		return mesh.getSelection("center");
@@ -669,8 +694,10 @@ public class HET_MeshOp {
 	 * @param c
 	 * @return
 	 */
-	public static HE_Selection splitFacesCenter(final HE_Mesh mesh, final double d, final double c) {
-		final HEM_CenterSplit cs = new HEM_CenterSplit().setOffset(d).setChamfer(c);
+	public static HE_Selection splitFacesCenter(final HE_Mesh mesh,
+			final double d, final double c) {
+		final HEM_CenterSplit cs = new HEM_CenterSplit().setOffset(d)
+				.setChamfer(c);
 		mesh.modify(cs);
 		return mesh.getSelection("center");
 	}
@@ -684,7 +711,7 @@ public class HET_MeshOp {
 	public static HE_Selection splitFacesCenter(final HE_Selection faces) {
 		final HEM_CenterSplit cs = new HEM_CenterSplit();
 		faces.modify(cs);
-		return faces.parent.getSelection("center");
+		return faces.getParent().getSelection("center");
 	}
 
 	/**
@@ -694,10 +721,11 @@ public class HET_MeshOp {
 	 * @param d
 	 * @return
 	 */
-	public static HE_Selection splitFacesCenter(final HE_Selection faces, final double d) {
+	public static HE_Selection splitFacesCenter(final HE_Selection faces,
+			final double d) {
 		final HEM_CenterSplit cs = new HEM_CenterSplit().setOffset(d);
 		faces.modify(cs);
-		return faces.parent.getSelection("center");
+		return faces.getParent().getSelection("center");
 	}
 
 	/**
@@ -708,10 +736,12 @@ public class HET_MeshOp {
 	 * @param c
 	 * @return
 	 */
-	public static HE_Selection splitFacesCenter(final HE_Selection faces, final double d, final double c) {
-		final HEM_CenterSplit cs = new HEM_CenterSplit().setOffset(d).setChamfer(c);
+	public static HE_Selection splitFacesCenter(final HE_Selection faces,
+			final double d, final double c) {
+		final HEM_CenterSplit cs = new HEM_CenterSplit().setOffset(d)
+				.setChamfer(c);
 		faces.modify(cs);
-		return faces.parent.getSelection("center");
+		return faces.getParent().getSelection("center");
 	}
 
 	/**
@@ -733,7 +763,8 @@ public class HET_MeshOp {
 	 * @param d
 	 * @return
 	 */
-	public static HE_Selection splitFacesCenterHole(final HE_Mesh mesh, final double d) {
+	public static HE_Selection splitFacesCenterHole(final HE_Mesh mesh,
+			final double d) {
 		final HEM_CenterSplitHole csh = new HEM_CenterSplitHole().setOffset(d);
 		mesh.modify(csh);
 		return csh.getWallFaces();
@@ -747,8 +778,10 @@ public class HET_MeshOp {
 	 * @param c
 	 * @return
 	 */
-	public static HE_Selection splitFacesCenterHole(final HE_Mesh mesh, final double d, final double c) {
-		final HEM_CenterSplitHole csh = new HEM_CenterSplitHole().setOffset(d).setChamfer(c);
+	public static HE_Selection splitFacesCenterHole(final HE_Mesh mesh,
+			final double d, final double c) {
+		final HEM_CenterSplitHole csh = new HEM_CenterSplitHole().setOffset(d)
+				.setChamfer(c);
 		mesh.modify(csh);
 		return csh.getWallFaces();
 	}
@@ -772,7 +805,8 @@ public class HET_MeshOp {
 	 * @param d
 	 * @return
 	 */
-	public static HE_Selection splitFacesCenterHole(final HE_Selection faces, final double d) {
+	public static HE_Selection splitFacesCenterHole(final HE_Selection faces,
+			final double d) {
 		final HEM_CenterSplitHole csh = new HEM_CenterSplitHole().setOffset(d);
 		faces.modify(csh);
 		return csh.getWallFaces();
@@ -786,8 +820,10 @@ public class HET_MeshOp {
 	 * @param c
 	 * @return
 	 */
-	public static HE_Selection splitFacesCenterHole(final HE_Selection faces, final double d, final double c) {
-		final HEM_CenterSplitHole csh = new HEM_CenterSplitHole().setOffset(d).setChamfer(c);
+	public static HE_Selection splitFacesCenterHole(final HE_Selection faces,
+			final double d, final double c) {
+		final HEM_CenterSplitHole csh = new HEM_CenterSplitHole().setOffset(d)
+				.setChamfer(c);
 		faces.modify(csh);
 		return csh.getWallFaces();
 	}
@@ -808,7 +844,7 @@ public class HET_MeshOp {
 		final Iterator<HE_Face> fItr = mesh.fItr();
 		while (fItr.hasNext()) {
 			f = fItr.next();
-			faceCenters[i] = f.getFaceCenter();
+			faceCenters[i] = getFaceCenter(f);
 			faceOrders[i] = f.getFaceDegree();
 			i++;
 		}
@@ -850,15 +886,14 @@ public class HET_MeshOp {
 					he1[c] = he.getNextInFace();
 					he2[c] = new HE_Halfedge();
 					hec[c] = new HE_Halfedge();
-
 					mesh.setVertex(hec[c], he.getVertex());
 					if (textures[c] != null) {
 						hec[c].setUVW(textures[c]);
 					}
 					mesh.setPair(hec[c], he2[c]);
-
 					mesh.setFace(hec[c], f);
-					mesh.setVertex(he2[c], he.getNextInFace().getNextInFace().getVertex());
+					mesh.setVertex(he2[c],
+							he.getNextInFace().getNextInFace().getVertex());
 					if (textures[(c + 1) % fo] != null) {
 						he2[c].setUVW(textures[(c + 1) % fo]);
 					}
@@ -926,7 +961,8 @@ public class HET_MeshOp {
 					he3[c] = new HE_Halfedge();
 					mesh.addDerivedElement(he2[c], f);
 					mesh.addDerivedElement(he3[c], f);
-					mesh.setVertex(he2[c], he.getNextInFace().getNextInFace().getVertex());
+					mesh.setVertex(he2[c],
+							he.getNextInFace().getNextInFace().getVertex());
 					if (he2[c].getVertex().hasHalfedgeUVW(f)) {
 						he2[c].setUVW(he2[c].getVertex().getHalfedgeUVW(f));
 					}
@@ -945,7 +981,7 @@ public class HET_MeshOp {
 				}
 			}
 		}
-		mesh.pairHalfedges();
+		HE_MeshOp.pairHalfedges(mesh);
 		return selectionOut;
 	}
 
@@ -957,7 +993,8 @@ public class HET_MeshOp {
 	 * @return selection of new faces and new vertices
 	 */
 	public static HE_Selection splitFacesHybrid(final HE_Selection sel) {
-		final HE_Selection selectionOut = HE_Selection.getSelection(sel.parent);
+		final HE_Selection selectionOut = HE_Selection
+				.getSelection(sel.getParent());
 		final int n = sel.getNumberOfFaces();
 		final WB_Coord[] faceCenters = new WB_Coord[n];
 		final int[] faceOrders = new int[n];
@@ -966,15 +1003,16 @@ public class HET_MeshOp {
 		final Iterator<HE_Face> fItr = sel.fItr();
 		while (fItr.hasNext()) {
 			f = fItr.next();
-			faceCenters[i] = f.getFaceCenter();
+			faceCenters[i] = getFaceCenter(f);
 			faceOrders[i] = f.getFaceDegree();
 			i++;
 		}
-		final HE_Selection orig = HE_Selection.getSelection(sel.parent);
+		final HE_Selection orig = HE_Selection.getSelection(sel.getParent());
 		orig.addFaces(sel.getFacesAsArray());
 		orig.collectVertices();
 		orig.collectEdgesByFace();
-		selectionOut.addVertices(splitEdges(sel.parent).getVerticesAsArray());
+		selectionOut
+				.addVertices(splitEdges(sel.getParent()).getVerticesAsArray());
 		final HE_Face[] faces = sel.getFacesAsArray();
 		HE_Vertex vi = new HE_Vertex();
 		int fo;
@@ -1001,38 +1039,37 @@ public class HET_MeshOp {
 				do {
 					final HE_Face fn = new HE_Face();
 					fn.copyProperties(f);
-					sel.parent.addDerivedElement(fn, f);
+					sel.getParent().addDerivedElement(fn, f);
 					sel.add(fn);
 					he0[c] = he;
-					sel.parent.setFace(he, fn);
-					sel.parent.setHalfedge(fn, he);
+					sel.getParent().setFace(he, fn);
+					sel.getParent().setHalfedge(fn, he);
 					he1[c] = he.getNextInFace();
 					he2[c] = new HE_Halfedge();
 					hec[c] = new HE_Halfedge();
-
-					sel.parent.setVertex(hec[c], he.getVertex());
+					sel.getParent().setVertex(hec[c], he.getVertex());
 					if (textures[c] != null) {
 						hec[c].setUVW(textures[c]);
 					}
-					sel.parent.setPair(hec[c], he2[c]);
-
-					sel.parent.setFace(hec[c], f);
-					sel.parent.setVertex(he2[c], he.getNextInFace().getNextInFace().getVertex());
+					sel.getParent().setPair(hec[c], he2[c]);
+					sel.getParent().setFace(hec[c], f);
+					sel.getParent().setVertex(he2[c],
+							he.getNextInFace().getNextInFace().getVertex());
 					if (textures[(c + 1) % fo] != null) {
 						he2[c].setUVW(textures[(c + 1) % fo]);
 					}
-					sel.parent.setNext(he2[c], he0[c]);
-					sel.parent.setFace(he1[c], fn);
-					sel.parent.setFace(he2[c], fn);
-					sel.parent.addDerivedElement(he2[c], f);
-					sel.parent.addDerivedElement(hec[c], f);
+					sel.getParent().setNext(he2[c], he0[c]);
+					sel.getParent().setFace(he1[c], fn);
+					sel.getParent().setFace(he2[c], fn);
+					sel.getParent().addDerivedElement(he2[c], f);
+					sel.getParent().addDerivedElement(hec[c], f);
 					c++;
 					he = he.getNextInFace().getNextInFace();
 				} while (he != startHE);
-				sel.parent.setHalfedge(f, hec[0]);
+				sel.getParent().setHalfedge(f, hec[0]);
 				for (int j = 0; j < c; j++) {
-					sel.parent.setNext(he1[j], he2[j]);
-					sel.parent.setNext(hec[j], hec[(j + 1) % c]);
+					sel.getParent().setNext(he1[j], he2[j]);
+					sel.getParent().setNext(hec[j], hec[(j + 1) % c]);
 				}
 			} else if (fo > 3) {
 				vi = new HE_Vertex(faceCenters[i]);
@@ -1056,7 +1093,7 @@ public class HET_MeshOp {
 					final double ifo = 1.0 / f.getFaceDegree();
 					vi.setUVW(u * ifo, v * ifo, w * ifo);
 				}
-				sel.parent.addDerivedElement(vi, f);
+				sel.getParent().addDerivedElement(vi, f);
 				selectionOut.add(vi);
 				HE_Halfedge startHE = f.getHalfedge();
 				while (orig.contains(startHE.getVertex())) {
@@ -1075,37 +1112,38 @@ public class HET_MeshOp {
 					} else {
 						fc = new HE_Face();
 						fc.copyProperties(f);
-						sel.parent.addDerivedElement(fc, f);
+						sel.getParent().addDerivedElement(fc, f);
 						sel.add(fc);
 					}
 					he0[c] = he;
-					sel.parent.setFace(he, fc);
-					sel.parent.setHalfedge(fc, he);
+					sel.getParent().setFace(he, fc);
+					sel.getParent().setHalfedge(fc, he);
 					he1[c] = he.getNextInFace();
 					he2[c] = new HE_Halfedge();
 					he3[c] = new HE_Halfedge();
-					sel.parent.addDerivedElement(he2[c], f);
-					sel.parent.addDerivedElement(he3[c], f);
-					sel.parent.setVertex(he2[c], he.getNextInFace().getNextInFace().getVertex());
+					sel.getParent().addDerivedElement(he2[c], f);
+					sel.getParent().addDerivedElement(he3[c], f);
+					sel.getParent().setVertex(he2[c],
+							he.getNextInFace().getNextInFace().getVertex());
 					if (he2[c].getVertex().hasHalfedgeUVW(f)) {
 						he2[c].setUVW(he2[c].getVertex().getHalfedgeUVW(f));
 					}
-					sel.parent.setVertex(he3[c], vi);
-					sel.parent.setNext(he2[c], he3[c]);
-					sel.parent.setNext(he3[c], he);
-					sel.parent.setFace(he1[c], fc);
-					sel.parent.setFace(he2[c], fc);
-					sel.parent.setFace(he3[c], fc);
+					sel.getParent().setVertex(he3[c], vi);
+					sel.getParent().setNext(he2[c], he3[c]);
+					sel.getParent().setNext(he3[c], he);
+					sel.getParent().setFace(he1[c], fc);
+					sel.getParent().setFace(he2[c], fc);
+					sel.getParent().setFace(he3[c], fc);
 					c++;
 					he = he.getNextInFace().getNextInFace();
 				} while (he != startHE);
-				sel.parent.setHalfedge(vi, he3[0]);
+				sel.getParent().setHalfedge(vi, he3[0]);
 				for (int j = 0; j < c; j++) {
-					sel.parent.setNext(he1[j], he2[j]);
+					sel.getParent().setNext(he1[j], he2[j]);
 				}
 			}
 		}
-		sel.parent.pairHalfedges();
+		HE_MeshOp.pairHalfedges(sel.getParent());
 		return selectionOut;
 	}
 
@@ -1161,14 +1199,14 @@ public class HET_MeshOp {
 				he1[c] = he.getNextInFace();
 				he2[c] = new HE_Halfedge();
 				hec[c] = new HE_Halfedge();
-
 				mesh.setVertex(hec[c], he.getVertex());
 				if (textures[c] != null) {
 					hec[c].setUVW(textures[c]);
 				}
 				mesh.setPair(hec[c], he2[c]);
 				mesh.setFace(hec[c], face);
-				mesh.setVertex(he2[c], he.getNextInFace().getNextInFace().getVertex());
+				mesh.setVertex(he2[c],
+						he.getNextInFace().getNextInFace().getVertex());
 				if (textures[(c + 1) % fo] != null) {
 					he2[c].setUVW(textures[(c + 1) % fo]);
 				}
@@ -1199,7 +1237,8 @@ public class HET_MeshOp {
 	 * @return selection of new faces and new vertices
 	 */
 	public static HE_Selection splitFacesMidEdge(final HE_Selection selection) {
-		final HE_Selection selectionOut = HE_Selection.getSelection(selection.parent);
+		final HE_Selection selectionOut = HE_Selection
+				.getSelection(selection.getParent());
 		final int n = selection.getNumberOfFaces();
 		final int[] faceOrders = new int[n];
 		HE_Face face;
@@ -1210,11 +1249,13 @@ public class HET_MeshOp {
 			faceOrders[i] = face.getFaceDegree();
 			i++;
 		}
-		final HE_Selection orig = HE_Selection.getSelection(selection.parent);
+		final HE_Selection orig = HE_Selection
+				.getSelection(selection.getParent());
 		orig.addFaces(selection.getFacesAsArray());
 		orig.collectVertices();
 		orig.collectEdgesByFace();
-		selectionOut.addVertices(HET_MeshOp.splitEdges(orig).getVerticesAsArray());
+		selectionOut
+				.addVertices(HE_MeshOp.splitEdges(orig).getVerticesAsArray());
 		final HE_Face[] faces = selection.getFacesAsArray();
 		for (i = 0; i < n; i++) {
 			face = faces[i];
@@ -1237,38 +1278,38 @@ public class HET_MeshOp {
 			c = 0;
 			do {
 				final HE_Face f = new HE_Face();
-				selection.parent.addDerivedElement(f, face);
+				selection.getParent().addDerivedElement(f, face);
 				f.copyProperties(face);
 				selection.add(f);
 				he0[c] = he;
-				selection.parent.setFace(he, f);
-				selection.parent.setHalfedge(f, he);
+				selection.getParent().setFace(he, f);
+				selection.getParent().setHalfedge(f, he);
 				he1[c] = he.getNextInFace();
 				he2[c] = new HE_Halfedge();
 				hec[c] = new HE_Halfedge();
-
-				selection.parent.setVertex(hec[c], he.getVertex());
+				selection.getParent().setVertex(hec[c], he.getVertex());
 				if (textures[c] != null) {
 					hec[c].setUVW(textures[c]);
 				}
-				selection.parent.setPair(hec[c], he2[c]);
-				selection.parent.setFace(hec[c], face);
-				selection.parent.setVertex(he2[c], he.getNextInFace().getNextInFace().getVertex());
+				selection.getParent().setPair(hec[c], he2[c]);
+				selection.getParent().setFace(hec[c], face);
+				selection.getParent().setVertex(he2[c],
+						he.getNextInFace().getNextInFace().getVertex());
 				if (textures[(c + 1) % fo] != null) {
 					he2[c].setUVW(textures[(c + 1) % fo]);
 				}
-				selection.parent.setNext(he2[c], he0[c]);
-				selection.parent.setFace(he1[c], f);
-				selection.parent.setFace(he2[c], f);
-				selection.parent.addDerivedElement(he2[c], face);
-				selection.parent.addDerivedElement(hec[c], face);
+				selection.getParent().setNext(he2[c], he0[c]);
+				selection.getParent().setFace(he1[c], f);
+				selection.getParent().setFace(he2[c], f);
+				selection.getParent().addDerivedElement(he2[c], face);
+				selection.getParent().addDerivedElement(hec[c], face);
 				c++;
 				he = he.getNextInFace().getNextInFace();
 			} while (he != startHE);
-			selection.parent.setHalfedge(face, hec[0]);
+			selection.getParent().setHalfedge(face, hec[0]);
 			for (int j = 0; j < c; j++) {
-				selection.parent.setNext(he1[j], he2[j]);
-				selection.parent.setNext(hec[j], hec[(j + 1) % c]);
+				selection.getParent().setNext(he1[j], he2[j]);
+				selection.getParent().setNext(hec[j], hec[(j + 1) % c]);
 			}
 		}
 		return selectionOut;
@@ -1327,14 +1368,14 @@ public class HET_MeshOp {
 				he1[c] = he.getNextInFace();
 				he2[c] = new HE_Halfedge();
 				hec[c] = new HE_Halfedge();
-
 				mesh.setVertex(hec[c], he.getVertex());
 				if (textures[c] != null) {
 					hec[c].setUVW(textures[c]);
 				}
 				mesh.setPair(hec[c], he2[c]);
 				mesh.setFace(hec[c], face);
-				mesh.setVertex(he2[c], he.getNextInFace().getNextInFace().getVertex());
+				mesh.setVertex(he2[c],
+						he.getNextInFace().getNextInFace().getVertex());
 				if (textures[(c + 1) % fo] != null) {
 					he2[c].setUVW(textures[(c + 1) % fo]);
 				}
@@ -1362,8 +1403,10 @@ public class HET_MeshOp {
 	 * @param selection
 	 * @return
 	 */
-	public static HE_Selection splitFacesMidEdgeHole(final HE_Selection selection) {
-		final HE_Selection selectionOut = HE_Selection.getSelection(selection.parent);
+	public static HE_Selection splitFacesMidEdgeHole(
+			final HE_Selection selection) {
+		final HE_Selection selectionOut = HE_Selection
+				.getSelection(selection.getParent());
 		final int n = selection.getNumberOfFaces();
 		final int[] faceOrders = new int[n];
 		HE_Face face;
@@ -1374,7 +1417,8 @@ public class HET_MeshOp {
 			faceOrders[i] = face.getFaceDegree();
 			i++;
 		}
-		final HE_Selection orig = HE_Selection.getSelection(selection.parent);
+		final HE_Selection orig = HE_Selection
+				.getSelection(selection.getParent());
 		orig.addFaces(selection.getFacesAsArray());
 		orig.collectVertices();
 		orig.collectEdgesByFace();
@@ -1401,40 +1445,40 @@ public class HET_MeshOp {
 			c = 0;
 			do {
 				final HE_Face f = new HE_Face();
-				selection.parent.addDerivedElement(f, face);
+				selection.getParent().addDerivedElement(f, face);
 				f.copyProperties(face);
 				selection.add(f);
 				he0[c] = he;
-				selection.parent.setFace(he, f);
-				selection.parent.setHalfedge(f, he);
+				selection.getParent().setFace(he, f);
+				selection.getParent().setHalfedge(f, he);
 				he1[c] = he.getNextInFace();
 				he2[c] = new HE_Halfedge();
 				hec[c] = new HE_Halfedge();
-
-				selection.parent.setVertex(hec[c], he.getVertex());
+				selection.getParent().setVertex(hec[c], he.getVertex());
 				if (textures[c] != null) {
 					hec[c].setUVW(textures[c]);
 				}
-				selection.parent.setPair(hec[c], he2[c]);
-				selection.parent.setFace(hec[c], face);
-				selection.parent.setVertex(he2[c], he.getNextInFace().getNextInFace().getVertex());
+				selection.getParent().setPair(hec[c], he2[c]);
+				selection.getParent().setFace(hec[c], face);
+				selection.getParent().setVertex(he2[c],
+						he.getNextInFace().getNextInFace().getVertex());
 				if (textures[(c + 1) % fo] != null) {
 					he2[c].setUVW(textures[(c + 1) % fo]);
 				}
-				selection.parent.setNext(he2[c], he0[c]);
-				selection.parent.setFace(he1[c], f);
-				selection.parent.setFace(he2[c], f);
-				selection.parent.addDerivedElement(he2[c], face);
-				selection.parent.addDerivedElement(hec[c], face);
+				selection.getParent().setNext(he2[c], he0[c]);
+				selection.getParent().setFace(he1[c], f);
+				selection.getParent().setFace(he2[c], f);
+				selection.getParent().addDerivedElement(he2[c], face);
+				selection.getParent().addDerivedElement(hec[c], face);
 				c++;
 				he = he.getNextInFace().getNextInFace();
 			} while (he != startHE);
-			selection.parent.setHalfedge(face, hec[0]);
+			selection.getParent().setHalfedge(face, hec[0]);
 			for (int j = 0; j < c; j++) {
-				selection.parent.setNext(he1[j], he2[j]);
-				selection.parent.setNext(hec[j], hec[(j + 1) % c]);
+				selection.getParent().setNext(he1[j], he2[j]);
+				selection.getParent().setNext(hec[j], hec[(j + 1) % c]);
 			}
-			selection.parent.deleteFace(face);
+			selection.getParent().deleteFace(face);
 		}
 		return selectionOut;
 	}
@@ -1459,7 +1503,8 @@ public class HET_MeshOp {
 	 *
 	 * @return selection of new faces and new vertices
 	 */
-	public static HE_Selection splitFacesQuad(final HE_Mesh mesh, final double d) {
+	public static HE_Selection splitFacesQuad(final HE_Mesh mesh,
+			final double d) {
 		final HES_QuadSplit qs = new HES_QuadSplit().setOffset(d);
 		mesh.subdivide(qs);
 		return qs.getSplitFaces();
@@ -1486,7 +1531,8 @@ public class HET_MeshOp {
 	 * @param d
 	 * @return selection of new faces and new vertices
 	 */
-	public static HE_Selection splitFacesQuad(final HE_Selection sel, final double d) {
+	public static HE_Selection splitFacesQuad(final HE_Selection sel,
+			final double d) {
 		final HES_QuadSplit qs = new HES_QuadSplit().setOffset(d);
 		sel.subdivide(qs);
 		return qs.getSplitFaces();
@@ -1513,7 +1559,8 @@ public class HET_MeshOp {
 	 *
 	 * @return selection of new faces and new vertex
 	 */
-	public static HE_Selection splitFacesTri(final HE_Mesh mesh, final double d) {
+	public static HE_Selection splitFacesTri(final HE_Mesh mesh,
+			final double d) {
 		final HEM_TriSplit ts = new HEM_TriSplit().setOffset(d);
 		mesh.modify(ts);
 		return ts.getSplitFaces();
@@ -1541,7 +1588,8 @@ public class HET_MeshOp {
 	 *            offset along face normal
 	 * @return selection of new faces and new vertex
 	 */
-	public static HE_Selection splitFacesTri(final HE_Selection selection, final double d) {
+	public static HE_Selection splitFacesTri(final HE_Selection selection,
+			final double d) {
 		final HEM_TriSplit ts = new HEM_TriSplit().setOffset(d);
 		selection.modify(ts);
 		return ts.getSplitFaces();
@@ -1566,7 +1614,8 @@ public class HET_MeshOp {
 	 * @param face
 	 * @return
 	 */
-	public static HE_Selection triangulate(final HE_Mesh mesh, final HE_Face face) {
+	public static HE_Selection triangulate(final HE_Mesh mesh,
+			final HE_Face face) {
 		final HE_Selection sel = HE_Selection.getSelection(mesh);
 		sel.add(face);
 		return triangulate(sel);
@@ -1607,8 +1656,9 @@ public class HET_MeshOp {
 	 *
 	 * @return
 	 */
-	public static HE_Selection triangulateConcaveFace(final HE_Mesh mesh, final HE_Face face) {
-		if (face.getFaceType() == WB_Classification.CONCAVE) {
+	public static HE_Selection triangulateConcaveFace(final HE_Mesh mesh,
+			final HE_Face face) {
+		if (getFaceType(face) == WB_Classification.CONCAVE) {
 			return triangulate(mesh, face);
 		}
 		final HE_Selection sel = HE_Selection.getSelection(mesh);
@@ -1625,7 +1675,8 @@ public class HET_MeshOp {
 	 *
 	 * @return
 	 */
-	public static HE_Selection triangulateConcaveFace(final HE_Mesh mesh, final long key) {
+	public static HE_Selection triangulateConcaveFace(final HE_Mesh mesh,
+			final long key) {
 		return triangulateConcaveFace(mesh, mesh.getFaceWithKey(key));
 	}
 
@@ -1640,8 +1691,8 @@ public class HET_MeshOp {
 		final HE_Face[] f = mesh.getFacesAsArray();
 		final int n = mesh.getNumberOfFaces();
 		for (int i = 0; i < n; i++) {
-			if (f[i].getFaceType() == WB_Classification.CONCAVE) {
-				out.union(triangulate(mesh, f[i].key()));
+			if (getFaceType(f[i]) == WB_Classification.CONCAVE) {
+				out.union(triangulate(mesh, f[i].getKey()));
 			}
 		}
 		return out;
@@ -1654,12 +1705,13 @@ public class HET_MeshOp {
 	 * @param sel
 	 * @return
 	 */
-	public static HE_Selection triangulateConcaveFaces(final HE_Mesh mesh, final List<HE_Face> sel) {
+	public static HE_Selection triangulateConcaveFaces(final HE_Mesh mesh,
+			final List<HE_Face> sel) {
 		final HE_Selection out = HE_Selection.getSelection(mesh);
 		final int n = sel.size();
 		for (int i = 0; i < n; i++) {
-			if (sel.get(i).getFaceType() == WB_Classification.CONCAVE) {
-				out.union(triangulate(mesh, sel.get(i).key()));
+			if (getFaceType(sel.get(i)) == WB_Classification.CONCAVE) {
+				out.union(triangulate(mesh, sel.get(i).getKey()));
 			} else {
 				out.add(sel.get(i));
 			}
@@ -1674,7 +1726,8 @@ public class HET_MeshOp {
 	 * @param v
 	 * @return
 	 */
-	public static HE_Selection triangulateFaceStar(final HE_Mesh mesh, final HE_Vertex v) {
+	public static HE_Selection triangulateFaceStar(final HE_Mesh mesh,
+			final HE_Vertex v) {
 		final HE_Selection vf = HE_Selection.getSelection(mesh);
 		final HE_VertexFaceCirculator vfc = new HE_VertexFaceCirculator(v);
 		HE_Face f;
@@ -1698,9 +1751,11 @@ public class HET_MeshOp {
 	 * @param vertexkey
 	 * @return
 	 */
-	public static HE_Selection triangulateFaceStar(final HE_Mesh mesh, final long vertexkey) {
+	public static HE_Selection triangulateFaceStar(final HE_Mesh mesh,
+			final long vertexkey) {
 		final HE_Selection vf = HE_Selection.getSelection(mesh);
-		final HE_VertexFaceCirculator vfc = new HE_VertexFaceCirculator(mesh.getVertexWithKey(vertexkey));
+		final HE_VertexFaceCirculator vfc = new HE_VertexFaceCirculator(
+				mesh.getVertexWithKey(vertexkey));
 		HE_Face f;
 		while (vfc.hasNext()) {
 			f = vfc.next();
@@ -1722,7 +1777,8 @@ public class HET_MeshOp {
 	 * @param he
 	 * @return
 	 */
-	public static HE_Face createFaceFromHalfedgeLoop(final HE_Mesh mesh, final HE_Halfedge he) {
+	public static HE_Face createFaceFromHalfedgeLoop(final HE_Mesh mesh,
+			final HE_Halfedge he) {
 		if (mesh == null || he == null) {
 			return null;
 		}
@@ -1750,7 +1806,8 @@ public class HET_MeshOp {
 	 * @param hes
 	 * @return
 	 */
-	public static List<HE_Face> createFaceFromHalfedgeLoop(final HE_Mesh mesh, final List<HE_Halfedge> hes) {
+	public static List<HE_Face> createFaceFromHalfedgeLoop(final HE_Mesh mesh,
+			final List<HE_Halfedge> hes) {
 		final List<HE_Face> newFaces = new ArrayList<HE_Face>();
 		if (mesh == null || hes == null) {
 			return newFaces;
@@ -1788,9 +1845,8 @@ public class HET_MeshOp {
 	 * @param unpairedHalfedge
 	 * @return
 	 */
-	public static HE_RAS<HE_Face> selectAllFacesConnectedToUnpairedHalfedge(final HE_Mesh mesh,
-			final HE_Halfedge unpairedHalfedge) {
-
+	public static HE_RAS<HE_Face> selectAllFacesConnectedToUnpairedHalfedge(
+			final HE_Mesh mesh, final HE_Halfedge unpairedHalfedge) {
 		final HE_RAS<HE_Face> faces = new HE_RAS<HE_Face>();
 		HE_Face face = unpairedHalfedge.getFace();
 		if (face == null) {
@@ -1809,7 +1865,8 @@ public class HET_MeshOp {
 			face = facesToCheck.getWithIndex(0);
 			facesToCheck.remove(face);
 			faces.add(face);
-			final HE_FaceHalfedgeInnerCirculator heitr = new HE_FaceHalfedgeInnerCirculator(face);
+			final HE_FaceHalfedgeInnerCirculator heitr = new HE_FaceHalfedgeInnerCirculator(
+					face);
 			while (heitr.hasNext()) {
 				he = heitr.next();
 				if (he.getPair() != null) {
@@ -1835,33 +1892,9 @@ public class HET_MeshOp {
 		return mesh;
 	}
 
-	/**
-	 *
-	 *
-	 * @param mesh
-	 * @param faces
-	 */
-	public static void flipFaces(final HE_Mesh mesh, final HE_RAS<HE_Face> faces) {
-		HE_Halfedge he;
-		for (final HE_Face face : faces) {
-			final int n = face.getFaceDegree();
-			final HE_Vertex[] vertices = new HE_Vertex[n];
-			final HE_Halfedge[] prevhe = new HE_Halfedge[n];
-			final HE_FaceHalfedgeInnerCirculator heitr = new HE_FaceHalfedgeInnerCirculator(face);
-			int i = 0;
-			while (heitr.hasNext()) {
-				he = heitr.next();
-				vertices[i] = he.getNextInFace().getVertex();
-				prevhe[i++] = he.getPrevInFace();
-			}
-			i = 0;
-			while (heitr.hasNext()) {
-				he = heitr.next();
-				mesh.setVertex(he, vertices[i]);
-				mesh.setHalfedge(vertices[i], he);
-				mesh.setNext(he, prevhe[i]);
-			}
-		}
+	public static HE_Mesh flipFaces(final HE_Selection sel) {
+		sel.modify(new HEM_FlipFaces());
+		return sel.getParent();
 	}
 
 	/**
@@ -1872,7 +1905,6 @@ public class HET_MeshOp {
 	 * @return
 	 */
 	public static boolean flipEdge(final HE_Mesh mesh, final HE_Halfedge he) {
-
 		// boundary edge
 		if (he.getFace() == null) {
 			return false;
@@ -1893,20 +1925,20 @@ public class HET_MeshOp {
 		if (he.getPair().getFace().getFaceDegree() != 3) {
 			return false;
 		}
-
 		// not planar
-		if (Math.PI - he.getEdgeDihedralAngle() > WB_Epsilon.EPSILON) {
+		if (Math.PI - getEdgeDihedralAngle(he) > WB_Epsilon.EPSILON) {
 			return false;
 		}
-
 		// flip would result in overlapping triangles, this detected by
 		// comparing the areas of the two triangles before and after.
-		WB_Plane P = new WB_Plane(he.getHalfedgeCenter(), he.getEdgeNormal());
+		WB_Plane P = new WB_Plane(getHalfedgeCenter(he), getEdgeNormal(he));
 		final WB_Coord a = WB_GeometryOp3D.projectOnPlane(he.getVertex(), P);
-		final WB_Coord b = WB_GeometryOp3D.projectOnPlane(he.getNextInFace().getVertex(), P);
-		final WB_Coord c = WB_GeometryOp3D.projectOnPlane(he.getNextInFace().getNextInFace().getVertex(), P);
-		final WB_Coord d = WB_GeometryOp3D.projectOnPlane(he.getPair().getNextInFace().getNextInFace().getVertex(), P);
-
+		final WB_Coord b = WB_GeometryOp3D
+				.projectOnPlane(he.getNextInFace().getVertex(), P);
+		final WB_Coord c = WB_GeometryOp3D.projectOnPlane(
+				he.getNextInFace().getNextInFace().getVertex(), P);
+		final WB_Coord d = WB_GeometryOp3D.projectOnPlane(
+				he.getPair().getNextInFace().getNextInFace().getVertex(), P);
 		double Ai = WB_GeometryOp3D.getArea(a, b, c);
 		Ai += WB_GeometryOp3D.getArea(a, d, b);
 		double Af = WB_GeometryOp3D.getArea(a, d, c);
@@ -1915,7 +1947,6 @@ public class HET_MeshOp {
 		if (ratio > 1.000001 || ratio < 0.99999) {
 			return false;
 		}
-
 		// get the 3 edges of triangle t1 and t2, he1t1 and he1t2 is the edge to
 		// be flipped
 		final HE_Halfedge he1t1 = he;
@@ -1924,7 +1955,6 @@ public class HET_MeshOp {
 		final HE_Halfedge he2t2 = he1t2.getNextInFace();
 		final HE_Halfedge he3t1 = he2t1.getNextInFace();
 		final HE_Halfedge he3t2 = he2t2.getNextInFace();
-
 		final HE_Face t1 = he1t1.getFace();
 		final HE_Face t2 = he1t2.getFace();
 		// Fix vertex assignment
@@ -1946,12 +1976,11 @@ public class HET_MeshOp {
 		mesh.setNext(he3t1, he2t2);
 		mesh.setFace(he3t1, t2);
 		mesh.setHalfedge(t2, he1t2);
-
 		return true;
 	}
 
-	public static boolean flipEdgeConditional(final HE_Mesh mesh, final HE_Halfedge he) {
-
+	public static boolean flipEdgeConditional(final HE_Mesh mesh,
+			final HE_Halfedge he) {
 		// boundary edge
 		if (he.getFace() == null) {
 			return false;
@@ -1972,15 +2001,16 @@ public class HET_MeshOp {
 		if (he.getPair().getFace().getFaceDegree() != 3) {
 			return false;
 		}
-
 		// flip would result in overlapping triangles, this detected by
 		// comparing the areas of the two triangles before and after.
-		WB_Plane P = new WB_Plane(he.getHalfedgeCenter(), he.getEdgeNormal());
+		WB_Plane P = new WB_Plane(getHalfedgeCenter(he), getEdgeNormal(he));
 		final WB_Coord a = WB_GeometryOp3D.projectOnPlane(he.getVertex(), P);
-		final WB_Coord b = WB_GeometryOp3D.projectOnPlane(he.getNextInFace().getVertex(), P);
-		final WB_Coord c = WB_GeometryOp3D.projectOnPlane(he.getNextInFace().getNextInFace().getVertex(), P);
-		final WB_Coord d = WB_GeometryOp3D.projectOnPlane(he.getPair().getNextInFace().getNextInFace().getVertex(), P);
-
+		final WB_Coord b = WB_GeometryOp3D
+				.projectOnPlane(he.getNextInFace().getVertex(), P);
+		final WB_Coord c = WB_GeometryOp3D.projectOnPlane(
+				he.getNextInFace().getNextInFace().getVertex(), P);
+		final WB_Coord d = WB_GeometryOp3D.projectOnPlane(
+				he.getPair().getNextInFace().getNextInFace().getVertex(), P);
 		double Ai = WB_GeometryOp3D.getArea(a, b, c);
 		Ai += WB_GeometryOp3D.getArea(a, d, b);
 		double Af = WB_GeometryOp3D.getArea(a, d, c);
@@ -1989,7 +2019,6 @@ public class HET_MeshOp {
 		if (ratio > 1.000001 || ratio < 0.99999) {
 			return false;
 		}
-
 		// get the 3 edges of triangle t1 and t2, he1t1 and he1t2 is the edge to
 		// be flipped
 		final HE_Halfedge he1t1 = he;
@@ -1998,13 +2027,12 @@ public class HET_MeshOp {
 		final HE_Halfedge he2t2 = he1t2.getNextInFace();
 		final HE_Halfedge he3t1 = he2t1.getNextInFace();
 		final HE_Halfedge he3t2 = he2t2.getNextInFace();
-
 		// Don't flip if the new triangle edge is equal or longer than the
 		// current one.
-		if (he1t1.getSqLength() <= he2t1.getEndVertex().getPosition().getSqDistance(he2t2.getEndVertex())) {
+		if (getSqLength(he1t1) <= he2t1.getEndVertex().getPosition()
+				.getSqDistance(he2t2.getEndVertex())) {
 			return false;
 		}
-
 		final HE_Face t1 = he1t1.getFace();
 		final HE_Face t2 = he1t2.getFace();
 		// Fix vertex assignment
@@ -2026,12 +2054,11 @@ public class HET_MeshOp {
 		mesh.setNext(he3t1, he2t2);
 		mesh.setFace(he3t1, t2);
 		mesh.setHalfedge(t2, he1t2);
-
 		return true;
 	}
 
-	public static boolean flipPlanarEdgeConditional(final HE_Mesh mesh, final HE_Halfedge he, final double cosa) {
-
+	public static boolean flipPlanarEdgeConditional(final HE_Mesh mesh,
+			final HE_Halfedge he, final double cosa) {
 		// boundary edge
 		if (he.getFace() == null) {
 			return false;
@@ -2052,20 +2079,19 @@ public class HET_MeshOp {
 		if (he.getPair().getFace().getFaceDegree() != 3) {
 			return false;
 		}
-
-		if (he.getEdgeCosDihedralAngle() > cosa) {
-
+		if (getEdgeCosDihedralAngle(he) > cosa) {
 			return false;
 		}
-
 		// flip would result in overlapping triangles, this detected by
 		// comparing the areas of the two triangles before and after.
-		WB_Plane P = new WB_Plane(he.getHalfedgeCenter(), he.getEdgeNormal());
+		WB_Plane P = new WB_Plane(getHalfedgeCenter(he), getEdgeNormal(he));
 		final WB_Coord a = WB_GeometryOp3D.projectOnPlane(he.getVertex(), P);
-		final WB_Coord b = WB_GeometryOp3D.projectOnPlane(he.getNextInFace().getVertex(), P);
-		final WB_Coord c = WB_GeometryOp3D.projectOnPlane(he.getNextInFace().getNextInFace().getVertex(), P);
-		final WB_Coord d = WB_GeometryOp3D.projectOnPlane(he.getPair().getNextInFace().getNextInFace().getVertex(), P);
-
+		final WB_Coord b = WB_GeometryOp3D
+				.projectOnPlane(he.getNextInFace().getVertex(), P);
+		final WB_Coord c = WB_GeometryOp3D.projectOnPlane(
+				he.getNextInFace().getNextInFace().getVertex(), P);
+		final WB_Coord d = WB_GeometryOp3D.projectOnPlane(
+				he.getPair().getNextInFace().getNextInFace().getVertex(), P);
 		double Ai = WB_GeometryOp3D.getArea(a, b, c);
 		Ai += WB_GeometryOp3D.getArea(a, d, b);
 		double Af = WB_GeometryOp3D.getArea(a, d, c);
@@ -2081,7 +2107,6 @@ public class HET_MeshOp {
 		if (ratio > 1.000001 || ratio < 0.99999) {
 			return false;
 		}
-
 		// get the 3 edges of triangle t1 and t2, he1t1 and he1t2 is the edge to
 		// be flipped
 		final HE_Halfedge he1t1 = he;
@@ -2090,13 +2115,12 @@ public class HET_MeshOp {
 		final HE_Halfedge he2t2 = he1t2.getNextInFace();
 		final HE_Halfedge he3t1 = he2t1.getNextInFace();
 		final HE_Halfedge he3t2 = he2t2.getNextInFace();
-
 		// Don't flip if the new triangle edge is equal or longer than the
 		// current one.
-		if (he1t1.getSqLength() <= he2t1.getEndVertex().getPosition().getSqDistance(he2t2.getEndVertex())) {
+		if (getSqLength(he1t1) <= he2t1.getEndVertex().getPosition()
+				.getSqDistance(he2t2.getEndVertex())) {
 			return false;
 		}
-
 		final HE_Face t1 = he1t1.getFace();
 		final HE_Face t2 = he1t2.getFace();
 		// Fix vertex assignment
@@ -2118,32 +2142,34 @@ public class HET_MeshOp {
 		mesh.setNext(he3t1, he2t2);
 		mesh.setFace(he3t1, t2);
 		mesh.setHalfedge(t2, he1t2);
-
 		return true;
 	}
 
-	public static boolean flipPlanarEdgeConditional(final HE_Mesh mesh, final HE_Halfedge he) {
-		return flipPlanarEdgeConditional(mesh, he, Math.cos(Math.PI - WB_Epsilon.EPSILONANGLE));
-
+	public static boolean flipPlanarEdgeConditional(final HE_Mesh mesh,
+			final HE_Halfedge he) {
+		return flipPlanarEdgeConditional(mesh, he,
+				Math.cos(Math.PI - WB_Epsilon.EPSILONANGLE));
 	}
 
-	public static void improveTriangulation(final HE_Mesh mesh, final HE_Selection triangles) {
-		improveTriangulation(mesh, triangles, Math.cos(Math.PI - WB_Epsilon.EPSILONANGLE));
-
+	public static void improveTriangulation(final HE_Mesh mesh,
+			final HE_Selection triangles) {
+		improveTriangulation(mesh, triangles,
+				Math.cos(Math.PI - WB_Epsilon.EPSILONANGLE));
 	}
 
 	public static void improveTriangulation(final HE_Mesh mesh) {
-		improveTriangulation(mesh, mesh.selectAllFaces(), Math.cos(Math.PI - WB_Epsilon.EPSILONANGLE));
-
+		improveTriangulation(mesh, mesh.selectAllFaces(),
+				Math.cos(Math.PI - WB_Epsilon.EPSILONANGLE));
 	}
 
-	public static void improveTriangulation(final HE_Mesh mesh, final double cosa) {
+	public static void improveTriangulation(final HE_Mesh mesh,
+			final double cosa) {
 		improveTriangulation(mesh, mesh.selectAllFaces(), cosa);
-
 	}
 
-	public static void improveTriangulation(final HE_Mesh mesh, final HE_Selection triangles, final double cosa) {
-		if (mesh != triangles.parent) {
+	public static void improveTriangulation(final HE_Mesh mesh,
+			final HE_Selection triangles, final double cosa) {
+		if (mesh != triangles.getParent()) {
 			return;
 		}
 		HE_Selection sel = HE_Selection.getSelection(mesh);
@@ -2156,15 +2182,12 @@ public class HET_MeshOp {
 			flip = 0;
 			boolean flipped;
 			for (HE_Halfedge e : check) {
-				flipped = HET_MeshOp.flipPlanarEdgeConditional(mesh, e, cosa);
+				flipped = HE_MeshOp.flipPlanarEdgeConditional(mesh, e, cosa);
 				if (flipped) {
 					flip++;
 				}
-
 			}
-
 		} while (flip > 0);
-
 	}
 
 	/**
@@ -2179,7 +2202,8 @@ public class HET_MeshOp {
 		final HE_RAS<HE_Halfedge> cleanedHalfedges = new HE_RAS<HE_Halfedge>();
 		tracker.setStartStatusStr("HET_MeshOp", "Cleaning unused elements.");
 		HE_Halfedge he;
-		WB_ProgressCounter counter = new WB_ProgressCounter(mesh.getNumberOfFaces(), 10);
+		WB_ProgressCounter counter = new WB_ProgressCounter(
+				mesh.getNumberOfFaces(), 10);
 		tracker.setCounterStatusStr("HET_MeshOp", "Processing faces.", counter);
 		HE_Face f;
 		final Iterator<HE_Face> fItr = mesh.fItr();
@@ -2194,13 +2218,13 @@ public class HET_MeshOp {
 				if (!cleanedHalfedges.contains(he)) {
 					cleanedHalfedges.add(he);
 				}
-
 				he = he.getNextInFace();
 			} while (he != f.getHalfedge());
 			counter.increment();
 		}
 		counter = new WB_ProgressCounter(cleanedHalfedges.size(), 10);
-		tracker.setCounterStatusStr("HET_MeshOp", "Processing halfedges.", counter);
+		tracker.setCounterStatusStr("HET_MeshOp", "Processing halfedges.",
+				counter);
 		final int n = cleanedHalfedges.size();
 		for (int i = 0; i < n; i++) {
 			he = cleanedHalfedges.getWithIndex(i);
@@ -2226,8 +2250,8 @@ public class HET_MeshOp {
 			}
 		}
 		mesh.removeHalfedges(remove);
-
-		tracker.setStopStatusStr("HET_MeshOp", "Done cleaning unused elements.");
+		tracker.setStopStatusStr("HET_MeshOp",
+				"Done cleaning unused elements.");
 		return mesh;
 	}
 
@@ -2240,7 +2264,8 @@ public class HET_MeshOp {
 	 * @param halfedge
 	 *            halfedge loop
 	 */
-	public static void assignFaceToLoop(final HE_Mesh mesh, final HE_Face face, final HE_Halfedge halfedge) {
+	public static void assignFaceToLoop(final HE_Mesh mesh, final HE_Face face,
+			final HE_Halfedge halfedge) {
 		HE_Halfedge he = halfedge;
 		do {
 			mesh.setFace(he, face);
@@ -2255,13 +2280,16 @@ public class HET_MeshOp {
 	 * @param line
 	 * @return
 	 */
-	public static HE_FaceIntersection getIntersection(final HE_Face face, final WB_Line line) {
-		final WB_Plane P = face.getPlane();
+	public static HE_FaceIntersection getIntersection(final HE_Face face,
+			final WB_Line line) {
+		final WB_Plane P = getPlane(face);
 		HE_FaceIntersection p = null;
-		final WB_IntersectionResult lpi = WB_GeometryOp3D.getIntersection3D(line, P);
+		final WB_IntersectionResult lpi = WB_GeometryOp3D
+				.getIntersection3D(line, P);
 		if (lpi.intersection) {
 			p = new HE_FaceIntersection(face, (WB_Point) lpi.object);
-			if (WB_Epsilon.isZero(WB_GeometryOp3D.getDistanceToClosestPoint3D(p.point, face.toPolygon()))) {
+			if (WB_Epsilon.isZero(WB_GeometryOp3D
+					.getDistanceToClosestPoint3D(p.point, getPolygon(face)))) {
 				return p;
 			}
 		}
@@ -2275,13 +2303,16 @@ public class HET_MeshOp {
 	 * @param ray
 	 * @return
 	 */
-	public static HE_FaceIntersection getIntersection(final HE_Face face, final WB_Ray ray) {
-		final WB_Plane P = face.getPlane();
+	public static HE_FaceIntersection getIntersection(final HE_Face face,
+			final WB_Ray ray) {
+		final WB_Plane P = getPlane(face);
 		HE_FaceIntersection p = null;
-		final WB_IntersectionResult lpi = WB_GeometryOp3D.getIntersection3D(ray, P);
+		final WB_IntersectionResult lpi = WB_GeometryOp3D.getIntersection3D(ray,
+				P);
 		if (lpi.intersection) {
 			p = new HE_FaceIntersection(face, (WB_Point) lpi.object);
-			if (WB_Epsilon.isZero(WB_GeometryOp3D.getDistanceToClosestPoint3D(p.point, face.toPolygon()))) {
+			if (WB_Epsilon.isZero(WB_GeometryOp3D
+					.getDistanceToClosestPoint3D(p.point, getPolygon(face)))) {
 				return new HE_FaceIntersection(face, p.point);
 			}
 		}
@@ -2295,13 +2326,16 @@ public class HET_MeshOp {
 	 * @param segment
 	 * @return
 	 */
-	public static HE_FaceIntersection getIntersection(final HE_Face face, final WB_Segment segment) {
-		final WB_Plane P = face.getPlane();
+	public static HE_FaceIntersection getIntersection(final HE_Face face,
+			final WB_Segment segment) {
+		final WB_Plane P = getPlane(face);
 		HE_FaceIntersection p = null;
-		final WB_IntersectionResult lpi = WB_GeometryOp3D.getIntersection3D(segment, P);
+		final WB_IntersectionResult lpi = WB_GeometryOp3D
+				.getIntersection3D(segment, P);
 		if (lpi.intersection) {
 			p = new HE_FaceIntersection(face, (WB_Point) lpi.object);
-			if (WB_Epsilon.isZero(WB_GeometryOp3D.getDistanceToClosestPoint3D(p.point, face.toPolygon()))) {
+			if (WB_Epsilon.isZero(WB_GeometryOp3D
+					.getDistanceToClosestPoint3D(p.point, getPolygon(face)))) {
 				return p;
 			}
 		}
@@ -2315,8 +2349,10 @@ public class HET_MeshOp {
 	 * @param P
 	 * @return
 	 */
-	public static double getIntersection(final HE_Halfedge e, final WB_Plane P) {
-		final WB_IntersectionResult i = WB_GeometryOp3D.getIntersection3D(e.getStartVertex(), e.getEndVertex(), P);
+	public static double getIntersection(final HE_Halfedge e,
+			final WB_Plane P) {
+		final WB_IntersectionResult i = WB_GeometryOp3D
+				.getIntersection3D(e.getStartVertex(), e.getEndVertex(), P);
 		if (i.intersection == false) {
 			return -1.0;// intersection beyond endpoints
 		}
@@ -2330,10 +2366,12 @@ public class HET_MeshOp {
 	 * @param ray
 	 * @return
 	 */
-	public static List<HE_FaceIntersection> getIntersection(final WB_AABBTree tree, final WB_Ray ray) {
+	public static List<HE_FaceIntersection> getIntersection(
+			final WB_AABBTree tree, final WB_Ray ray) {
 		final List<HE_FaceIntersection> p = new FastList<HE_FaceIntersection>();
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(ray, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(ray,
+				tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
@@ -2346,17 +2384,37 @@ public class HET_MeshOp {
 		return p;
 	}
 
-	public static boolean isInside(final HE_Mesh mesh, final WB_Coord p) {
+	public static List<HE_FaceIntersection> getIntersectionNoOrigin(
+			final WB_AABBTree tree, final WB_Ray ray) {
+		final List<HE_FaceIntersection> p = new FastList<HE_FaceIntersection>();
+		final List<HE_Face> candidates = new FastList<HE_Face>();
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(ray,
+				tree);
+		for (final WB_AABBNode n : nodes) {
+			candidates.addAll(n.getFaces());
+		}
+		for (final HE_Face face : candidates) {
+			final HE_FaceIntersection sect = getIntersection(face, ray);
+			if (sect != null && !WB_Epsilon.isZeroSq(
+					WB_Point.getSqDistance3D(ray.getOrigin(), sect.point))) {
+				p.add(sect);
+			}
+		}
+		return p;
+	}
 
+	public static boolean isInside(final HE_Mesh mesh, final WB_Coord p) {
 		return isInside(new WB_AABBTree(mesh, 1), p);
 	}
 
 	public static boolean isInside(final WB_AABBTree tree, final WB_Coord p) {
 		final List<HE_FaceIntersection> ints = new FastList<HE_FaceIntersection>();
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final WB_Vector dir = new WB_Vector(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+		final WB_Vector dir = new WB_Vector(Math.random() - 0.5,
+				Math.random() - 0.5, Math.random() - 0.5);
 		final WB_Ray R = new WB_Ray(p, dir);
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(R, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(R,
+				tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
@@ -2376,10 +2434,12 @@ public class HET_MeshOp {
 	 * @param segment
 	 * @return
 	 */
-	public static List<HE_FaceIntersection> getIntersection(final WB_AABBTree tree, final WB_Segment segment) {
+	public static List<HE_FaceIntersection> getIntersection(
+			final WB_AABBTree tree, final WB_Segment segment) {
 		final List<HE_FaceIntersection> p = new FastList<HE_FaceIntersection>();
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(segment, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D
+				.getIntersection3D(segment, tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
@@ -2399,10 +2459,12 @@ public class HET_MeshOp {
 	 * @param line
 	 * @return
 	 */
-	public static List<HE_FaceIntersection> getIntersection(final WB_AABBTree tree, final WB_Line line) {
+	public static List<HE_FaceIntersection> getIntersection(
+			final WB_AABBTree tree, final WB_Line line) {
 		final List<HE_FaceIntersection> p = new FastList<HE_FaceIntersection>();
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(line, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(line,
+				tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
@@ -2422,15 +2484,17 @@ public class HET_MeshOp {
 	 * @param P
 	 * @return
 	 */
-	public static List<WB_Segment> getIntersection(final WB_AABBTree tree, final WB_Plane P) {
+	public static List<WB_Segment> getIntersection(final WB_AABBTree tree,
+			final WB_Plane P) {
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(P, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(P,
+				tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
 		final List<WB_Segment> cuts = new FastList<WB_Segment>();
 		for (final HE_Face face : candidates) {
-			cuts.addAll(WB_GeometryOp3D.getIntersection3D(face.toPolygon(), P));
+			cuts.addAll(WB_GeometryOp3D.getIntersection3D(getPolygon(face), P));
 		}
 		return cuts;
 	}
@@ -2442,9 +2506,11 @@ public class HET_MeshOp {
 	 * @param P
 	 * @return
 	 */
-	public static List<HE_Face> getPotentialIntersectedFaces(final WB_AABBTree tree, final WB_Plane P) {
+	public static List<HE_Face> getPotentialIntersectedFaces(
+			final WB_AABBTree tree, final WB_Plane P) {
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(P, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(P,
+				tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
@@ -2458,27 +2524,33 @@ public class HET_MeshOp {
 	 * @param T
 	 * @return
 	 */
-	public static List<HE_Face> getPotentialIntersectedFaces(final WB_AABBTree tree, final WB_Triangle T) {
+	public static List<HE_Face> getPotentialIntersectedFaces(
+			final WB_AABBTree tree, final WB_Triangle T) {
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(T, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(T,
+				tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
 		return candidates;
 	}
 
-	public static List<HE_Face> getPotentialIntersectedFaces(final WB_AABBTree tree, final WB_AABB AABB) {
+	public static List<HE_Face> getPotentialIntersectedFaces(
+			final WB_AABBTree tree, final WB_AABB AABB) {
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(AABB, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(AABB,
+				tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
 		return candidates;
 	}
 
-	public static List<HE_Face> getPotentialIntersectedFaces(final WB_AABBTree tree, final WB_Coord p) {
+	public static List<HE_Face> getPotentialIntersectedFaces(
+			final WB_AABBTree tree, final WB_Coord p) {
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(p, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(p,
+				tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
@@ -2492,9 +2564,11 @@ public class HET_MeshOp {
 	 * @param R
 	 * @return
 	 */
-	public static List<HE_Face> getPotentialIntersectedFaces(final WB_AABBTree tree, final WB_Ray R) {
+	public static List<HE_Face> getPotentialIntersectedFaces(
+			final WB_AABBTree tree, final WB_Ray R) {
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(R, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(R,
+				tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
@@ -2508,9 +2582,11 @@ public class HET_MeshOp {
 	 * @param L
 	 * @return
 	 */
-	public static List<HE_Face> getPotentialIntersectedFaces(final WB_AABBTree tree, final WB_Line L) {
+	public static List<HE_Face> getPotentialIntersectedFaces(
+			final WB_AABBTree tree, final WB_Line L) {
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(L, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(L,
+				tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
@@ -2524,9 +2600,11 @@ public class HET_MeshOp {
 	 * @param segment
 	 * @return
 	 */
-	public static List<HE_Face> getPotentialIntersectedFaces(final WB_AABBTree tree, final WB_Segment segment) {
+	public static List<HE_Face> getPotentialIntersectedFaces(
+			final WB_AABBTree tree, final WB_Segment segment) {
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(segment, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D
+				.getIntersection3D(segment, tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
@@ -2540,10 +2618,12 @@ public class HET_MeshOp {
 	 * @param ray
 	 * @return
 	 */
-	public static HE_FaceIntersection getClosestIntersection(final WB_AABBTree tree, final WB_Ray ray) {
+	public static HE_FaceIntersection getClosestIntersection(
+			final WB_AABBTree tree, final WB_Ray ray) {
 		HE_FaceIntersection p = null;
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(ray, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(ray,
+				tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
@@ -2568,10 +2648,12 @@ public class HET_MeshOp {
 	 * @param ray
 	 * @return
 	 */
-	public static HE_FaceIntersection getFurthestIntersection(final WB_AABBTree tree, final WB_Ray ray) {
+	public static HE_FaceIntersection getFurthestIntersection(
+			final WB_AABBTree tree, final WB_Ray ray) {
 		HE_FaceIntersection p = null;
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(ray, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(ray,
+				tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
@@ -2596,10 +2678,12 @@ public class HET_MeshOp {
 	 * @param line
 	 * @return
 	 */
-	public static HE_FaceIntersection getClosestIntersection(final WB_AABBTree tree, final WB_Line line) {
+	public static HE_FaceIntersection getClosestIntersection(
+			final WB_AABBTree tree, final WB_Line line) {
 		HE_FaceIntersection p = null;
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(line, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(line,
+				tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
@@ -2624,10 +2708,12 @@ public class HET_MeshOp {
 	 * @param line
 	 * @return
 	 */
-	public static HE_FaceIntersection getFurthestIntersection(final WB_AABBTree tree, final WB_Line line) {
+	public static HE_FaceIntersection getFurthestIntersection(
+			final WB_AABBTree tree, final WB_Line line) {
 		HE_FaceIntersection p = null;
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(line, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(line,
+				tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
@@ -2652,10 +2738,12 @@ public class HET_MeshOp {
 	 * @param segment
 	 * @return
 	 */
-	public static HE_FaceIntersection getClosestIntersection(final WB_AABBTree tree, final WB_Segment segment) {
+	public static HE_FaceIntersection getClosestIntersection(
+			final WB_AABBTree tree, final WB_Segment segment) {
 		HE_FaceIntersection p = null;
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(segment, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D
+				.getIntersection3D(segment, tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
@@ -2680,10 +2768,12 @@ public class HET_MeshOp {
 	 * @param segment
 	 * @return
 	 */
-	public static HE_FaceIntersection getFurthestIntersection(final WB_AABBTree tree, final WB_Segment segment) {
+	public static HE_FaceIntersection getFurthestIntersection(
+			final WB_AABBTree tree, final WB_Segment segment) {
 		HE_FaceIntersection p = null;
 		final List<HE_Face> candidates = new FastList<HE_Face>();
-		final List<WB_AABBNode> nodes = WB_GeometryOp3D.getIntersection3D(segment, tree);
+		final List<WB_AABBNode> nodes = WB_GeometryOp3D
+				.getIntersection3D(segment, tree);
 		for (final WB_AABBNode n : nodes) {
 			candidates.addAll(n.getFaces());
 		}
@@ -2708,7 +2798,8 @@ public class HET_MeshOp {
 	 * @param ray
 	 * @return
 	 */
-	public static List<HE_FaceIntersection> getIntersection(final HE_Mesh mesh, final WB_Ray ray) {
+	public static List<HE_FaceIntersection> getIntersection(final HE_Mesh mesh,
+			final WB_Ray ray) {
 		return getIntersection(new WB_AABBTree(mesh, 10), ray);
 	}
 
@@ -2719,7 +2810,8 @@ public class HET_MeshOp {
 	 * @param segment
 	 * @return
 	 */
-	public static List<HE_FaceIntersection> getIntersection(final HE_Mesh mesh, final WB_Segment segment) {
+	public static List<HE_FaceIntersection> getIntersection(final HE_Mesh mesh,
+			final WB_Segment segment) {
 		return getIntersection(new WB_AABBTree(mesh, 10), segment);
 	}
 
@@ -2730,7 +2822,8 @@ public class HET_MeshOp {
 	 * @param line
 	 * @return
 	 */
-	public static List<HE_FaceIntersection> getIntersection(final HE_Mesh mesh, final WB_Line line) {
+	public static List<HE_FaceIntersection> getIntersection(final HE_Mesh mesh,
+			final WB_Line line) {
 		return getIntersection(new WB_AABBTree(mesh, 10), line);
 	}
 
@@ -2741,7 +2834,8 @@ public class HET_MeshOp {
 	 * @param P
 	 * @return
 	 */
-	public static List<WB_Segment> getIntersection(final HE_Mesh mesh, final WB_Plane P) {
+	public static List<WB_Segment> getIntersection(final HE_Mesh mesh,
+			final WB_Plane P) {
 		return getIntersection(new WB_AABBTree(mesh, 10), P);
 	}
 
@@ -2752,7 +2846,8 @@ public class HET_MeshOp {
 	 * @param P
 	 * @return
 	 */
-	public static List<HE_Face> getPotentialIntersectedFaces(final HE_Mesh mesh, final WB_Plane P) {
+	public static List<HE_Face> getPotentialIntersectedFaces(final HE_Mesh mesh,
+			final WB_Plane P) {
 		return getPotentialIntersectedFaces(new WB_AABBTree(mesh, 10), P);
 	}
 
@@ -2763,7 +2858,8 @@ public class HET_MeshOp {
 	 * @param R
 	 * @return
 	 */
-	public static List<HE_Face> getPotentialIntersectedFaces(final HE_Mesh mesh, final WB_Ray R) {
+	public static List<HE_Face> getPotentialIntersectedFaces(final HE_Mesh mesh,
+			final WB_Ray R) {
 		return getPotentialIntersectedFaces(new WB_AABBTree(mesh, 10), R);
 	}
 
@@ -2774,7 +2870,8 @@ public class HET_MeshOp {
 	 * @param L
 	 * @return
 	 */
-	public static List<HE_Face> getPotentialIntersectedFaces(final HE_Mesh mesh, final WB_Line L) {
+	public static List<HE_Face> getPotentialIntersectedFaces(final HE_Mesh mesh,
+			final WB_Line L) {
 		return getPotentialIntersectedFaces(new WB_AABBTree(mesh, 10), L);
 	}
 
@@ -2785,7 +2882,8 @@ public class HET_MeshOp {
 	 * @param segment
 	 * @return
 	 */
-	public static List<HE_Face> getPotentialIntersectedFaces(final HE_Mesh mesh, final WB_Segment segment) {
+	public static List<HE_Face> getPotentialIntersectedFaces(final HE_Mesh mesh,
+			final WB_Segment segment) {
 		return getPotentialIntersectedFaces(new WB_AABBTree(mesh, 10), segment);
 	}
 
@@ -2796,7 +2894,8 @@ public class HET_MeshOp {
 	 * @param ray
 	 * @return
 	 */
-	public static HE_FaceIntersection getClosestIntersection(final HE_Mesh mesh, final WB_Ray ray) {
+	public static HE_FaceIntersection getClosestIntersection(final HE_Mesh mesh,
+			final WB_Ray ray) {
 		return getClosestIntersection(new WB_AABBTree(mesh, 10), ray);
 	}
 
@@ -2807,7 +2906,8 @@ public class HET_MeshOp {
 	 * @param ray
 	 * @return
 	 */
-	public static HE_FaceIntersection getFurthestIntersection(final HE_Mesh mesh, final WB_Ray ray) {
+	public static HE_FaceIntersection getFurthestIntersection(
+			final HE_Mesh mesh, final WB_Ray ray) {
 		return getFurthestIntersection(new WB_AABBTree(mesh, 10), ray);
 	}
 
@@ -2818,7 +2918,8 @@ public class HET_MeshOp {
 	 * @param line
 	 * @return
 	 */
-	public static HE_FaceIntersection getClosestIntersection(final HE_Mesh mesh, final WB_Line line) {
+	public static HE_FaceIntersection getClosestIntersection(final HE_Mesh mesh,
+			final WB_Line line) {
 		return getClosestIntersection(new WB_AABBTree(mesh, 10), line);
 	}
 
@@ -2829,7 +2930,8 @@ public class HET_MeshOp {
 	 * @param line
 	 * @return
 	 */
-	public static HE_FaceIntersection getFurthestIntersection(final HE_Mesh mesh, final WB_Line line) {
+	public static HE_FaceIntersection getFurthestIntersection(
+			final HE_Mesh mesh, final WB_Line line) {
 		return getFurthestIntersection(new WB_AABBTree(mesh, 10), line);
 	}
 
@@ -2840,7 +2942,8 @@ public class HET_MeshOp {
 	 * @param segment
 	 * @return
 	 */
-	public static HE_FaceIntersection getClosestIntersection(final HE_Mesh mesh, final WB_Segment segment) {
+	public static HE_FaceIntersection getClosestIntersection(final HE_Mesh mesh,
+			final WB_Segment segment) {
 		return getClosestIntersection(new WB_AABBTree(mesh, 10), segment);
 	}
 
@@ -2851,23 +2954,25 @@ public class HET_MeshOp {
 	 * @param segment
 	 * @return
 	 */
-	public static HE_FaceIntersection getFurthestIntersection(final HE_Mesh mesh, final WB_Segment segment) {
+	public static HE_FaceIntersection getFurthestIntersection(
+			final HE_Mesh mesh, final WB_Segment segment) {
 		return getFurthestIntersection(new WB_AABBTree(mesh, 10), segment);
 	}
 
-	public static WB_Classification classifyFaceToPlane3D(final HE_Face f, final WB_Plane P) {
+	public static WB_Classification classifyFaceToPlane3D(final HE_Face f,
+			final WB_Plane P) {
 		int numInFront = 0;
 		int numBehind = 0;
 		HE_Halfedge he = f.getHalfedge();
 		do {
 			switch (WB_GeometryOp3D.classifyPointToPlane3D(P, he.getVertex())) {
-			case FRONT:
-				numInFront++;
-				break;
-			case BACK:
-				numBehind++;
-				break;
-			default:
+				case FRONT:
+					numInFront++;
+					break;
+				case BACK:
+					numBehind++;
+					break;
+				default:
 			}
 			if (numBehind != 0 && numInFront != 0) {
 				return WB_Classification.CROSSING;
@@ -2883,33 +2988,33 @@ public class HET_MeshOp {
 		return WB_Classification.ON;
 	}
 
-	public static WB_Classification classifyEdgeToPlane3D(final HE_Halfedge edge, final WB_Plane P) {
+	public static WB_Classification classifyEdgeToPlane3D(
+			final HE_Halfedge edge, final WB_Plane P) {
 		int numInFront = 0;
 		int numBehind = 0;
-
-		switch (WB_GeometryOp3D.classifyPointToPlane3D(edge.getStartVertex(), P)) {
-		case FRONT:
-			numInFront++;
-			break;
-		case BACK:
-			numBehind++;
-			break;
-		default:
+		switch (WB_GeometryOp3D.classifyPointToPlane3D(edge.getStartVertex(),
+				P)) {
+			case FRONT:
+				numInFront++;
+				break;
+			case BACK:
+				numBehind++;
+				break;
+			default:
 		}
-		switch (WB_GeometryOp3D.classifyPointToPlane3D(edge.getEndVertex(), P)) {
-		case FRONT:
-			numInFront++;
-			break;
-		case BACK:
-			numBehind++;
-			break;
-		default:
+		switch (WB_GeometryOp3D.classifyPointToPlane3D(edge.getEndVertex(),
+				P)) {
+			case FRONT:
+				numInFront++;
+				break;
+			case BACK:
+				numBehind++;
+				break;
+			default:
 		}
-
 		if (numBehind != 0 && numInFront != 0) {
 			return WB_Classification.CROSSING;
 		}
-
 		if (numInFront != 0) {
 			return WB_Classification.FRONT;
 		}
@@ -2919,9 +3024,20 @@ public class HET_MeshOp {
 		return WB_Classification.ON;
 	}
 
-	public static WB_Classification classifyVertexToPlane3D(final HE_Vertex v, final WB_Plane P) {
+	public static WB_Classification classifyVertexToPlane3D(final HE_Vertex v,
+			final WB_Plane P) {
 		return WB_GeometryOp3D.classifyPointToPlane3D(v, P);
+	}
 
+	/**
+	 *
+	 *
+	 * @param d
+	 * @return
+	 */
+	public static WB_Point getNormalOffsetPosition(HE_Vertex v,
+			final double d) {
+		return WB_Point.addMul(v.getPosition(), d, getVertexNormal(v));
 	}
 
 	public static WB_Classification getVertexType(final HE_Vertex vertex) {
@@ -2929,7 +3045,6 @@ public class HET_MeshOp {
 		if (he == null) {
 			return WB_Classification.UNKNOWN;
 		}
-
 		int nconcave = 0;
 		int nconvex = 0;
 		int nflat = 0;
@@ -2945,7 +3060,8 @@ public class HET_MeshOp {
 			if (fn == null) {
 				fn = he.getPair().getFace();
 			}
-			final WB_Vector c = WB_Vector.cross(f.getFaceNormal(), fn.getFaceNormal());
+			final WB_Vector c = WB_Vector.cross(getFaceNormal(f),
+					getFaceNormal(fn));
 			final double d = v.dot(c);
 			if (Math.abs(d) < WB_Epsilon.EPSILON) {
 				nflat++;
@@ -2982,8 +3098,8 @@ public class HET_MeshOp {
 	 */
 	public static WB_CoordinateSystem3D getVertexCS(final HE_Vertex v) {
 		WB_Coord vn = getVertexNormal(v);
-
-		final WB_Vector normal = vn == null ? null : new WB_Vector(getVertexNormal(v));
+		final WB_Vector normal = vn == null ? null
+				: new WB_Vector(getVertexNormal(v));
 		if (normal == null) {
 			return null;
 		}
@@ -3013,7 +3129,6 @@ public class HET_MeshOp {
 		if (v.getHalfedge() == null) {
 			return null;
 		}
-
 		return getVertexNormalAngle(v);
 	}
 
@@ -3027,7 +3142,7 @@ public class HET_MeshOp {
 		WB_Vector n = new WB_Vector();
 		do {
 			if (he.getFace() != null) {
-				n.addSelf(he.getFace().getFaceNormal());
+				n.addSelf(getFaceNormal(he.getFace()));
 			}
 			he = he.getNextInVertex();
 		} while (he != v.getHalfedge());
@@ -3045,13 +3160,13 @@ public class HET_MeshOp {
 		WB_Vector n = new WB_Vector();
 		do {
 			if (he.getFace() != null) {
-				n.addMulSelf(he.getFace().getFaceArea(), he.getFace().getFaceNormal());
+				n.addMulSelf(getFaceArea(he.getFace()),
+						getFaceNormal(he.getFace()));
 			}
 			he = he.getNextInVertex();
 		} while (he != v.getHalfedge());
 		n.normalizeSelf();
 		return n;
-
 		// WB_Vector normal = new WB_Vector();
 		// final WB_Vector[] temp = new WB_Vector[3];
 		// for (int i = 0; i < 3; i++) {
@@ -3084,13 +3199,12 @@ public class HET_MeshOp {
 		WB_Vector n = new WB_Vector();
 		do {
 			if (he.getFace() != null) {
-				n.addMulSelf(he.getAngle(), he.getFace().getFaceNormal());
+				n.addMulSelf(getAngle(he), getFaceNormal(he.getFace()));
 			}
 			he = he.getNextInVertex();
 		} while (he != v.getHalfedge());
 		n.normalizeSelf();
 		return n;
-
 	}
 
 	/**
@@ -3102,8 +3216,8 @@ public class HET_MeshOp {
 		HE_Halfedge he = v.getHalfedge();
 		WB_Vector n = new WB_Vector();
 		do {
-			double weight = 0.5 * he.getHalfedgeDihedralAngle() / he.getLength();
-			n.addMulSelf(-weight, he.getHalfedgeVector());
+			double weight = 0.5 * getHalfedgeDihedralAngle(he) / getLength(he);
+			n.addMulSelf(-weight, getHalfedgeVector(he));
 			he = he.getNextInVertex();
 		} while (he != v.getHalfedge());
 		n.normalizeSelf();
@@ -3120,8 +3234,8 @@ public class HET_MeshOp {
 		HE_Halfedge he = v.getHalfedge();
 		WB_Vector n = new WB_Vector();
 		do {
-			double weight = 0.5 * (he.getCotan() + he.getPair().getCotan());
-			n.addMulSelf(-weight, he.getHalfedgeVector());
+			double weight = 0.5 * (getCotan(he) + getCotan(he.getPair()));
+			n.addMulSelf(-weight, getHalfedgeVector(he));
 			he = he.getNextInVertex();
 		} while (he != v.getHalfedge());
 		n.normalizeSelf();
@@ -3139,8 +3253,9 @@ public class HET_MeshOp {
 		WB_Vector n = new WB_Vector();
 		WB_Vector u, w;
 		do {
-			u = new WB_Vector(he.getHalfedgeVector());
-			w = new WB_Vector(he.getPrevInFace().getHalfedgeVector()).mulSelf(-1);
+			u = new WB_Vector(getHalfedgeVector(he));
+			w = new WB_Vector(getHalfedgeVector(he.getPrevInFace()))
+					.mulSelf(-1);
 			n.addMulSelf(1.0 / (u.getSqLength() * w.getSqLength()), u.cross(w));
 			he = he.getNextInVertex();
 		} while (he != v.getHalfedge());
@@ -3160,7 +3275,7 @@ public class HET_MeshOp {
 			return 0;
 		}
 		do {
-			result += he.getAngle();
+			result += getAngle(he);
 			he = he.getNextInVertex();
 		} while (he != v.getHalfedge());
 		return result;
@@ -3181,7 +3296,7 @@ public class HET_MeshOp {
 		}
 		do {
 			if (he.getFace() != null) {
-				result += he.getAngle();
+				result += getAngle(he);
 			}
 			he = he.getNextInVertex();
 		} while (he != v.getHalfedge());
@@ -3194,9 +3309,8 @@ public class HET_MeshOp {
 		HE_Vertex v;
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			sum += v.getAngleDefect();
+			sum += HE_MeshOp.getAngleDefect(v);
 		}
-
 		return sum;
 	}
 
@@ -3223,7 +3337,7 @@ public class HET_MeshOp {
 			return 0;
 		}
 		do {
-			result += 0.5 * he.getLength() * he.getHalfedgeDihedralAngle();
+			result += 0.5 * getLength(he) * getHalfedgeDihedralAngle(he);
 			he = he.getNextInVertex();
 		} while (he != v.getHalfedge());
 		return result;
@@ -3237,7 +3351,7 @@ public class HET_MeshOp {
 		HE_Halfedge he = v.getHalfedge();
 		do {
 			if (he.getFace() != null) {
-				result += he.getFace().getFaceArea();
+				result += getFaceArea(he.getFace());
 			}
 			he = he.getNextInVertex();
 		} while (he != v.getHalfedge());
@@ -3257,7 +3371,7 @@ public class HET_MeshOp {
 		HE_Halfedge he = v.getHalfedge();
 		do {
 			if (he.getFace() != null) {
-				result += he.getFace().getFaceArea() / 3.0;
+				result += getFaceArea(he.getFace()) / 3.0;
 			}
 			he = he.getNextInVertex();
 		} while (he != v.getHalfedge());
@@ -3277,12 +3391,11 @@ public class HET_MeshOp {
 		HE_Halfedge he = v.getHalfedge();
 		HE_Halfedge hep;
 		do {
-
 			hep = he.getPrevInFace();
-			double u2 = hep.getSqLength();
-			double v2 = he.getSqLength();
-			double cotAlpha = hep.getCotan();
-			double cotBeta = he.getCotan();
+			double u2 = getSqLength(hep);
+			double v2 = getSqLength(he);
+			double cotAlpha = getCotan(hep);
+			double cotBeta = getCotan(he);
 			result += 0.125 * (u2 * cotAlpha + v2 * cotBeta);
 			he = he.getNextInVertex();
 		} while (he != v.getHalfedge());
@@ -3300,20 +3413,17 @@ public class HET_MeshOp {
 		double A = getCircumcentricDualVertexArea(v);
 		double H = getScalarMeanCurvature(v) / A;
 		double K = getAngleDefect(v) / A;
-
 		double discriminant = H * H - K;
 		if (discriminant > 0) {
 			discriminant = Math.sqrt(discriminant);
 		} else {
 			discriminant = 0;
 		}
-
 		double k1 = H - discriminant;
 		double k2 = H + discriminant;
 		if (Math.abs(k1) > Math.abs(k2)) {
 			return new double[] { k2, k1 };
 		}
-
 		return new double[] { k1, k2 };
 	}
 
@@ -3332,7 +3442,8 @@ public class HET_MeshOp {
 	 * @param meanCurvatureVector
 	 * @return
 	 */
-	public static double getGaussianCurvature(final HE_Vertex vertex, final WB_Vector meanCurvatureVector) {
+	public static double getGaussianCurvature(final HE_Vertex vertex,
+			final WB_Vector meanCurvatureVector) {
 		meanCurvatureVector.set(0, 0, 0);
 		WB_Vector vect1 = new WB_Vector();
 		WB_Vector vect2 = new WB_Vector();
@@ -3367,11 +3478,14 @@ public class HET_MeshOp {
 				mixed += 0.25 * area;
 			} else {
 				if (area > 0.0 && area > -WB_Epsilon.EPSILON * (c12 + c23)) {
-					mixed -= 0.125 * 0.5 * (c12 * vect3.dot(vect3) + c23 * vect1.dot(vect1)) / area;
+					mixed -= 0.125 * 0.5
+							* (c12 * vect3.dot(vect3) + c23 * vect1.dot(vect1))
+							/ area;
 				}
 			}
 			gauss += Math.abs(Math.atan2(2.0 * area, -c31));
-			meanCurvatureVector.addMulSelf(0.5 / area, vect3.mulAddMul(c12, -c23, vect1));
+			meanCurvatureVector.addMulSelf(0.5 / area,
+					vect3.mulAddMul(c12, -c23, vect1));
 		} while (ot.getEndVertex() != d);
 		meanCurvatureVector.mulSelf(0.5 / mixed);
 		return (2.0 * Math.PI - gauss) / mixed;
@@ -3394,7 +3508,6 @@ public class HET_MeshOp {
 		final WB_Vector meanCurvatureVector = new WB_Vector(0, 0, 0);
 		if (vertex.isBoundary()) {
 			return 0.0;
-
 		}
 		WB_Vector vect1 = new WB_Vector();
 		WB_Vector vect2 = new WB_Vector();
@@ -3420,7 +3533,6 @@ public class HET_MeshOp {
 			final double c12 = vect1.dot(vect2);
 			final double c23 = vect2.dot(vect3);
 			final double c31 = vect3.dot(vect1);
-
 			vect2 = vect1.cross(vect3);
 			final double area = 0.5 * vect2.getLength();
 			// This angle is obtuse
@@ -3430,13 +3542,15 @@ public class HET_MeshOp {
 			} else if (c12 > 0.0 || c23 > 0.0) {
 				mixed += 0.25 * area;
 			} else {
-
 				if (area > 0.0 && area > -WB_Epsilon.EPSILON * (c12 + c23)) {
-					mixed -= 0.125 * 0.5 * (c12 * vect3.dot(vect3) + c23 * vect1.dot(vect1)) / area;
+					mixed -= 0.125 * 0.5
+							* (c12 * vect3.dot(vect3) + c23 * vect1.dot(vect1))
+							/ area;
 				}
 			}
 			gauss += Math.abs(Math.atan2(2.0 * area, -c31));
-			meanCurvatureVector.addMulSelf(0.5 / area, vect3.mulAddMul(c12, -c23, vect1));
+			meanCurvatureVector.addMulSelf(0.5 / area,
+					vect3.mulAddMul(c12, -c23, vect1));
 		} while (ot.getEndVertex() != d);
 		meanCurvatureVector.mulSelf(0.5 / mixed);
 		// Discrete gaussian curvature
@@ -3448,12 +3562,14 @@ public class HET_MeshOp {
 	 *
 	 * @return
 	 */
-	public static WB_CoordinateSystem3D getCurvatureDirections(final HE_Vertex v) {
+	public static WB_CoordinateSystem3D getCurvatureDirections(
+			final HE_Vertex v) {
 		final WB_CoordinateSystem3D tangent = getVertexCS(v);
 		if (tangent == null) {
 			return null;
 		}
-		final WB_Vector vect1 = findOptimalSolution(v, tangent.getZ(), tangent.getX(), tangent.getY());
+		final WB_Vector vect1 = findOptimalSolution(v, tangent.getZ(),
+				tangent.getX(), tangent.getY());
 		if (vect1 == null) {
 			return null;
 		}
@@ -3469,7 +3585,8 @@ public class HET_MeshOp {
 		} else {
 			e2 = 1.0;
 			final double delta = Math
-					.sqrt((vect1.xd() - vect1.zd()) * (vect1.xd() - vect1.zd()) + 4.0 * vect1.yd() * vect1.yd());
+					.sqrt((vect1.xd() - vect1.zd()) * (vect1.xd() - vect1.zd())
+							+ 4.0 * vect1.yd() * vect1.yd());
 			double K1;
 			if (vect1.xd() + vect1.zd() < 0.0) {
 				K1 = 0.5 * (vect1.xd() + vect1.zd() - delta);
@@ -3496,8 +3613,8 @@ public class HET_MeshOp {
 	 * @param t2
 	 * @return
 	 */
-	private static WB_Vector findOptimalSolution(final HE_Vertex v, final WB_Vector normal, final WB_Vector t1,
-			final WB_Vector t2) {
+	private static WB_Vector findOptimalSolution(final HE_Vertex v,
+			final WB_Vector normal, final WB_Vector t1, final WB_Vector t2) {
 		WB_Vector vect1 = new WB_Vector();
 		WB_Vector vect2 = new WB_Vector();
 		WB_Vector vect3 = new WB_Vector();
@@ -3535,20 +3652,149 @@ public class HET_MeshOp {
 			}
 			d1 /= n;
 			d2 /= n;
-			final double omega = 0.5 * (c12 * vect3.dot(vect3) + c23 * vect1.dot(vect1)) / area;
-			g0.addSelf(omega * d1 * d1 * d1 * d1, omega * 2.0 * d1 * d1 * d1 * d2, omega * d1 * d1 * d2 * d2);
-			g1.addSelf(omega * 4.0 * d1 * d1 * d2 * d2, omega * 2.0 * d1 * d2 * d2 * d2, omega * d2 * d2 * d2 * d2);
-			h.addSelf(omega * kappa * d1 * d1, omega * kappa * 2.0 * d1 * d2, omega * kappa * d2 * d2);
+			final double omega = 0.5
+					* (c12 * vect3.dot(vect3) + c23 * vect1.dot(vect1)) / area;
+			g0.addSelf(omega * d1 * d1 * d1 * d1,
+					omega * 2.0 * d1 * d1 * d1 * d2, omega * d1 * d1 * d2 * d2);
+			g1.addSelf(omega * 4.0 * d1 * d1 * d2 * d2,
+					omega * 2.0 * d1 * d2 * d2 * d2, omega * d2 * d2 * d2 * d2);
+			h.addSelf(omega * kappa * d1 * d1, omega * kappa * 2.0 * d1 * d2,
+					omega * kappa * d2 * d2);
 		} while (ot.getEndVertex() != d);
 		g1.setX(g0.yd());
 		g2.setX(g0.zd());
 		g2.setY(g1.zd());
-		WB_M33 G = new WB_M33(g0.xd(), g1.xd(), g2.xd(), g0.yd(), g1.yd(), g2.yd(), g0.zd(), g1.zd(), g2.zd());
+		WB_M33 G = new WB_M33(g0.xd(), g1.xd(), g2.xd(), g0.yd(), g1.yd(),
+				g2.yd(), g0.zd(), g1.zd(), g2.zd());
 		G = G.inverse();
 		if (G == null) {
 			return null;
 		}
 		return WB_M33.mulToPoint(G, h);
+	}
+
+	/**
+	 *
+	 *
+	 * @return
+	 */
+	public static WB_Coord getFaceCenter(HE_Face f) {
+		if (f.getHalfedge() == null) {
+			return null;
+		}
+		HE_Halfedge he = f.getHalfedge();
+		WB_Point center = new WB_Point();
+		int c = 0;
+		do {
+			center.addSelf(he.getVertex());
+			c++;
+			he = he.getNextInFace();
+		} while (he != f.getHalfedge());
+		center.divSelf(c);
+		return center;
+	}
+
+	/**
+	 *
+	 *
+	 * @param d
+	 * @return
+	 */
+	public static WB_Coord getNormalOffsetFaceCenter(HE_Face f,
+			final double d) {
+		if (f.getHalfedge() == null) {
+			return null;
+		}
+		HE_Halfedge he = f.getHalfedge();
+		WB_Point center = new WB_Point();
+		int c = 0;
+		do {
+			center.addSelf(he.getVertex());
+			c++;
+			he = he.getNextInFace();
+		} while (he != f.getHalfedge());
+		center.divSelf(c);
+		return center.addMul(d, getFaceNormal(f));
+	}
+
+	/**
+	 *
+	 *
+	 * @return
+	 */
+	public static WB_Triangle getTriangle(HE_Face f) {
+		if (f.getFaceDegree() != 3) {
+			return null;
+		}
+		return new WB_Triangle(f.getHalfedge().getVertex(),
+				f.getHalfedge().getEndVertex(),
+				f.getHalfedge().getNextInFace().getEndVertex());
+	}
+
+	/**
+	 *
+	 *
+	 * @return
+	 */
+	public static WB_Polygon getPolygon(HE_Face f) {
+		final int n = f.getFaceDegree();
+		if (n == 0) {
+			return null;
+		}
+		final WB_Point[] points = new WB_Point[n];
+		int i = 0;
+		HE_Halfedge he = f.getHalfedge();
+		do {
+			points[i++] = new WB_Point(he.getVertex().xd(), he.getVertex().yd(),
+					he.getVertex().zd());
+			he = he.getNextInFace();
+		} while (he != f.getHalfedge());
+		return gf.createSimplePolygon(points);
+	}
+
+	/**
+	 *
+	 *
+	 * @return
+	 */
+	public static WB_Polygon getOrthoPolygon(HE_Face f) {
+		final int n = f.getFaceDegree();
+		if (n == 0) {
+			return null;
+		}
+		WB_OrthoProject op = new WB_OrthoProject(getFaceNormal(f));
+		final WB_Point[] points = new WB_Point[n];
+		int i = 0;
+		HE_Halfedge he = f.getHalfedge();
+		do {
+			points[i] = new WB_Point();
+			op.mapPoint3D(he.getVertex(), points[i]);
+			i++;
+			he = he.getNextInFace();
+		} while (he != f.getHalfedge());
+		return gf.createSimplePolygon(points);
+	}
+
+	/**
+	 *
+	 *
+	 * @return
+	 */
+	public static WB_Polygon getPlanarPolygon(HE_Face f) {
+		final int n = f.getFaceDegree();
+		if (n == 0) {
+			return null;
+		}
+		final WB_Point[] points = new WB_Point[n];
+		final WB_Plane P = getPlane(f);
+		int i = 0;
+		HE_Halfedge he = f.getHalfedge();
+		do {
+			points[i] = WB_GeometryOp.projectOnPlane(he.getVertex(), P);
+			he = he.getNextInFace();
+			i++;
+		} while (he != f.getHalfedge());
+		return gf.createSimplePolygon(points);
 	}
 
 	public static WB_Coord getFaceNormal(final HE_Face face) {
@@ -3557,14 +3803,14 @@ public class HET_MeshOp {
 			return null;
 		}
 		// calculate normal with Newell's method
-
 		final WB_Vector _normal = new WB_Vector();
 		HE_Vertex p0;
 		HE_Vertex p1;
 		do {
 			p0 = he.getVertex();
 			p1 = he.getNextInFace().getVertex();
-			_normal.addSelf((p0.yd() - p1.yd()) * (p0.zd() + p1.zd()), (p0.zd() - p1.zd()) * (p0.xd() + p1.xd()),
+			_normal.addSelf((p0.yd() - p1.yd()) * (p0.zd() + p1.zd()),
+					(p0.zd() - p1.zd()) * (p0.xd() + p1.xd()),
 					(p0.xd() - p1.xd()) * (p0.yd() + p1.yd()));
 			he = he.getNextInFace();
 		} while (he != face.getHalfedge());
@@ -3584,11 +3830,41 @@ public class HET_MeshOp {
 		do {
 			p0 = he.getVertex();
 			p1 = he.getNextInFace().getVertex();
-			_normal.addSelf((p0.yd() - p1.yd()) * (p0.zd() + p1.zd()), (p0.zd() - p1.zd()) * (p0.xd() + p1.xd()),
+			_normal.addSelf((p0.yd() - p1.yd()) * (p0.zd() + p1.zd()),
+					(p0.zd() - p1.zd()) * (p0.xd() + p1.xd()),
 					(p0.xd() - p1.xd()) * (p0.yd() + p1.yd()));
 			he = he.getNextInFace();
 		} while (he != face.getHalfedge());
 		return _normal;
+	}
+
+	/**
+	 *
+	 *
+	 * @return
+	 */
+	public static WB_Plane getPlane(HE_Face f) {
+		WB_Coord fn = getFaceNormal(f);
+		if (WB_Vector.getSqLength3D(fn) < 0.5) {
+			if (WB_Epsilon.isEqualAbs(f.getHalfedge().getVertex().xd(),
+					f.getHalfedge().getEndVertex().xd())) {
+				fn = new WB_Vector(1, 0, 0);
+			} else {
+				fn = new WB_Vector(0, 0, 1);
+			}
+		}
+		return new WB_Plane(getFaceCenter(f), fn);
+	}
+
+	/**
+	 *
+	 *
+	 * @param d
+	 * @return
+	 */
+	public static WB_Plane getNormalOffsetPlane(HE_Face f, final double d) {
+		final WB_Coord fn = getFaceNormal(f);
+		return new WB_Plane(WB_Point.addMul(getFaceCenter(f), d, fn), fn);
 	}
 
 	public static double getFaceArea(final HE_Face face) {
@@ -3612,30 +3888,33 @@ public class HET_MeshOp {
 		}
 		do {
 			switch (coord) {
-			case 1:
-				area += he.getVertex().yd()
-						* (he.getNextInFace().getVertex().zd() - he.getPrevInFace().getVertex().zd());
-				break;
-			case 2:
-				area += he.getVertex().xd()
-						* (he.getNextInFace().getVertex().zd() - he.getPrevInFace().getVertex().zd());
-				break;
-			case 3:
-				area += he.getVertex().xd()
-						* (he.getNextInFace().getVertex().yd() - he.getPrevInFace().getVertex().yd());
-				break;
+				case 1:
+					area += he.getVertex().yd()
+							* (he.getNextInFace().getVertex().zd()
+									- he.getPrevInFace().getVertex().zd());
+					break;
+				case 2:
+					area += he.getVertex().xd()
+							* (he.getNextInFace().getVertex().zd()
+									- he.getPrevInFace().getVertex().zd());
+					break;
+				case 3:
+					area += he.getVertex().xd()
+							* (he.getNextInFace().getVertex().yd()
+									- he.getPrevInFace().getVertex().yd());
+					break;
 			}
 			he = he.getNextInFace();
 		} while (he != face.getHalfedge());
 		switch (coord) {
-		case 1:
-			area *= 0.5 / x;
-			break;
-		case 2:
-			area *= 0.5 / y;
-			break;
-		case 3:
-			area *= 0.5 / z;
+			case 1:
+				area *= 0.5 / x;
+				break;
+			case 2:
+				area *= 0.5 / y;
+				break;
+			case 3:
+				area *= 0.5 / z;
 		}
 		return WB_Math.fastAbs(area);
 	}
@@ -3650,9 +3929,8 @@ public class HET_MeshOp {
 		if (he == null) {
 			return WB_Classification.UNKNOWN;
 		}
-
 		do {
-			if (he.getHalfedgeType() == WB_Classification.CONCAVE) {
+			if (getHalfedgeType(he) == WB_Classification.CONCAVE) {
 				return WB_Classification.CONCAVE;
 			}
 			he = he.getNextInFace();
@@ -3660,7 +3938,19 @@ public class HET_MeshOp {
 		return WB_Classification.CONVEX;
 	}
 
-	public static boolean collapseHalfedge(final HE_Mesh mesh, final HE_Halfedge he) {
+	public static WB_CoordinateSystem3D getFaceCS(HE_Face f) {
+		if (f.getHalfedge() == null) {
+			return null;
+		}
+		HE_Halfedge he = f.getHalfedge();
+		WB_Vector u = new WB_Vector(getHalfedgeTangent(he));
+		WB_Coord n = getFaceNormal(f);
+		WB_Vector v = WB_Vector.cross(n, u);
+		return new WB_CoordinateSystem3D(HE_MeshOp.getFaceCenter(f), u, v, n);
+	}
+
+	public static boolean collapseHalfedge(final HE_Mesh mesh,
+			final HE_Halfedge he) {
 		if (mesh.contains(he)) {
 			final HE_Halfedge hePair = he.getPair();
 			final HE_Face f = he.getFace();
@@ -3687,14 +3977,12 @@ public class HET_MeshOp {
 			mesh.remove(he);
 			mesh.remove(hePair);
 			mesh.remove(v);
-
 			if (f != null) {
 				HET_Fixer.deleteTwoEdgeFace(mesh, f);
 			}
 			if (fp != null) {
 				HET_Fixer.deleteTwoEdgeFace(mesh, fp);
 			}
-
 			return true;
 		}
 		return false;
@@ -3709,7 +3997,8 @@ public class HET_MeshOp {
 	 *
 	 * @return true, if successful
 	 */
-	public static boolean collapseHalfedgeBoundaryPreserving(final HE_Mesh mesh, final HE_Halfedge he) {
+	public static boolean collapseHalfedgeBoundaryPreserving(final HE_Mesh mesh,
+			final HE_Halfedge he) {
 		if (mesh.contains(he)) {
 			final HE_Halfedge hePair = he.getPair();
 			final HE_Face f = he.getFace();
@@ -3755,7 +4044,8 @@ public class HET_MeshOp {
 	 *            edge to collapse
 	 * @return true, if successful
 	 */
-	public static boolean collapseEdge(final HE_Mesh mesh, final HE_Halfedge e) {
+	public static boolean collapseEdge(final HE_Mesh mesh,
+			final HE_Halfedge e) {
 		if (mesh.contains(e)) {
 			final HE_Halfedge he = e.isEdge() ? e : e.getPair();
 			final HE_Halfedge hePair = he.getPair();
@@ -3806,8 +4096,8 @@ public class HET_MeshOp {
 	 *
 	 * @return
 	 */
-	public static boolean collapseEdgeBoundaryPreserving(final HE_Mesh mesh, final HE_Halfedge e,
-			final boolean strict) {
+	public static boolean collapseEdgeBoundaryPreserving(final HE_Mesh mesh,
+			final HE_Halfedge e, final boolean strict) {
 		if (mesh.contains(e)) {
 			final HE_Halfedge he = e.isEdge() ? e : e.getPair();
 			final HE_Halfedge hePair = he.getPair();
@@ -3875,7 +4165,8 @@ public class HET_MeshOp {
 	 * @return true/false
 	 */
 	public static boolean pointIsInFace(final WB_Coord p, final HE_Face f) {
-		return WB_Epsilon.isZero(WB_GeometryOp3D.getDistanceToClosestPoint3D(p, f.toPolygon()));
+		return WB_Epsilon.isZero(
+				WB_GeometryOp3D.getDistanceToClosestPoint3D(p, getPolygon(f)));
 	}
 
 	/**
@@ -3887,13 +4178,15 @@ public class HET_MeshOp {
 	 *            the f
 	 * @return true/false
 	 */
-	public static boolean pointIsStrictlyInFace(final WB_Coord p, final HE_Face f) {
-		final WB_Polygon poly = f.toPolygon();
-		if (!WB_Epsilon.isZeroSq(WB_CoordOp3D.getSqDistance3D(p, WB_GeometryOp3D.getClosestPoint3D(p, poly)))) {
+	public static boolean pointIsStrictlyInFace(final WB_Coord p,
+			final HE_Face f) {
+		final WB_Polygon poly = getPolygon(f);
+		if (!WB_Epsilon.isZeroSq(WB_CoordOp3D.getSqDistance3D(p,
+				WB_GeometryOp3D.getClosestPoint3D(p, poly)))) {
 			return false;
 		}
-		if (!WB_Epsilon
-				.isZeroSq(WB_CoordOp3D.getSqDistance3D(p, WB_GeometryOp3D.getClosestPointOnPeriphery3D(p, poly)))) {
+		if (!WB_Epsilon.isZeroSq(WB_CoordOp3D.getSqDistance3D(p,
+				WB_GeometryOp3D.getClosestPointOnPeriphery3D(p, poly)))) {
 			return false;
 		}
 		return true;
@@ -3912,8 +4205,8 @@ public class HET_MeshOp {
 	 * @param vn
 	 *            position of new vertex
 	 */
-	public static void expandVertexToEdge(final HE_Mesh mesh, final HE_Vertex v, final HE_Face f1, final HE_Face f2,
-			final WB_Coord vn) {
+	public static void expandVertexToEdge(final HE_Mesh mesh, final HE_Vertex v,
+			final HE_Face f1, final HE_Face f2, final WB_Coord vn) {
 		if (f1 == f2) {
 			return;
 		}
@@ -3955,7 +4248,7 @@ public class HET_MeshOp {
 	}
 
 	public static double getVolume(final HE_Mesh mesh) {
-		WB_Coord c = mesh.getCenter();
+		WB_Coord c = HE_MeshOp.getCenter(mesh);
 		double volume = 0.0;
 		HE_FaceIterator fItr = mesh.fItr();
 		while (fItr.hasNext()) {
@@ -3970,15 +4263,14 @@ public class HET_MeshOp {
 		double sgnvol = 0;
 		for (int i = 0; i < triangles.length; i += 3) {
 			WB_Coord p1 = vertices.get(triangles[i]).getPosition().sub(center);
-
-			WB_Coord p2 = vertices.get(triangles[i + 1]).getPosition().sub(center);
-
-			WB_Coord p3 = vertices.get(triangles[i + 2]).getPosition().sub(center);
-
-			sgnvol += 1.0 / 6.0
-					* (-p3.xd() * p2.yd() * p1.zd() + p2.xd() * p3.yd() * p1.zd() + p3.xd() * p1.yd() * p2.zd()
-							- p1.xd() * p3.yd() * p2.zd() - p2.xd() * p1.yd() * p3.zd() + p1.xd() * p2.yd() * p3.zd());
-
+			WB_Coord p2 = vertices.get(triangles[i + 1]).getPosition()
+					.sub(center);
+			WB_Coord p3 = vertices.get(triangles[i + 2]).getPosition()
+					.sub(center);
+			sgnvol += 1.0 / 6.0 * (-p3.xd() * p2.yd() * p1.zd()
+					+ p2.xd() * p3.yd() * p1.zd() + p3.xd() * p1.yd() * p2.zd()
+					- p1.xd() * p3.yd() * p2.zd() - p2.xd() * p1.yd() * p3.zd()
+					+ p1.xd() * p2.yd() * p3.zd());
 		}
 		return sgnvol;
 	}
@@ -3992,58 +4284,67 @@ public class HET_MeshOp {
 	 * @return WB_Coord[2], first WB_Coord is the closest point, second WB_Coord
 	 *         is the normal
 	 */
-	public static WB_Coord[] getClosestPointToTriangleFace(final WB_Coord p, final HE_Face T) {
+	public static WB_Coord[] getClosestPointToTriangleFace(final WB_Coord p,
+			final HE_Face T) {
 		WB_Coord p1 = T.getHalfedge().getVertex();
 		WB_Coord p2 = T.getHalfedge().getNextInFace().getVertex();
-		WB_Coord p3 = T.getHalfedge().getNextInFace().getNextInFace().getVertex();
-
+		WB_Coord p3 = T.getHalfedge().getNextInFace().getNextInFace()
+				.getVertex();
 		final WB_Vector ab = new WB_Point(p2).subToVector3D(p1);
 		final WB_Vector ac = new WB_Point(p3).subToVector3D(p1);
 		final WB_Vector ap = new WB_Vector(p1, p);
 		final double d1 = ab.dot(ap);
 		final double d2 = ac.dot(ap);
 		if (d1 <= 0 && d2 <= 0) {
-			return new WB_Coord[] { new WB_Point(p1), T.getHalfedge().getVertex().getVertexNormal() };
+			return new WB_Coord[] { new WB_Point(p1),
+					getVertexNormal(T.getHalfedge().getVertex()) };
 		}
 		final WB_Vector bp = new WB_Vector(p2, p);
 		final double d3 = ab.dot(bp);
 		final double d4 = ac.dot(bp);
 		if (d3 >= 0 && d4 <= d3) {
-			return new WB_Coord[] { new WB_Point(p2), T.getHalfedge().getNextInFace().getVertex().getVertexNormal() };
+			return new WB_Coord[] { new WB_Point(p2), getVertexNormal(
+					T.getHalfedge().getNextInFace().getVertex()) };
 		}
-
 		final double vc = d1 * d4 - d3 * d2;
 		if (vc <= 0 && d1 >= 0 && d3 <= 0) {
 			final double v = d1 / (d1 - d3);
 			return new WB_Coord[] { new WB_Point(p1).addSelf(ab.mulSelf(v)),
-					T.getHalfedge().getEdge().getEdgeNormal() };
+					getEdgeNormal(T.getHalfedge()) };
 		}
 		final WB_Vector cp = new WB_Vector(p3, p);
 		final double d5 = ab.dot(cp);
 		final double d6 = ac.dot(cp);
 		if (d6 >= 0 && d5 <= d6) {
 			return new WB_Coord[] { new WB_Point(p3),
-					T.getHalfedge().getNextInFace().getNextInFace().getVertex().getVertexNormal() };
+					getVertexNormal(T.getHalfedge().getNextInFace()
+							.getNextInFace().getVertex()) };
 		}
 		final double vb = d5 * d2 - d1 * d6;
 		if (vb <= 0 && d2 >= 0 && d6 <= 0) {
 			final double w = d2 / (d2 - d6);
 			return new WB_Coord[] { new WB_Point(p1).addSelf(ac.mulSelf(w)),
-					T.getHalfedge().getNextInFace().getNextInFace().getEdge().getEdgeNormal() };
+					getEdgeNormal(
+							T.getHalfedge().getNextInFace().getNextInFace()) };
 		}
 		final double va = d3 * d6 - d5 * d4;
 		if (va <= 0 && d4 - d3 >= 0 && d5 - d6 >= 0) {
 			final double w = (d4 - d3) / (d4 - d3 + (d5 - d6));
-			return new WB_Coord[] { new WB_Point(p2).addSelf(new WB_Point(p3).subToVector3D(p2).mulSelf(w)),
-					T.getHalfedge().getNextInFace().getEdge().getEdgeNormal() };
+			return new WB_Coord[] {
+					new WB_Point(p2).addSelf(
+							new WB_Point(p3).subToVector3D(p2).mulSelf(w)),
+					getEdgeNormal(T.getHalfedge().getNextInFace()) };
 		}
 		final double denom = 1.0 / (va + vb + vc);
 		final double v = vb * denom;
 		final double w = vc * denom;
-		return new WB_Coord[] { new WB_Point(p1).addSelf(ab.mulSelf(v).addSelf(ac.mulSelf(w))), T.getFaceNormal() };
+		return new WB_Coord[] {
+				new WB_Point(p1).addSelf(ab.mulSelf(v).addSelf(ac.mulSelf(w))),
+				getFaceNormal(T) };
 	}
 
-	public static WB_Coord[] getClosestPointToTriangleMesh(final WB_Coord p, final HE_Mesh mesh) {
+	public static WB_Coord[] getClosestPointToTriangleMesh(final WB_Coord p,
+			final HE_Mesh mesh) {
 		HE_Mesh tris = mesh.get();
 		tris.triangulate();
 		double d2;
@@ -4075,7 +4376,7 @@ public class HET_MeshOp {
 		int i = 0;
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			displacement[i++] = WB_Vector.mul(v.getVertexNormal(), d);
+			displacement[i++] = WB_Vector.mul(HE_MeshOp.getVertexNormal(v), d);
 		}
 		vItr = sel.vItr();
 		i = 0;
@@ -4083,18 +4384,16 @@ public class HET_MeshOp {
 			v = vItr.next();
 			v.getPosition().addSelf(displacement[i++]);
 		}
-
 	}
 
 	public static double getCotan(final HE_Halfedge he) {
 		if (he.isOuterBoundary()) {
 			return 0.0;
 		}
-		WB_Coord u = he.getPrevInFace().getHalfedgeVector();
-		WB_Coord v = new WB_Vector(he.getNextInFace().getHalfedgeVector()).mulSelf(-1);
-
+		WB_Coord u = getHalfedgeVector(he.getPrevInFace());
+		WB_Coord v = new WB_Vector(getHalfedgeVector(he.getNextInFace()))
+				.mulSelf(-1);
 		return WB_Vector.dot(u, v) / WB_Vector.cross(u, v).getLength();
-
 	}
 
 	/**
@@ -4107,9 +4406,8 @@ public class HET_MeshOp {
 	 * @return
 	 */
 	public static DoubleMatrix2D getLaplaceMatrix(final HE_Mesh mesh) {
-
-		SparseDoubleMatrix2D LM = new SparseDoubleMatrix2D(mesh.getNumberOfVertices(), mesh.getNumberOfVertices());
-
+		SparseDoubleMatrix2D LM = new SparseDoubleMatrix2D(
+				mesh.getNumberOfVertices(), mesh.getNumberOfVertices());
 		HE_VertexIterator vItr = mesh.vItr();
 		HE_Vertex v;
 		while (vItr.hasNext()) {
@@ -4124,7 +4422,6 @@ public class HET_MeshOp {
 				LM.set(i, j, -weight);
 				he = he.getNextInVertex();
 			} while (he != v.getHalfedge());
-
 			LM.set(i, i, sum);
 		}
 		return LM.getColumnCompressed(true);
@@ -4138,16 +4435,15 @@ public class HET_MeshOp {
 	 * @return
 	 */
 	public static DoubleMatrix2D getMassMatrix(final HE_Mesh mesh) {
-		SparseDoubleMatrix2D MM = new SparseDoubleMatrix2D(mesh.getNumberOfVertices(), mesh.getNumberOfVertices());
+		SparseDoubleMatrix2D MM = new SparseDoubleMatrix2D(
+				mesh.getNumberOfVertices(), mesh.getNumberOfVertices());
 		HE_VertexIterator vItr = mesh.vItr();
 		HE_Vertex v;
 		while (vItr.hasNext()) {
 			v = vItr.next();
 			int i = mesh.getIndex(v);
 			MM.set(i, i, getBarycentricDualVertexArea(v));
-
 		}
-
 		return MM.getColumnCompressed(true);
 	}
 
@@ -4159,9 +4455,7 @@ public class HET_MeshOp {
 			v = vItr.next();
 			int i = mesh.getIndex(v);
 			MA[i] = getBarycentricDualVertexArea(v);
-
 		}
-
 		return MA;
 	}
 
@@ -4173,7 +4467,8 @@ public class HET_MeshOp {
 	 * @return
 	 */
 	public static DoubleMatrix2D getHodgeStar0Form(final HE_Mesh mesh) {
-		SparseDoubleMatrix2D HS0 = new SparseDoubleMatrix2D(mesh.getNumberOfVertices(), mesh.getNumberOfVertices());
+		SparseDoubleMatrix2D HS0 = new SparseDoubleMatrix2D(
+				mesh.getNumberOfVertices(), mesh.getNumberOfVertices());
 		HE_VertexIterator vItr = mesh.vItr();
 		HE_Vertex v;
 		while (vItr.hasNext()) {
@@ -4182,7 +4477,6 @@ public class HET_MeshOp {
 			double area = getBarycentricDualVertexArea(v);
 			HS0.set(i, i, area);
 		}
-
 		return HS0.getColumnCompressed(true);
 	}
 
@@ -4193,7 +4487,8 @@ public class HET_MeshOp {
 	 * @return
 	 */
 	public static DoubleMatrix2D getHodgeStar1Form(final HE_Mesh mesh) {
-		SparseDoubleMatrix2D HS1 = new SparseDoubleMatrix2D(mesh.getNumberOfEdges(), mesh.getNumberOfEdges());
+		SparseDoubleMatrix2D HS1 = new SparseDoubleMatrix2D(
+				mesh.getNumberOfEdges(), mesh.getNumberOfEdges());
 		HE_EdgeIterator eItr = mesh.eItr();
 		HE_Halfedge e;
 		while (eItr.hasNext()) {
@@ -4202,7 +4497,6 @@ public class HET_MeshOp {
 			double w = (getCotan(e) + getCotan(e.getPair())) / 2.0;
 			HS1.set(i, i, w);
 		}
-
 		return HS1.getColumnCompressed(true);
 	}
 
@@ -4214,17 +4508,16 @@ public class HET_MeshOp {
 	 * @return
 	 */
 	public static DoubleMatrix2D getHodgeStar2Form(final HE_Mesh mesh) {
-		SparseDoubleMatrix2D HS2 = new SparseDoubleMatrix2D(mesh.getNumberOfFaces(), mesh.getNumberOfFaces());
+		SparseDoubleMatrix2D HS2 = new SparseDoubleMatrix2D(
+				mesh.getNumberOfFaces(), mesh.getNumberOfFaces());
 		HE_FaceIterator fItr = mesh.fItr();
 		HE_Face f;
-
 		while (fItr.hasNext()) {
 			f = fItr.next();
 			int i = mesh.getIndex(f);
 			double area = getFaceArea(f);
 			HS2.set(i, i, 1.0 / area);
 		}
-
 		return HS2.getColumnCompressed(true);
 	}
 
@@ -4234,8 +4527,10 @@ public class HET_MeshOp {
 	 * @param mesh
 	 * @return
 	 */
-	public static DoubleMatrix2D getExteriorDerivative0Form(final HE_Mesh mesh) {
-		SparseDoubleMatrix2D ED0 = new SparseDoubleMatrix2D(mesh.getNumberOfEdges(), mesh.getNumberOfVertices());
+	public static DoubleMatrix2D getExteriorDerivative0Form(
+			final HE_Mesh mesh) {
+		SparseDoubleMatrix2D ED0 = new SparseDoubleMatrix2D(
+				mesh.getNumberOfEdges(), mesh.getNumberOfVertices());
 		HE_EdgeIterator eItr = mesh.eItr();
 		HE_Halfedge e;
 		while (eItr.hasNext()) {
@@ -4255,8 +4550,10 @@ public class HET_MeshOp {
 	 * @param mesh
 	 * @return
 	 */
-	public static DoubleMatrix2D getExteriorDerivative1Form(final HE_Mesh mesh) {
-		SparseDoubleMatrix2D ED1 = new SparseDoubleMatrix2D(mesh.getNumberOfFaces(), mesh.getNumberOfEdges());
+	public static DoubleMatrix2D getExteriorDerivative1Form(
+			final HE_Mesh mesh) {
+		SparseDoubleMatrix2D ED1 = new SparseDoubleMatrix2D(
+				mesh.getNumberOfFaces(), mesh.getNumberOfEdges());
 		HE_FaceIterator fItr = mesh.fItr();
 		HE_Face f;
 		while (fItr.hasNext()) {
@@ -4267,17 +4564,14 @@ public class HET_MeshOp {
 				int j = mesh.getIndex(he.getEdge());
 				double sign = he.getEdge() == he ? 1 : -1;
 				ED1.set(i, j, sign);
-
 				he = he.getNextInVertex();
 			} while (he != f.getHalfedge());
-
 		}
-
 		return ED1.getColumnCompressed(true);
-
 	}
 
-	public static List<HET_IntersectionResult> getIntersection(final HE_Mesh mesh1, final HE_Mesh mesh2) {
+	public static List<HET_IntersectionResult> getIntersection(
+			final HE_Mesh mesh1, final HE_Mesh mesh2) {
 		final List<HET_IntersectionResult> ints = new FastList<HET_IntersectionResult>();
 		mesh1.triangulate();
 		mesh1.resetFaceInternalLabels();
@@ -4287,37 +4581,37 @@ public class HET_MeshOp {
 		WB_AABBTree tree1 = new WB_AABBTree(mesh1, 1);
 		HE_Selection sifs2 = HE_Selection.getSelection(mesh2);
 		WB_AABBTree tree2 = new WB_AABBTree(mesh2, 1);
-		List<WB_AABBNode[]> atat = WB_GeometryOp.getIntersection3D(tree1, tree2);
+		List<WB_AABBNode[]> atat = WB_GeometryOp.getIntersection3D(tree1,
+				tree2);
 		WB_Triangle T0, T1;
 		List<HE_Face> neighbors;
 		for (WB_AABBNode[] node : atat) {
 			for (HE_Face f0 : node[0].getFaces()) {
-				T0 = f0.toTriangle();
+				T0 = getTriangle(f0);
 				neighbors = f0.getNeighborFaces();
 				for (HE_Face f1 : node[1].getFaces()) {
 					if (!neighbors.contains(f1) && f1.getKey() > f0.getKey()) {
-						T1 = f1.toTriangle();
-						final WB_IntersectionResult ir = WB_GeometryOp3D.getIntersection3D(T0, T1);
-						if (ir.intersection && ir.object != null
-								&& !WB_Epsilon.isZero(((WB_Segment) ir.object).getLength())) {
+						T1 = getTriangle(f1);
+						final WB_IntersectionResult ir = WB_GeometryOp3D
+								.getIntersection3D(T0, T1);
+						if (ir.intersection && ir.object != null && !WB_Epsilon
+								.isZero(((WB_Segment) ir.object).getLength())) {
 							f0.setInternalLabel(1);
 							f1.setInternalLabel(1);
 							sifs1.add(f0);
 							sifs2.add(f1);
-							ints.add(new HET_IntersectionResult(f0, f1, (WB_Segment) ir.object));
+							ints.add(new HET_IntersectionResult(f0, f1,
+									(WB_Segment) ir.object));
 						}
 					}
 				}
 			}
-
 		}
-
 		mesh1.addSelection("intersection", sifs1);
 		mesh2.addSelection("intersection", sifs2);
-
 		return ints;
 	}
-	
+
 	/**
 	 * Fuse all planar faces. Can lead to concave faces.
 	 *
@@ -4330,7 +4624,7 @@ public class HET_MeshOp {
 	 * Fuse all planar faces. Can lead to concave faces.
 	 *
 	 * @param a
-	 *            
+	 * 
 	 */
 	public static void fuseCoplanarFaces(final HE_Mesh mesh, final double a) {
 		int ni;
@@ -4339,16 +4633,15 @@ public class HET_MeshOp {
 			ni = mesh.getNumberOfEdges();
 			final List<HE_Halfedge> edges = mesh.getEdges();
 			for (HE_Halfedge e : edges) {
-				if (Math.abs(e.getEdgeDihedralAngle() - Math.PI) < a + WB_Epsilon.EPSILON) {
+				if (Math.abs(getEdgeDihedralAngle(e) - Math.PI) < a
+						+ WB_Epsilon.EPSILON) {
 					if (e.getFace() != e.getPair().getFace()) {
 						deleteEdge(mesh, e);
 					}
 				}
 			}
-
 			no = mesh.getNumberOfEdges();
 		} while (no < ni);
-
 		HET_Fixer.deleteDanglingEdges(mesh);
 		HET_Fixer.deleteCollinearVertices(mesh);
 	}
@@ -4363,26 +4656,23 @@ public class HET_MeshOp {
 	 * @param a
 	 *            the a
 	 */
-	public static void fuseCoplanarFaces(final HE_Selection sel, final double a) {
-
+	public static void fuseCoplanarFaces(final HE_Selection sel,
+			final double a) {
 		sel.collectEdgesByFace();
-
 		final List<HE_Halfedge> edges = sel.getInnerEdges();
-
 		for (HE_Halfedge e : edges) {
-			if (Math.abs(e.getEdgeDihedralAngle() - Math.PI) < a + WB_Epsilon.EPSILON) {
+			if (Math.abs(getEdgeDihedralAngle(e) - Math.PI) < a
+					+ WB_Epsilon.EPSILON) {
 				if (e.getFace() != e.getPair().getFace()) {
 					deleteEdge(sel.getParent(), e);
-
 				}
 			}
 		}
 		sel.cleanSelection();
 		HET_Fixer.deleteDanglingEdges(sel.getParent());
 		HET_Fixer.deleteCollinearVertices(sel.getParent());
-
 	}
-	
+
 	/**
 	 * Delete edge. Adjacent faces are fused.
 	 *
@@ -4391,12 +4681,9 @@ public class HET_MeshOp {
 	 * @return fused face (or null)
 	 */
 	public static HE_Face deleteEdge(final HE_Mesh mesh, final HE_Halfedge e) {
-
 		HE_Face f = null;
-
 		final HE_Halfedge he1 = e;
 		final HE_Halfedge he2 = he1.getPair();
-
 		final HE_Halfedge he1n = he1.getNextInFace();
 		final HE_Halfedge he2n = he2.getNextInFace();
 		final HE_Halfedge he1p = he1.getPrevInFace();
@@ -4404,12 +4691,10 @@ public class HET_MeshOp {
 		HE_Vertex v = he1.getVertex();
 		if (v.getHalfedge() == he1) {
 			mesh.setHalfedge(v, he1.getNextInVertex());
-			
 		}
 		v = he2.getVertex();
 		if (v.getHalfedge() == he2) {
 			mesh.setHalfedge(v, he2.getNextInVertex());
-			
 		}
 		mesh.setNext(he1p, he2n);
 		mesh.setNext(he2p, he1n);
@@ -4423,10 +4708,8 @@ public class HET_MeshOp {
 				he = he.getNextInFace();
 			} while (he != he1p);
 		}
-
 		mesh.remove(he1);
 		mesh.remove(he2);
-	
 		mesh.addDerivedElement(f, he1.getFace(), he2.getFace());
 		if (he1.getFace() != null) {
 			mesh.remove(he1.getFace());
@@ -4437,4 +4720,853 @@ public class HET_MeshOp {
 		return f;
 	}
 
+	public static WB_Coord getClosestPoint(HE_Face f, final WB_Coord p) {
+		if (f.getFaceDegree() == 3) {
+			return WB_GeometryOp3D.getClosestPointToTriangle3D(p,
+					f.getHalfedge().getVertex(),
+					f.getHalfedge().getNextInFace().getVertex(),
+					f.getHalfedge().getNextInFace(2).getVertex());
+		}
+		List<HE_Vertex> points = f.getFaceVertices();
+		int[] tris = f.getTriangles();
+		final int n = tris.length;
+		double dmax2 = Double.POSITIVE_INFINITY;
+		WB_Point closest = new WB_Point();
+		WB_Point tmp;
+		for (int i = 0; i < n; i += 3) {
+			tmp = WB_GeometryOp3D.getClosestPointToTriangle3D(p,
+					points.get(tris[i]), points.get(tris[i + 1]),
+					points.get(tris[i + 2]));
+			final double d2 = WB_CoordOp3D.getSqDistance3D(tmp, p);
+			if (d2 < dmax2) {
+				closest = tmp;
+				dmax2 = d2;
+			}
+		}
+		return closest;
+	}
+
+	/**
+	 * Get type of face vertex associated with halfedge.
+	 *
+	 * @return HE.FLAT, HE.CONVEX, HE.CONCAVE
+	 */
+	public static WB_Classification getHalfedgeType(HE_Halfedge he) {
+		if (he.getVertex() == null) {
+			return null;
+		}
+		WB_Vector v = WB_Vector.subToVector3D(he.getVertex(),
+				he.getPrevInFace().getVertex());
+		v.normalizeSelf();
+		final WB_Vector vn = WB_Vector
+				.subToVector3D(he.getNextInFace().getVertex(), he.getVertex());
+		vn.normalizeSelf();
+		v = v.cross(vn);
+		final WB_Coord n;
+		if (he.getFace() == null) {
+			n = WB_Vector.mul(HE_MeshOp.getFaceNormal(he.getPair().getFace()),
+					-1);
+		} else {
+			n = HE_MeshOp.getFaceNormal(he.getFace());
+		}
+		final double dot = v.dot(n);
+		if (v.isParallel(vn)) {
+			return WB_Classification.FLAT;
+		} else if (dot > -WB_Epsilon.EPSILON) {
+			return WB_Classification.CONVEX;
+		} else {
+			return WB_Classification.CONCAVE;
+		}
+	}
+
+	public static WB_Coord getHalfedgeVector(HE_Halfedge he) {
+		if (he.getPair() != null && he.getVertex() != null
+				&& he.getPair().getVertex() != null) {
+			final WB_Vector v = WB_Vector
+					.subToVector3D(he.getPair().getVertex(), he.getVertex());
+			return v;
+		}
+		return null;
+	}
+
+	/**
+	 * Get tangent WB_Vector of halfedge.
+	 *
+	 * @return tangent
+	 */
+	public static WB_Coord getHalfedgeTangent(HE_Halfedge he) {
+		if (he.getPair() != null && he.getVertex() != null
+				&& he.getPair().getVertex() != null) {
+			final WB_Vector v = WB_Vector
+					.subToVector3D(he.getPair().getVertex(), he.getVertex());
+			v.normalizeSelf();
+			return v;
+		}
+		return null;
+	}
+
+	/**
+	 *
+	 *
+	 * @return
+	 */
+	public static WB_Coord getEdgeTangent(HE_Halfedge he) {
+		final WB_Coord v = getHalfedgeTangent(he);
+		if (v == null) {
+			return null;
+		}
+		return he.isEdge() ? v : WB_Vector.mul(v, -1);
+	}
+
+	/**
+	 * Get center of halfedge.
+	 *
+	 * @return center
+	 */
+	public static WB_Coord getHalfedgeCenter(HE_Halfedge he) {
+		if (he.getNextInFace() != null && he.getVertex() != null
+				&& he.getNextInFace().getVertex() != null) {
+			return gf.createMidpoint(he.getNextInFace().getVertex(),
+					he.getVertex());
+		}
+		return null;
+	}
+
+	/**
+	 * Get offset center of halfedge.
+	 *
+	 * @param f
+	 * @return center
+	 */
+	public static WB_Coord getHalfedgeCenter(HE_Halfedge he, final double f) {
+		if (he.getNextInFace() != null && he.getVertex() != null
+				&& he.getNextInFace().getVertex() != null) {
+			return gf
+					.createMidpoint(he.getNextInFace().getVertex(),
+							he.getVertex())
+					.addMulSelf(f, getHalfedgeNormal(he));
+		}
+		return null;
+	}
+
+	/**
+	 *
+	 *
+	 * @return
+	 */
+	public static WB_Coord getEdgeCenter(HE_Halfedge he) {
+		if (he.getNextInFace() != null && he.getVertex() != null
+				&& he.getNextInFace().getVertex() != null) {
+			return gf.createMidpoint(he.getNextInFace().getVertex(),
+					he.getVertex());
+		}
+		return null;
+	}
+
+	/**
+	 *
+	 *
+	 * @param f
+	 * @return
+	 */
+	public static WB_Coord getEdgeCenter(HE_Halfedge he, final double f) {
+		if (he.getNextInFace() != null && he.getVertex() != null
+				&& he.getNextInFace().getVertex() != null) {
+			return gf.createMidpoint(he.getNextInFace().getVertex(),
+					he.getVertex()).addMulSelf(f, getEdgeNormal(he));
+		}
+		return null;
+	}
+
+	/**
+	 *
+	 *
+	 * @return
+	 */
+	public static WB_Coord getEdgeNormal(HE_Halfedge he) {
+		if (he.getPair() == null) {
+			return null;
+		}
+		HE_Halfedge he1, he2;
+		if (he.isEdge()) {
+			he1 = he;
+			he2 = he.getPair();
+		} else {
+			he1 = he.getPair();
+			he2 = he;
+		}
+		if (he1.getFace() == null && he2.getFace() == null) {
+			return null;
+		}
+		final WB_Coord n1 = he1.getFace() != null
+				? HE_MeshOp.getFaceNormal(he1.getFace())
+				: new WB_Vector(0, 0, 0);
+		final WB_Coord n2 = he2.getFace() != null
+				? HE_MeshOp.getFaceNormal(he2.getFace())
+				: new WB_Vector(0, 0, 0);
+		final WB_Vector n = new WB_Vector(n1.xd() + n2.xd(), n1.yd() + n2.yd(),
+				n1.zd() + n2.zd());
+		n.normalizeSelf();
+		return n;
+	}
+
+	/**
+	 * Get halfedge normal.
+	 *
+	 * @return in-face normal of face, points inwards
+	 */
+	public static WB_Coord getHalfedgeNormal(HE_Halfedge he) {
+		WB_Coord fn;
+		if (he.getFace() == null && he.getPair() == null) {
+			return null;
+		}
+		if (he.getFace() == null) {
+			if (he.getPair().getFace() == null) {
+				return null;
+			}
+			fn = HE_MeshOp.getFaceNormal(he.getPair().getFace());
+		} else {
+			fn = HE_MeshOp.getFaceNormal(he.getFace());
+		}
+		final HE_Vertex vn = he.getNextInFace().getVertex();
+		final WB_Vector _normal = new WB_Vector(vn);
+		_normal.subSelf(he.getVertex());
+		_normal.set(WB_Vector.cross(fn, _normal));
+		_normal.normalizeSelf();
+		return _normal;
+	}
+
+	/**
+	 * Get area of faces bounding halfedge.
+	 *
+	 * @return area
+	 */
+	public static double getHalfedgeArea(HE_Halfedge he) {
+		return 0.5 * getEdgeArea(he);
+	}
+
+	/**
+	 * Get angle between adjacent faces.
+	 *
+	 * @return angle
+	 */
+	public static double getHalfedgeDihedralAngle(HE_Halfedge he) {
+		if (he.isOuterBoundary() || he.isInnerBoundary()) {
+			return 0.0;
+		}
+		WB_Coord n1 = HE_MeshOp.getFaceNormal(he.getFace());
+		WB_Coord n2 = HE_MeshOp.getFaceNormal(he.getPair().getFace());
+		WB_Coord w = getHalfedgeTangent(he);
+		double cosTheta = WB_Vector.dot(n1, n2);
+		double sinTheta = WB_Vector.cross(n1, n2).dot(w);
+		return Math.atan2(sinTheta, cosTheta);
+	}
+
+	/**
+	 * Get area of faces bounding edge.
+	 *
+	 * @return area
+	 */
+	public static double getEdgeArea(HE_Halfedge he) {
+		if (he.getPair() == null) {
+			return Double.NaN;
+		}
+		HE_Halfedge he1, he2;
+		if (he.isEdge()) {
+			he1 = he;
+			he2 = he.getPair();
+		} else {
+			he1 = he.getPair();
+			he2 = he;
+		}
+		if (he1.getFace() == null && he2.getFace() == null) {
+			return Double.NaN;
+		}
+		double result = 0;
+		int n = 0;
+		if (he1.getFace() != null) {
+			result += HE_MeshOp.getFaceArea(he1.getFace());
+			n++;
+		}
+		if (he2.getFace() != null) {
+			result += HE_MeshOp.getFaceArea(he2.getFace());
+			n++;
+		}
+		return result / n;
+	}
+
+	/**
+	 * Return angle between adjacent faces.
+	 *
+	 * @return angle
+	 */
+	public static double getEdgeDihedralAngle(HE_Halfedge he) {
+		if (he.getPair() == null) {
+			return 0.0;
+		}
+		HE_Halfedge he1, he2;
+		if (he.isEdge()) {
+			he1 = he;
+			he2 = he.getPair();
+		} else {
+			he1 = he.getPair();
+			he2 = he;
+		}
+		if (he1.getFace() == null || he2.getFace() == null) {
+			return 0.0;
+		} else {
+			final WB_Coord n1 = HE_MeshOp.getFaceNormal(he1.getFace());
+			final WB_Coord n2 = HE_MeshOp.getFaceNormal(he2.getFace());
+			return WB_GeometryOp.getDihedralAngleNorm(n1, n2);
+		}
+	}
+
+	public static double getEdgeCosDihedralAngle(HE_Halfedge he) {
+		if (he.getPair() == null) {
+			return Double.NaN;
+		}
+		HE_Halfedge he1, he2;
+		if (he.isEdge()) {
+			he1 = he;
+			he2 = he.getPair();
+		} else {
+			he1 = he.getPair();
+			he2 = he;
+		}
+		if (he1.getFace() == null || he2.getFace() == null) {
+			return Double.NaN;
+		} else {
+			final WB_Coord n1 = HE_MeshOp.getFaceNormal(he1.getFace());
+			final WB_Coord n2 = HE_MeshOp.getFaceNormal(he2.getFace());
+			return WB_GeometryOp.getCosDihedralAngleNorm(n1, n2);
+		}
+	}
+
+	/**
+	 *
+	 *
+	 * @return
+	 */
+	public static double getLength(HE_Halfedge he) {
+		return WB_CoordOp3D.getDistance3D(he.getVertex(), he.getEndVertex());
+	}
+
+	/**
+	 *
+	 *
+	 * @return
+	 */
+	public static double getSqLength(HE_Halfedge he) {
+		return WB_CoordOp3D.getSqDistance3D(he.getVertex(), he.getEndVertex());
+	}
+
+	/**
+	 *
+	 *
+	 * @return
+	 */
+	public static double getAngle(HE_Halfedge he) {
+		final WB_Coord c = he.getVertex();
+		final WB_Coord p1 = he.getEndVertex();
+		final WB_Coord p2 = he.getPrevInFace().getVertex();
+		if (c == null) {
+			return Double.NaN;
+		}
+		return WB_CoordOp3D.getAngleBetween(c.xd(), c.yd(), c.zd(), p1.xd(),
+				p1.yd(), p1.zd(), p2.xd(), p2.yd(), p2.zd());
+	}
+
+	/**
+	 * 
+	 * @param f
+	 * @return
+	 */
+	public static WB_AABB getAABB(HE_Face f) {
+		WB_AABB aabb = new WB_AABB();
+		HE_Halfedge he = f.getHalfedge();
+		do {
+			aabb.expandToInclude(he.getVertex());
+			he = he.getNextInFace();
+		} while (he != f.getHalfedge());
+		return aabb;
+	}
+
+	/**
+	 * 
+	 * @param he
+	 * @return
+	 */
+	public static WB_AABB getAABB(HE_Halfedge he) {
+		WB_AABB aabb = new WB_AABB();
+		aabb.expandToInclude(he.getVertex());
+		aabb.expandToInclude(he.getEndVertex());
+		return aabb;
+	}
+
+	public static WB_AABB getAABB(HE_Mesh mesh) {
+		final double[] result = getLimits(mesh);
+		final WB_Point min = gf.createPoint(result[0], result[1], result[2]);
+		final WB_Point max = gf.createPoint(result[3], result[4], result[5]);
+		return new WB_AABB(min, max);
+	}
+
+	public static WB_Sphere getBoundingSphere(HE_Mesh mesh) {
+		return WB_GeometryOp3D.getBoundingSphere(mesh.getVertices());
+	}
+
+	public static final WB_AABB getAABB(HE_Selection sel) {
+		final double[] result = getLimits(sel);
+		final WB_Point min = gf.createPoint(result[0], result[1], result[2]);
+		final WB_Point max = gf.createPoint(result[3], result[4], result[5]);
+		return new WB_AABB(min, max);
+	}
+
+	public static final WB_Sphere getBoundingSphere(HE_Selection sel) {
+		return WB_GeometryOp3D.getBoundingSphere(sel.getVertices());
+	}
+
+	/**
+	 * Get range of vertex coordinates.
+	 *
+	 * @return array of limit values: min x, min y, min z, max x, max y, max z
+	 */
+	public static double[] getLimits(HE_HalfedgeStructure hes) {
+		final double[] result = new double[6];
+		for (int i = 0; i < 3; i++) {
+			result[i] = Double.POSITIVE_INFINITY;
+		}
+		for (int i = 3; i < 6; i++) {
+			result[i] = Double.NEGATIVE_INFINITY;
+		}
+		HE_Vertex v;
+		for (int i = 0; i < hes.getNumberOfVertices(); i++) {
+			v = hes.getVertexWithIndex(i);
+			result[0] = Math.min(result[0], v.xd());
+			result[1] = Math.min(result[1], v.yd());
+			result[2] = Math.min(result[2], v.zd());
+			result[3] = Math.max(result[3], v.xd());
+			result[4] = Math.max(result[4], v.yd());
+			result[5] = Math.max(result[5], v.zd());
+		}
+		return result;
+	}
+
+	/**
+	 * Split the closest face in the query point.
+	 *
+	 * @param p
+	 *            query point
+	 * @param vertexTree
+	 *            KD-tree from mesh (from vertexTree())
+	 */
+	public static void addPointInClosestFace(HE_Mesh mesh, final WB_Coord p,
+			final WB_KDTree<WB_Coord, Long> vertexTree) {
+		final WB_KDEntry<WB_Coord, Long>[] closestVertex = vertexTree
+				.getNearestNeighbors(p, 1);
+		final HE_Vertex v = mesh.getVertexWithKey(closestVertex[0].value);
+		final List<HE_Face> faces = v.getFaceStar();
+		double d;
+		double dmin = Double.POSITIVE_INFINITY;
+		HE_Face face = new HE_Face();
+		for (int i = 0; i < faces.size(); i++) {
+			final WB_Polygon poly = HE_MeshOp.getPolygon(faces.get(i));
+			final WB_Coord tmp = WB_GeometryOp3D.getClosestPoint3D(p, poly);
+			d = WB_CoordOp3D.getSqDistance3D(tmp, p);
+			if (d < dmin) {
+				dmin = d;
+				face = faces.get(i);
+				;
+			}
+		}
+		final HE_Vertex nv = HEM_TriSplit.splitFaceTri(mesh, face, p).vItr()
+				.next();
+		vertexTree.add(nv, nv.getKey());
+	}
+
+	/**
+	 *
+	 *
+	 * @param vertices
+	 * @param loop
+	 * @return
+	 */
+	public static HE_Path createPathFromIndices(HE_Mesh mesh,
+			final int[] vertices, final boolean loop) {
+		final List<HE_Halfedge> halfedges = new FastList<HE_Halfedge>();
+		if (vertices.length > 1) {
+			HE_Halfedge he;
+			for (int i = 0; i < vertices.length - 1; i++) {
+				he = mesh.getHalfedgeFromTo(
+						mesh.getVertexWithIndex(vertices[i]),
+						mesh.getVertexWithIndex(vertices[i + 1]));
+				if (he == null) {
+					// throw new IllegalArgumentException(
+					// "Two vertices " + vertices[i] + " and " + vertices[i + 1]
+					// + " in path are not connected.");
+				} else {
+					halfedges.add(he);
+				}
+			}
+			if (loop) {
+				he = mesh.getHalfedgeFromTo(
+						mesh.getVertexWithIndex(vertices[vertices.length - 1]),
+						mesh.getVertexWithIndex(vertices[0]));
+				if (he == null) {
+					throw new IllegalArgumentException("Vertices "
+							+ vertices[vertices.length - 1] + " and "
+							+ vertices[0]
+							+ " in path are not connected: path is not a loop.");
+				}
+			}
+		}
+		final HE_Path path = new HE_Path(halfedges, loop);
+		return path;
+	}
+
+	/**
+	 *
+	 *
+	 * @return
+	 */
+	public static double getArea(HE_Mesh mesh) {
+		final Iterator<HE_Face> fItr = mesh.fItr();
+		double A = 0.0;
+		while (fItr.hasNext()) {
+			A += HE_MeshOp.getFaceArea(fItr.next());
+		}
+		return A;
+	}
+
+	/**
+	 * Return the closest point on the mesh.
+	 *
+	 * @param p
+	 *            query point
+	 * @param vertexTree
+	 *            KD-tree from mesh (from vertexTree())
+	 * @return WB_Coordinate closest point
+	 */
+	public static WB_Coord getClosestPoint(HE_Mesh mesh, final WB_Coord p,
+			final WB_KDTree<WB_Coord, Long> vertexTree) {
+		final WB_KDEntry<WB_Coord, Long>[] closestVertex = vertexTree
+				.getNearestNeighbors(p, 1);
+		final HE_Vertex v = mesh.getVertexWithKey(closestVertex[0].value);
+		if (v == null) {
+			return null;
+		}
+		final List<HE_Face> faces = v.getFaceStar();
+		double d;
+		double dmin = Double.POSITIVE_INFINITY;
+		WB_Coord result = new WB_Point();
+		for (int i = 0; i < faces.size(); i++) {
+			final WB_Polygon poly = HE_MeshOp.getPolygon(faces.get(i));
+			final WB_Coord tmp = WB_GeometryOp3D.getClosestPoint3D(p, poly);
+			d = WB_CoordOp3D.getSqDistance3D(tmp, p);
+			if (d < dmin) {
+				dmin = d;
+				result = tmp;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Return the closest vertex on the mesh.
+	 *
+	 * @param p
+	 *            query point
+	 * @param vertexTree
+	 *            KD-tree from mesh (from vertexTree())
+	 * @return HE_Vertex closest vertex
+	 */
+	public static HE_Vertex getClosestVertex(HE_Mesh mesh, final WB_Coord p,
+			final WB_KDTree<WB_Coord, Long> vertexTree) {
+		final WB_KDEntry<WB_Coord, Long>[] closestVertex = vertexTree
+				.getNearestNeighbors(p, 1);
+		if (closestVertex.length == 0) {
+			return null;
+		}
+		return mesh.getVertexWithKey(closestVertex[0].value);
+	}
+
+	/**
+	 * Get the center (average of all vertex positions).
+	 *
+	 * @return the center
+	 */
+	public static WB_Point getCenter(HE_Mesh mesh) {
+		final WB_Point c = new WB_Point(0, 0, 0);
+		final Iterator<HE_Vertex> vItr = mesh.vItr();
+		while (vItr.hasNext()) {
+			c.addSelf(vItr.next());
+		}
+		c.divSelf(mesh.getNumberOfVertices());
+		return c;
+	}
+
+	/**
+	 * Cycle halfedges.
+	 *
+	 * @param halfedges
+	 *            halfedges to cycle
+	 */
+	public static void cycleHalfedges(HE_Mesh mesh,
+			final List<HE_Halfedge> halfedges) {
+		orderHalfedges(mesh, halfedges, true);
+	}
+
+	/**
+	 * Cycle halfedges.
+	 *
+	 * @param halfedges
+	 *            halfedges to cycle
+	 */
+	public static void cycleHalfedgesReverse(HE_Mesh mesh,
+			final List<HE_Halfedge> halfedges) {
+		orderHalfedgesReverse(mesh, halfedges, true);
+	}
+
+	public static void orderHalfedges(HE_Mesh mesh,
+			final List<HE_Halfedge> halfedges, final boolean loop) {
+		HE_Halfedge he;
+		final int n = halfedges.size();
+		if (n > 0) {
+			for (int j = 0; j < n - 1; j++) {
+				he = halfedges.get(j);
+				mesh.setNext(he, halfedges.get(j + 1));
+			}
+			if (loop) {
+				he = halfedges.get(n - 1);
+				mesh.setNext(he, halfedges.get(0));
+			}
+		}
+	}
+
+	/**
+	 * Cycle halfedges.
+	 *
+	 * @param halfedges
+	 *            halfedges to cycle
+	 */
+	public static void orderHalfedgesReverse(HE_Mesh mesh,
+			final List<HE_Halfedge> halfedges, final boolean loop) {
+		HE_Halfedge he;
+		final int n = halfedges.size();
+		if (n > 0) {
+			if (loop) {
+				he = halfedges.get(0);
+				mesh.setNext(he, halfedges.get(n - 1));
+			}
+			for (int j = 1; j < n; j++) {
+				he = halfedges.get(j);
+				mesh.setNext(he, halfedges.get(j - 1));
+			}
+		}
+	}
+
+	/**
+	 * Cap all remaining unpaired halfedges. Only use after pairHalfedges();
+	 */
+	public static void capHalfedges(HE_Mesh mesh) {
+		tracker.setStartStatus("HE_MeshOp", "Capping unpaired halfedges.");
+		final List<HE_Halfedge> unpairedHalfedges = mesh.getUnpairedHalfedges();
+		final int nuh = unpairedHalfedges.size();
+		final HE_Halfedge[] newHalfedges = new HE_Halfedge[nuh];
+		HE_Halfedge he1, he2;
+		WB_ProgressCounter counter = new WB_ProgressCounter(nuh, 10);
+		tracker.setCounterStatus("HE_MeshOp", "Capping unpaired halfedges.",
+				counter);
+		for (int i = 0; i < nuh; i++) {
+			he1 = unpairedHalfedges.get(i);
+			he2 = new HE_Halfedge();
+			mesh.setVertex(he2, he1.getNextInFace().getVertex());
+			mesh.setPair(he1, he2);
+			newHalfedges[i] = he2;
+			mesh.addDerivedElement(he2);
+			counter.increment();
+		}
+		counter = new WB_ProgressCounter(nuh, 10);
+		tracker.setCounterStatus("HE_MeshOp", "Cycling new halfedges.",
+				counter);
+		for (int i = 0; i < nuh; i++) {
+			he1 = newHalfedges[i];
+			if (he1.getNextInFace() == null) {
+				for (int j = 0; j < nuh; j++) {
+					he2 = newHalfedges[j];
+					if (!he2.isVisited()) {
+						if (he2.getVertex() == he1.getPair().getVertex()) {
+							mesh.setNext(he1, he2);
+							he2.setVisited();
+							break;
+						}
+					}
+				}
+			}
+			counter.increment();
+		}
+		tracker.setStopStatus("HE_MeshOp", "Processed unpaired halfedges.");
+	}
+
+	/**
+	 *
+	 */
+	public static void pairHalfedges(HE_Mesh mesh) {
+		pairHalfedgesOnePass(mesh);
+	}
+
+	/**
+	 * Pair halfedges.
+	 *
+	 * @param unpairedHalfedges
+	 */
+	public static void pairHalfedges(HE_Mesh mesh,
+			final List<HE_Halfedge> unpairedHalfedges) {
+		class VertexInfo {
+			FastList<HE_Halfedge>	in;
+			FastList<HE_Halfedge>	out;
+
+			VertexInfo() {
+				out = new FastList<HE_Halfedge>();
+				in = new FastList<HE_Halfedge>();
+			}
+		}
+		final LongObjectHashMap<VertexInfo> vertexLists = new LongObjectHashMap<VertexInfo>();
+		HE_Vertex v;
+		VertexInfo vi;
+		for (final HE_Halfedge he : unpairedHalfedges) {
+			v = he.getVertex();
+			vi = vertexLists.get(v.getKey());
+			if (vi == null) {
+				vi = new VertexInfo();
+				vertexLists.put(v.getKey(), vi);
+			}
+			vi.out.add(he);
+			v = he.getNextInFace().getVertex();
+			vi = vertexLists.get(v.getKey());
+			if (vi == null) {
+				vi = new VertexInfo();
+				vertexLists.put(v.getKey(), vi);
+			}
+			vi.in.add(he);
+		}
+		HE_Halfedge he;
+		HE_Halfedge he2;
+		final Iterator<VertexInfo> vitr = vertexLists.iterator();
+		VertexInfo vInfo;
+		while (vitr.hasNext()) {
+			vInfo = vitr.next();
+			for (int i = 0; i < vInfo.out.size(); i++) {
+				he = vInfo.out.get(i);
+				if (he.getPair() == null) {
+					for (int j = 0; j < vInfo.in.size(); j++) {
+						he2 = vInfo.in.get(j);
+						if (he2.getPair() == null) {
+							if (he.getVertex() == he2.getNextInFace()
+									.getVertex()
+									&& he2.getVertex() == he.getNextInFace()
+											.getVertex()) {
+								mesh.setPair(he, he2);
+								break;
+							}
+						}
+					}
+					for (int j = 0; j < vInfo.out.size(); j++) {
+						he2 = vInfo.out.get(j);
+						if (he2 != he && he2.getPair() == null) {
+							if (he.getNextInFace().getVertex() == he2
+									.getNextInFace().getVertex()) {
+								// Two identical halfedges found!
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Try to pair all unpaired halfedges.
+	 *
+	 * @return
+	 */
+	public static List<HE_Halfedge> pairHalfedgesOnePass(HE_Mesh mesh) {
+		tracker.setStartStatus("HE_MeshOp", "Pairing halfedges.");
+		class VertexInfo {
+			FastList<HE_Halfedge>	in;
+			FastList<HE_Halfedge>	out;
+
+			VertexInfo() {
+				out = new FastList<HE_Halfedge>();
+				in = new FastList<HE_Halfedge>();
+			}
+		}
+		final LongObjectHashMap<VertexInfo> vertexLists = new LongObjectHashMap<VertexInfo>();
+		final List<HE_Halfedge> unpairedHalfedges = mesh.getUnpairedHalfedges();
+		HE_Vertex v;
+		VertexInfo vi;
+		WB_ProgressCounter counter = new WB_ProgressCounter(
+				unpairedHalfedges.size(), 10);
+		tracker.setCounterStatus("HE_MeshOp", "Classifying unpaired halfedges.",
+				counter);
+		for (final HE_Halfedge he : unpairedHalfedges) {
+			v = he.getVertex();
+			vi = vertexLists.get(v.getKey());
+			if (vi == null) {
+				vi = new VertexInfo();
+				vertexLists.put(v.getKey(), vi);
+			}
+			vi.out.add(he);
+			v = he.getNextInFace().getVertex();
+			vi = vertexLists.get(v.getKey());
+			if (vi == null) {
+				vi = new VertexInfo();
+				vertexLists.put(v.getKey(), vi);
+			}
+			vi.in.add(he);
+			counter.increment();
+		}
+		HE_Halfedge he;
+		HE_Halfedge he2;
+		counter = new WB_ProgressCounter(vertexLists.size(), 10);
+		tracker.setCounterStatus("HE_MeshOp",
+				"Pairing unpaired halfedges per vertex.", counter);
+		final Iterator<VertexInfo> vitr = vertexLists.iterator();
+		VertexInfo vInfo;
+		final List<HE_Halfedge> mismatchedHalfedges = new FastList<HE_Halfedge>();
+		while (vitr.hasNext()) {
+			vInfo = vitr.next();
+			for (int i = 0; i < vInfo.out.size(); i++) {
+				he = vInfo.out.get(i);
+				if (he.getPair() == null) {
+					for (int j = 0; j < vInfo.in.size(); j++) {
+						he2 = vInfo.in.get(j);
+						if (he2.getPair() == null) {
+							if (he.getVertex() == he2.getNextInFace()
+									.getVertex()
+									&& he2.getVertex() == he.getNextInFace()
+											.getVertex()) {
+								mesh.setPair(he, he2);
+								break;
+							}
+						}
+					}
+					for (int j = 0; j < vInfo.out.size(); j++) {
+						he2 = vInfo.out.get(j);
+						if (he2 != he && he2.getPair() == null) {
+							if (he.getNextInFace().getVertex() == he2
+									.getNextInFace().getVertex()) {
+								mismatchedHalfedges.add(he);
+								mismatchedHalfedges.add(he2);
+								break;
+							}
+						}
+					}
+				}
+			}
+			counter.increment();
+		}
+		tracker.setStopStatus("HE_MeshOp", "Processed unpaired halfedges.");
+		return mismatchedHalfedges;
+	}
 }

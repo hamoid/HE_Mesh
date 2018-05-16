@@ -1,23 +1,21 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.geom;
 
-public class WB_Pentagon {
-	private WB_GeometryFactory geometryfactory = new WB_GeometryFactory();
-	public WB_Point p1;
-	public WB_Point p2;
-	public WB_Point p3;
-	public WB_Point p4;
-	public WB_Point p5;
+public class WB_Pentagon implements WB_Geometry3D {
+	private WB_GeometryFactory	geometryfactory	= new WB_GeometryFactory();
+	public WB_Point				p1;
+	public WB_Point				p2;
+	public WB_Point				p3;
+	public WB_Point				p4;
+	public WB_Point				p5;
 
-	public WB_Pentagon(final WB_Coord p1, final WB_Coord p2, final WB_Coord p3, final WB_Coord p4, final WB_Coord p5) {
+	public WB_Pentagon(final WB_Coord p1, final WB_Coord p2, final WB_Coord p3,
+			final WB_Coord p4, final WB_Coord p5) {
 		this.p1 = geometryfactory.createPoint(p1);
 		this.p2 = geometryfactory.createPoint(p2);
 		this.p3 = geometryfactory.createPoint(p3);
@@ -46,4 +44,35 @@ public class WB_Pentagon {
 		}
 	}
 
+	@Override
+	public WB_Pentagon apply2D(WB_Transform2D T) {
+		return new WB_Pentagon(p1.apply2D(T), p2.apply2D(T), p3.apply2D(T),
+				p4.apply2D(T), p5.apply2D(T));
+	}
+
+	@Override
+	public WB_Pentagon apply2DSelf(WB_Transform2D T) {
+		p1.apply2DSelf(T);
+		p2.apply2DSelf(T);
+		p3.apply2DSelf(T);
+		p4.apply2DSelf(T);
+		p5.apply2DSelf(T);
+		return this;
+	}
+
+	@Override
+	public WB_Pentagon apply(WB_Transform T) {
+		return new WB_Pentagon(p1.apply(T), p2.apply(T), p3.apply(T),
+				p4.apply(T), p5.apply(T));
+	}
+
+	@Override
+	public WB_Pentagon applySelf(WB_Transform T) {
+		p1.applySelf(T);
+		p2.applySelf(T);
+		p3.applySelf(T);
+		p4.applySelf(T);
+		p5.applySelf(T);
+		return this;
+	}
 }

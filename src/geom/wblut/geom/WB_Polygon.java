@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.geom;
 
 import java.util.ArrayList;
@@ -21,27 +18,26 @@ import wblut.math.WB_Epsilon;
  *
  */
 public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
-
 	/**
 	 *
 	 */
-	int[] triangles;
+	int[]									triangles;
 	/**
 	 *
 	 */
-	int numberOfContours;
+	int										numberOfContours;
 	/**
 	 *
 	 */
-	int[] numberOfPointsPerContour;
+	int[]									numberOfPointsPerContour;
 	/**
 	 *
 	 */
-	int numberOfShellPoints;
+	int										numberOfShellPoints;
 	/**
 	 *
 	 */
-	private static final WB_GeometryFactory gf = new WB_GeometryFactory();
+	private static final WB_GeometryFactory	gf	= new WB_GeometryFactory();
 
 	/**
 	 *
@@ -69,7 +65,6 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 		numberOfPoints = points.size();
 		numberOfShellPoints = points.size();
 		this.points = new FastList<WB_Point>();
-
 		for (int i = 0; i < points.size(); i++) {
 			this.points.add(new WB_Point(points.get(i)));
 		}
@@ -101,7 +96,8 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 	 * @param points
 	 * @param innerpoints
 	 */
-	public WB_Polygon(final Collection<? extends WB_Coord> points, final Collection<? extends WB_Coord> innerpoints) {
+	public WB_Polygon(final Collection<? extends WB_Coord> points,
+			final Collection<? extends WB_Coord> innerpoints) {
 		numberOfShellPoints = points.size();
 		numberOfPoints = points.size() + innerpoints.size();
 		final ArrayList<WB_Coord> tmp = new ArrayList<WB_Coord>();
@@ -113,7 +109,8 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 		}
 		calculateDirections();
 		numberOfContours = 2;
-		numberOfPointsPerContour = new int[] { numberOfShellPoints, innerpoints.size() };
+		numberOfPointsPerContour = new int[] { numberOfShellPoints,
+				innerpoints.size() };
 	}
 
 	/**
@@ -138,7 +135,8 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 		}
 		calculateDirections();
 		numberOfContours = 2;
-		numberOfPointsPerContour = new int[] { numberOfShellPoints, innerpoints.length };
+		numberOfPointsPerContour = new int[] { numberOfShellPoints,
+				innerpoints.length };
 	}
 
 	/**
@@ -147,7 +145,8 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 	 * @param points
 	 * @param innerpoints
 	 */
-	public WB_Polygon(final Collection<? extends WB_Coord> points, final List<? extends WB_Coord>[] innerpoints) {
+	public WB_Polygon(final Collection<? extends WB_Coord> points,
+			final List<? extends WB_Coord>[] innerpoints) {
 		numberOfShellPoints = points.size();
 		numberOfPoints = points.size();
 		final ArrayList<WB_Coord> tmp = new ArrayList<WB_Coord>();
@@ -203,6 +202,21 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 		calculateDirections();
 	}
 
+	public WB_Polygon(WB_Polygon polygon) {
+		points = new FastList<WB_Point>();
+		for (WB_Point p : polygon.points) {
+			points.add(new WB_Point(p));
+		}
+		numberOfContours = polygon.numberOfContours;
+		numberOfPoints = polygon.numberOfPoints;
+		numberOfShellPoints = polygon.numberOfShellPoints;
+		numberOfPointsPerContour = new int[polygon.numberOfPointsPerContour.length];
+		for (int i = 0; i < numberOfPointsPerContour.length; i++) {
+			numberOfPointsPerContour[i] = polygon.numberOfPointsPerContour[i];
+		}
+		calculateDirections();
+	}
+
 	/**
 	 *
 	 */
@@ -214,19 +228,19 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 			final int n = numberOfPointsPerContour[j];
 			for (int i = 0; i < n; i++) {
 				final int in = offset + (i + 1) % n;
-				final WB_Vector v = new WB_Vector(points.get(offset + i), points.get(in));
-				incLengths[offset + i] = i == 0 ? v.getLength() : incLengths[offset + i - 1] + v.getLength();
+				final WB_Vector v = new WB_Vector(points.get(offset + i),
+						points.get(in));
+				incLengths[offset + i] = i == 0 ? v.getLength()
+						: incLengths[offset + i - 1] + v.getLength();
 				v.normalizeSelf();
 				directions.add(v);
 			}
 			offset += n;
 		}
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Ring#equals(java.lang.Object)
 	 */
 	@Override
@@ -297,9 +311,7 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 	 */
 	@Override
 	public int[] getTriangles() {
-
 		return getTriangles(true);
-
 	}
 
 	/**
@@ -315,21 +327,19 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 			} else if (numberOfShellPoints == 3 && numberOfContours == 1) {
 				return new int[] { 0, 1, 2 };
 			} else if (numberOfShellPoints == 4 && numberOfContours == 1) {
-				return WB_PolygonTriangulatorJTS.triangulateQuad(points.get(0), points.get(1), points.get(2),
-						points.get(3));
+				return WB_PolygonTriangulatorJTS.triangulateQuad(points.get(0),
+						points.get(1), points.get(2), points.get(3));
 			} else {
-
 				if (numberOfContours > 1) {
 					final WB_Triangulation2D triangulation = new WB_PolygonTriangulatorJTS()
-							.triangulatePolygon2D(this.toPolygon2DOrtho(), optimize);
+							.triangulatePolygon2D(this.toPolygon2DOrtho(),
+									optimize);
 					triangles = triangulation.getTriangles();
-
 				} else {
 					final WB_Triangulation2D triangulation = new WB_PolygonTriangulatorEarcut()
 							.triangulatePolygon2D(this.toPolygon2DOrtho());
 					triangles = triangulation.getTriangles();
 				}
-
 			}
 		}
 		return triangles;
@@ -369,9 +379,13 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 		final int nsp = getNumberOfShellPoints();
 		for (int i = 0; i < nsp; i++) {
 			ni = (i + 1) % nsp;
-			normal.addSelf((points.get(i).yd() - points.get(ni).yd()) * (points.get(i).zd() + points.get(ni).zd()),
-					(points.get(i).zd() - points.get(ni).zd()) * (points.get(i).xd() + points.get(ni).xd()),
-					(points.get(i).xd() - points.get(ni).xd()) * (points.get(i).yd() + points.get(ni).yd()));
+			normal.addSelf(
+					(points.get(i).yd() - points.get(ni).yd())
+							* (points.get(i).zd() + points.get(ni).zd()),
+					(points.get(i).zd() - points.get(ni).zd())
+							* (points.get(i).xd() + points.get(ni).xd()),
+					(points.get(i).xd() - points.get(ni).xd())
+							* (points.get(i).yd() + points.get(ni).yd()));
 		}
 		normal.normalizeSelf();
 		return normal;
@@ -381,17 +395,14 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 		final int nsp = getNumberOfShellPoints();
 		WB_Point center = new WB_Point();
 		for (int i = 0; i < nsp; i++) {
-
 			center.addSelf(points.get(i));
 		}
 		center.divSelf(nsp);
 		return center;
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Ring#getPoint(int)
 	 */
 	@Override
@@ -401,7 +412,6 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Ring#getd(int, int)
 	 */
 	@Override
@@ -411,7 +421,6 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Ring#getf(int, int)
 	 */
 	@Override
@@ -441,7 +450,8 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 			if (points.get(i).xd() < extremum.xd()) {
 				extremum = points.get(i);
 				index = i;
-			} else if (points.get(i).xd() == extremum.xd() && points.get(i).yd() > extremum.yd()) {
+			} else if (points.get(i).xd() == extremum.xd()
+					&& points.get(i).yd() > extremum.yd()) {
 				extremum = points.get(i);
 				index = i;
 			}
@@ -480,7 +490,8 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 			return new WB_Polygon(shellpoints);
 		} else {
 			@SuppressWarnings("unchecked")
-			final List<WB_Point>[] holepoints = new FastList[numberOfContours - 1];
+			final List<WB_Point>[] holepoints = new FastList[numberOfContours
+					- 1];
 			int index = numberOfShellPoints;
 			for (int i = 0; i < numberOfContours - 1; i++) {
 				holepoints[i] = new FastList<WB_Point>();
@@ -512,7 +523,8 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 			return new WB_Polygon(shellpoints);
 		} else {
 			@SuppressWarnings("unchecked")
-			final List<WB_Point>[] holepoints = new FastList[numberOfContours - 1];
+			final List<WB_Point>[] holepoints = new FastList[numberOfContours
+					- 1];
 			int index = numberOfShellPoints;
 			for (int i = 0; i < numberOfContours - 1; i++) {
 				holepoints[i] = new FastList<WB_Point>();
@@ -532,7 +544,6 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 	 * @return
 	 */
 	public boolean is2D() {
-
 		for (int i = 0; i < numberOfShellPoints; i++) {
 			if (!WB_Epsilon.isZero(points.get(i).zd())) {
 				return false;
@@ -557,14 +568,16 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 	public boolean isPlanar() {
 		final WB_Plane P = getPlane(0);
 		for (int i = 0; i < numberOfShellPoints; i++) {
-			if (!WB_Epsilon.isZero(WB_GeometryOp3D.getDistance3D(points.get(i), P))) {
+			if (!WB_Epsilon
+					.isZero(WB_GeometryOp3D.getDistance3D(points.get(i), P))) {
 				return false;
 			}
 		}
 		int index = numberOfShellPoints;
 		for (int i = 0; i < numberOfContours - 1; i++) {
 			for (int j = 0; j < numberOfPointsPerContour[i + 1]; j++) {
-				if (!WB_Epsilon.isZero(WB_GeometryOp3D.getDistance3D(points.get(index++), P))) {
+				if (!WB_Epsilon.isZero(WB_GeometryOp3D
+						.getDistance3D(points.get(index++), P))) {
 					return false;
 				}
 			}
@@ -593,7 +606,8 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 		} else {
 			next = points.get(i + 1);
 		}
-		final boolean vertexIsCW = WB_Predicates.orient2D(previous, extremum, next) <= 0;
+		final boolean vertexIsCW = WB_Predicates.orient2D(previous, extremum,
+				next) <= 0;
 		return vertexIsCW == CW;
 	}
 
@@ -644,7 +658,8 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 			return new WB_Polygon(shellpoints);
 		} else {
 			@SuppressWarnings("unchecked")
-			final List<WB_Point>[] holepoints = new FastList[numberOfContours - 1];
+			final List<WB_Point>[] holepoints = new FastList[numberOfContours
+					- 1];
 			int index = numberOfShellPoints;
 			for (int i = 0; i < numberOfContours - 1; i++) {
 				holepoints[i] = new FastList<WB_Point>();
@@ -741,7 +756,8 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 	 */
 	public List<WB_Segment> toSegments() {
 		final List<WB_Segment> segments = new FastList<WB_Segment>();
-		for (int i = 0, j = this.numberOfShellPoints - 1; i < this.numberOfShellPoints; j = i, i++) {
+		for (int i = 0, j = this.numberOfShellPoints
+				- 1; i < this.numberOfShellPoints; j = i, i++) {
 			segments.add(new WB_Segment(getPoint(j), getPoint(i)));
 		}
 		return segments;
@@ -779,7 +795,6 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 			area += WB_GeometryOp3D.getSignedArea(p1, p2, p3);
 			p2 = p3;
 		}
-
 		int nh = getNumberOfHoles();
 		int[] npc = getNumberOfPointsPerContour();
 		int offset = 0;
@@ -795,10 +810,8 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 				area += WB_GeometryOp3D.getSignedArea(p1, p2, p3);
 				p2 = p3;
 			}
-
 		}
 		return area;
-
 	}
 
 	/**
@@ -815,10 +828,8 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 			EP.mapPoint3D(points.get(i), p2D);
 			vertices[i][0] = p2D.xf();
 			vertices[i][1] = p2D.yf();
-
 		}
 		return vertices;
-
 	}
 
 	/**
@@ -830,4 +841,35 @@ public class WB_Polygon extends WB_Ring implements WB_TriangleGenerator {
 		return new WB_PolygonTriangulatorJTS().makeSimplePolygon(this);
 	}
 
+	@Override
+	public WB_Polygon apply(final WB_Transform T) {
+		WB_Polygon poly = new WB_Polygon(this);
+		poly.applySelf(T);
+		return poly;
+	}
+
+	@Override
+	public WB_Ring apply2D(WB_Transform2D T) {
+		WB_Polygon poly = new WB_Polygon(this);
+		poly.apply2DSelf(T);
+		return poly;
+	}
+
+	@Override
+	public WB_Polygon apply2DSelf(WB_Transform2D T) {
+		for (WB_Point p : points) {
+			p.applyAsPoint2DSelf(T);
+		}
+		calculateDirections();
+		return this;
+	}
+
+	@Override
+	public WB_Polygon applySelf(WB_Transform T) {
+		for (WB_Point p : points) {
+			p.applyAsPointSelf(T);
+		}
+		calculateDirections();
+		return this;
+	}
 }

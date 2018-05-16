@@ -1,25 +1,18 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.collections.impl.list.mutable.FastList;
 
-import wblut.geom.WB_Classification;
 import wblut.geom.WB_Coord;
-import wblut.geom.WB_CoordinateSystem3D;
 import wblut.geom.WB_MutableCoord;
 import wblut.geom.WB_Point;
-import wblut.geom.WB_Vector;
 import wblut.math.WB_Epsilon;
 import wblut.math.WB_HashCode;
 
@@ -30,12 +23,10 @@ import wblut.math.WB_HashCode;
  *
  */
 public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
-	private WB_Point pos;
-
+	private WB_Point				pos;
 	/** Halfedge associated with this vertex. */
-	private HE_Halfedge _halfedge;
-
-	private HE_TextureCoordinate uvw = null;
+	private HE_Halfedge				_halfedge;
+	private HE_TextureCoordinate	uvw	= null;
 
 	/**
 	 * Instantiates a new HE_Vertex.
@@ -44,7 +35,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 		super();
 		pos = new WB_Point();
 		uvw = null;
-
 	}
 
 	/**
@@ -75,8 +65,74 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 		uvw = null;
 	}
 
+	/**
+	 *
+	 *
+	 * @return
+	 */
+	public HE_Vertex get() {
+		final HE_Vertex copy = new HE_Vertex(getPosition());
+		copy.copyProperties(this);
+		return copy;
+	}
+
 	public WB_Point getPosition() {
 		return pos;
+	}
+
+	/**
+	 * Get halfedge associated with this vertex.
+	 *
+	 * @return halfedge
+	 */
+	public HE_Halfedge getHalfedge() {
+		return _halfedge;
+	}
+
+	/**
+	 * Sets the halfedge associated with this vertex.
+	 *
+	 * @param halfedge
+	 *            the new halfedge
+	 */
+	protected void setHalfedge(final HE_Halfedge halfedge) {
+		_halfedge = halfedge;
+	}
+
+	/**
+	 * Clear halfedge.
+	 */
+	protected void clearHalfedge() {
+		_halfedge = null;
+	}
+
+	/**
+	 *
+	 *
+	 * @param f
+	 * @return
+	 */
+	public HE_Halfedge getHalfedge(final HE_Face f) {
+		HE_Halfedge he = _halfedge;
+		if (he == null) {
+			return null;
+		}
+		if (f == null) {
+			do {
+				if (he.getFace() == null) {
+					return he;
+				}
+				he = he.getNextInVertex();
+			} while (he != _halfedge);
+		} else {
+			do {
+				if (he.getFace() == f) {
+					return he;
+				}
+				he = he.getNextInVertex();
+			} while (he != _halfedge);
+		}
+		return null;
 	}
 
 	/**
@@ -170,36 +226,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 	}
 
 	/**
-	 *
-	 *
-	 * @return
-	 */
-	public HE_Vertex copy() {
-		final HE_Vertex copy = new HE_Vertex(getPosition());
-		copy.copyProperties(this);
-		return copy;
-	}
-
-	/**
-	 * Get halfedge associated with this vertex.
-	 *
-	 * @return halfedge
-	 */
-	public HE_Halfedge getHalfedge() {
-		return _halfedge;
-	}
-
-	/**
-	 * Sets the halfedge associated with this vertex.
-	 *
-	 * @param halfedge
-	 *            the new halfedge
-	 */
-	protected void _setHalfedge(final HE_Halfedge halfedge) {
-		_halfedge = halfedge;
-	}
-
-	/**
 	 * Set position to v.
 	 *
 	 * @param v
@@ -210,56 +236,7 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 	}
 
 	/**
-	 *
-	 *
-	 * @param d
-	 * @return
-	 */
-	public WB_Point getOffset(final double d) {
-		return WB_Point.addMul(getPosition(), d, getVertexNormal());
-	}
-
-	public HE_Vertex getNextInFace() {
-		return getHalfedge().getNextInFace().getVertex();
-	}
-
-	public HE_Vertex getPrevInFace() {
-		return getHalfedge().getPrevInFace().getVertex();
-	}
-
-	/**
-	 * Get vertex type. Returns stored value if update status is true.
-	 *
-	 * @return HE.VertexType.FLAT: vertex is flat in all faces,
-	 *         HE.VertexType.CONVEX: vertex is convex in all faces,
-	 *         HE.VertexType.CONCAVE: vertex is concave in all faces,
-	 *         HE.VertexType.FLATCONVEX: vertex is convex or flat in all faces,
-	 *         HE.VertexType.FLATCONCAVE: vertex is concave or flat in all
-	 *         faces, HE.VertexType.SADDLE: vertex is convex and concave in at
-	 *         least one face each
-	 */
-	public WB_Classification getVertexType() {
-		return HET_MeshOp.getVertexType(this);
-	}
-
-	/**
-	 * Clear halfedge.
-	 */
-	protected void _clearHalfedge() {
-		_halfedge = null;
-	}
-
-	/**
-	 * Get key.
-	 *
-	 * @return key
-	 */
-	public long key() {
-		return super.getKey();
-	}
-
-	/**
-	 * Get halfedges in vertex.
+	 * Get outgoing halfedges in vertex.
 	 *
 	 * @return halfedges
 	 */
@@ -269,7 +246,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 			return vhe;
 		}
 		HE_Halfedge he = getHalfedge();
-
 		do {
 			if (!vhe.contains(he)) {
 				vhe.add(he);
@@ -332,7 +308,7 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 	 *
 	 * @return neighbors
 	 */
-	public List<HE_Vertex> getNeighborVertices() {
+	public List<HE_Vertex> getVertexStar() {
 		final List<HE_Vertex> vv = new FastList<HE_Vertex>();
 		if (getHalfedge() == null) {
 			return vv;
@@ -353,53 +329,8 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 	 *
 	 * @return
 	 */
-	public List<HE_Vertex> getVertexStar() {
-		return getNeighborVertices();
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public List<HE_Vertex> getNextNeighborVertices() {
-		final List<HE_Vertex> result = new FastList<HE_Vertex>();
-		if (getHalfedge() == null) {
-			return result;
-		}
-		final List<HE_Vertex> vv = getNeighborVertices();
-		for (final HE_Vertex v : vv) {
-			result.addAll(v.getNeighborVertices());
-		}
-		final Iterator<HE_Vertex> vitr = result.iterator();
-		HE_Vertex w;
-		while (vitr.hasNext()) {
-			w = vitr.next();
-			if (w == this || vv.contains(w)) {
-				vitr.remove();
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * Gets the neighbors as points.
-	 *
-	 * @return the neighbors as points
-	 */
-	public WB_Coord[] getNeighborsAsPoints() {
-		final WB_Coord[] vv = new WB_Coord[getVertexDegree()];
-		if (getHalfedge() == null) {
-			return vv;
-		}
-		HE_Halfedge he = getHalfedge();
-		int i = 0;
-		do {
-			vv[i] = he.getEndVertex();
-			i++;
-			he = he.getNextInVertex();
-		} while (he != getHalfedge());
-		return vv;
+	public List<HE_Vertex> getNeighborVertices() {
+		return getVertexStar();
 	}
 
 	/**
@@ -414,39 +345,10 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 		}
 		HE_Halfedge he = getHalfedge();
 		do {
-			
 			result++;
-		
 			he = he.getNextInVertex();
 		} while (he != getHalfedge());
 		return result;
-	}
-
-	/**
-	 * Get area of faces bounding vertex.
-	 *
-	 * @return area
-	 */
-	public double getVertexArea() {
-		return HET_MeshOp.getVertexArea(this);
-	}
-
-	/**
-	 * Get the barycentric dual area. Triangles only.
-	 *
-	 * @return
-	 */
-	public double getBarycentricDualArea() {
-		return HET_MeshOp.getBarycentricDualVertexArea(this);
-	}
-
-	/**
-	 * Get the circumcentric dual area. Triangles only.
-	 *
-	 * @return
-	 */
-	public double getCircumcentricDualArea() {
-		return HET_MeshOp.getCircumcentricDualVertexArea(this);
 	}
 
 	/**
@@ -466,13 +368,11 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 	}
 
 	public boolean isIsolated() {
-
 		return _halfedge == null;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Coord#xd()
 	 */
 	@Override
@@ -482,7 +382,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Coordinate#yd()
 	 */
 	@Override
@@ -492,7 +391,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Coordinate#zd()
 	 */
 	@Override
@@ -502,7 +400,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Coordinate#zd()
 	 */
 	@Override
@@ -512,18 +409,15 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Coordinate#getd(int)
 	 */
 	@Override
 	public double getd(final int i) {
-
 		return getPosition().getd(i);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Coordinate#xf()
 	 */
 	@Override
@@ -533,7 +427,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Coordinate#yf()
 	 */
 	@Override
@@ -543,7 +436,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Coordinate#zf()
 	 */
 	@Override
@@ -553,7 +445,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Coordinate#zf()
 	 */
 	@Override
@@ -563,7 +454,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Coordinate#getf(int)
 	 */
 	@Override
@@ -573,7 +463,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinate#setX(double)
 	 */
 	@Override
@@ -583,7 +472,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinate#setY(double)
 	 */
 	@Override
@@ -593,7 +481,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinate#setZ(double)
 	 */
 	@Override
@@ -603,17 +490,14 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinate#setW(double)
 	 */
 	@Override
 	public void setW(final double w) {
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinate#setCoord(int, double)
 	 */
 	@Override
@@ -623,7 +507,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinate#set(wblut.geom.WB_Coordinate)
 	 */
 	@Override
@@ -633,7 +516,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinate#set(double, double)
 	 */
 	@Override
@@ -643,7 +525,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinate#set(double, double, double)
 	 */
 	@Override
@@ -653,133 +534,12 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinate#set(double, double, double, double)
 	 */
 	@Override
-	public void set(final double x, final double y, final double z, final double w) {
+	public void set(final double x, final double y, final double z,
+			final double w) {
 		pos.set(x, y, z, w);
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public WB_CoordinateSystem3D getVertexCS() {
-		return HET_MeshOp.getVertexCS(this);
-	}
-
-	// Common area-weighted mean normal
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public WB_Coord getVertexNormal() {
-		return HET_MeshOp.getVertexNormal(this);
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public WB_Coord getVertexNormalAverage() {
-		return HET_MeshOp.getVertexNormalAverage(this);
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public WB_Coord getVertexNormalArea() {
-		return HET_MeshOp.getVertexNormalArea(this);
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public WB_Coord getVertexNormalAngle() {
-		return HET_MeshOp.getVertexNormalAngle(this);
-
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public WB_Coord getVertexNormalGaussCurvature() {
-		return HET_MeshOp.getVertexNormalGaussCurvature(this);
-
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public WB_Coord getVertexNormalMeanCurvature() {
-		return HET_MeshOp.getVertexNormalMeanCurvature(this);
-
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public WB_Coord getVertexNormalSphereInscribed() {
-		return HET_MeshOp.getVertexNormalSphereInscribed(this);
-
-	}
-
-	/**
-	 * Returns the discrete Gaussian curvature and the mean normal. These
-	 * discrete operators are described in "Discrete Differential-Geometry
-	 * Operators for Triangulated 2-Manifolds", Mark Meyer, Mathieu Desbrun,
-	 * Peter Schr???der, and Alan H. Barr.
-	 * http://www.cs.caltech.edu/~mmeyer/Publications/diffGeomOps.pdf
-	 * http://www.cs.caltech.edu/~mmeyer/Publications/diffGeomOps.pdf Note: on a
-	 * sphere, the Gaussian curvature is very accurate, but not the mean
-	 * curvature. Guoliang Xu suggests improvements in his papers
-	 * http://lsec.cc.ac.cn/~xuguo/xuguo3.htm
-	 *
-	 * @param meanCurvatureVector
-	 * @return
-	 */
-	public double getGaussianCurvature(final WB_Vector meanCurvatureVector) {
-		return HET_MeshOp.getGaussianCurvature(this, meanCurvatureVector);
-	}
-
-	/**
-	 * Returns the discrete Gaussian curvature. These discrete operators are
-	 * described in "Discrete Differential-Geometry Operators for Triangulated
-	 * 2-Manifolds", Mark Meyer, Mathieu Desbrun, Peter Schr???der, and Alan H.
-	 * Barr. http://www.cs.caltech.edu/~mmeyer/Publications/diffGeomOps.pdf
-	 * http://www.cs.caltech.edu/~mmeyer/Publications/diffGeomOps.pdf Note: on a
-	 * sphere, the Gaussian curvature is very accurate, but not the mean
-	 * curvature. Guoliang Xu suggests improvements in his papers
-	 * http://lsec.cc.ac.cn/~xuguo/xuguo3.htm
-	 *
-	 *
-	 * @return
-	 */
-	public double getGaussCurvature() {
-		return HET_MeshOp.getGaussCurvature(this);
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public WB_CoordinateSystem3D getCurvatureDirections() {
-		return HET_MeshOp.getCurvatureDirections(this);
 	}
 
 	/**
@@ -789,7 +549,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 	 */
 	public void copyProperties(final HE_Vertex el) {
 		super.copyProperties(el);
-
 		if (el.getVertexUVW() == null) {
 			uvw = null;
 		} else {
@@ -799,86 +558,17 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Element#clear()
 	 */
 	@Override
 	public void clear() {
 		_halfedge = null;
-
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public double getUmbrellaAngle() {
-		return HET_MeshOp.getUmbrellaAngle(this);
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public double getAngleDefect() {
-		return HET_MeshOp.getAngleDefect(this);
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public double getScalarGaussCurvature() {
-		return HET_MeshOp.getScalarGaussCurvature(this);
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public double getScalarMeanCurvature() {
-		return HET_MeshOp.getScalarMeanCurvature(this);
-	}
-
-	/**
-	 *
-	 *
-	 * @param f
-	 * @return
-	 */
-	public HE_Halfedge getHalfedge(final HE_Face f) {
-		HE_Halfedge he = _halfedge;
-		if (he == null) {
-			return null;
-		}
-		if (f == null) {
-			do {
-				if (he.getFace() == null) {
-					return he;
-				}
-				he = he.getNextInVertex();
-			} while (he != _halfedge);
-		} else {
-			do {
-				if (he.getFace() == f) {
-					return he;
-				}
-				he = he.getNextInVertex();
-			} while (he != _halfedge);
-		}
-		return null;
 	}
 
 	// TEXTURE COORDINATES
-
 	/**
 	 * Clear vertex UVW.
 	 */
-
 	public void clearUVW() {
 		uvw = null;
 	}
@@ -929,12 +619,12 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 	 * @param w
 	 * @param face
 	 */
-	public void setUVW(final double u, final double v, final double w, final HE_Face face) {
+	public void setUVW(final double u, final double v, final double w,
+			final HE_Face face) {
 		HE_Halfedge he = getHalfedge(face);
 		if (he != null) {
 			he.setUVW(u, v, w);
 		}
-
 	}
 
 	/**
@@ -950,7 +640,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 		if (he != null) {
 			he.setUVW(uvw);
 		}
-
 	}
 
 	/**
@@ -966,7 +655,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 		if (he != null) {
 			he.setUVW(uvw);
 		}
-
 	}
 
 	/**
@@ -975,13 +663,11 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 	 *
 	 * @param face
 	 */
-
 	public void clearUVW(final HE_Face face) {
 		HE_Halfedge he = getHalfedge(face);
 		if (he != null) {
 			he.clearUVW();
 		}
-
 	}
 
 	/**
@@ -1059,7 +745,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 	 * @param f
 	 * @return
 	 */
-
 	public HE_TextureCoordinate getUVW(final HE_Face f) {
 		final HE_Halfedge he = getHalfedge(f);
 		if (he != null) {
@@ -1076,7 +761,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 			return;
 		}
 		List<HE_Halfedge> halfedges = getHalfedgeStar();
-
 		if (halfedges.size() == 0) {
 			return;
 		}
@@ -1093,12 +777,9 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 					if (he.getHalfedgeUVW().equals(getVertexUVW())) {
 						he.clearUVW();
 					}
-
 				}
 			}
-
 		}
-
 	}
 
 	public boolean isNeighbor(final HE_Vertex v) {
@@ -1117,42 +798,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
-	 * @see
-	 * wblut.geom.WB_CoordinateMetric#getDistance3D(wblut.geom.WB_Coordinate)
-	 */
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * wblut.geom.WB_CoordinateMetric#getSqDistance3D(wblut.geom.WB_Coordinate)
-	 */
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see wblut.geom.WB_CoordinateMetric#getLength3D()
-	 */
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see wblut.geom.WB_CoordinateMetric#getSqLength3D()
-	 */
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public double[] coords() {
-		return new double[] { xd(), yd(), zd() };
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
 	@Override
@@ -1178,7 +823,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 	 * @param p
 	 * @return
 	 */
-
 	public int compareToY1st(final WB_Coord p) {
 		int cmp = Double.compare(yd(), p.yd());
 		if (cmp != 0) {
@@ -1197,7 +841,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -1229,7 +872,6 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -1239,18 +881,16 @@ public class HE_Vertex extends HE_MeshElement implements WB_MutableCoord {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.Point3D#toString()
 	 */
 	@Override
 	public String toString() {
-		return "HE_Vertex key: " + key() + " [x=" + xd() + ", y=" + yd() + ", z=" + zd() + "]" + " (" + getUserLabel()
-				+ "," + getInternalLabel() + ")";
+		return "HE_Vertex key: " + getKey() + " [x=" + xd() + ", y=" + yd()
+				+ ", z=" + zd() + "]" + " (" + getUserLabel() + ","
+				+ getInternalLabel() + ")";
 	}
 
 	@Override
 	public void clearPrecomputed() {
-
 	}
-
 }

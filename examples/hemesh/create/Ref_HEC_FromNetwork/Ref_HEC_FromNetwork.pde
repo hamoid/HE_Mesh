@@ -5,9 +5,6 @@ import wblut.hemesh.*;
 import wblut.geom.*;
 
 
-import processing.opengl.*;
-
-
 HE_Mesh mesh;
 WB_Render render;
 
@@ -67,7 +64,8 @@ void setup() {
   creator.setCreateIsolatedNodes(false);// create spheres for isolated points?
   creator.setUseNodeValues(true);// use the value of the WB_Node as scaling factor, only useful if the frame was created using addNode().
   mesh=new HE_Mesh(creator);
-HET_Diagnosis.validate(mesh);
+  mesh.stats();
+mesh.validate();
   render=new WB_Render(this);
 }
 

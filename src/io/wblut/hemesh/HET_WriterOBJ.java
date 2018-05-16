@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.io.File;
@@ -26,27 +23,27 @@ class HET_WriterOBJ {
 	/**
 	 *
 	 */
-	protected static OutputStream objStream;
+	protected static OutputStream	objStream;
 	/**
 	 *
 	 */
-	protected static PrintWriter objWriter;
+	protected static PrintWriter	objWriter;
 	/**
 	 *
 	 */
-	protected static OutputStream mtlStream;
+	protected static OutputStream	mtlStream;
 	/**
 	 *
 	 */
-	protected static PrintWriter mtlWriter;
+	protected static PrintWriter	mtlWriter;
 	/**
 	 *
 	 */
-	protected static int numVerticesWritten = 0;
+	protected static int			numVerticesWritten	= 0;
 	/**
 	 *
 	 */
-	protected static int numNormalsWritten = 0;
+	protected static int			numNormalsWritten	= 0;
 
 	/**
 	 * Begin save.
@@ -99,7 +96,8 @@ class HET_WriterOBJ {
 				}
 			}
 		} catch (final SecurityException se) {
-			System.err.println("No permissions to create " + file.getAbsolutePath());
+			System.err.println(
+					"No permissions to create " + file.getAbsolutePath());
 		}
 	}
 
@@ -183,12 +181,14 @@ class HET_WriterOBJ {
 	 * @param indices
 	 * @param normalindices
 	 */
-	static void writeFaceWithNormals(final int[] indices, final int[] normalindices) {
+	static void writeFaceWithNormals(final int[] indices,
+			final int[] normalindices) {
 		objWriter.print("f ");
 		for (int i = 0; i < indices.length - 1; i++) {
 			objWriter.print(indices[i] + "//" + normalindices[i] + " ");
 		}
-		objWriter.println(indices[indices.length - 1] + "//" + normalindices[indices.length - 1]);
+		objWriter.println(indices[indices.length - 1] + "//"
+				+ normalindices[indices.length - 1]);
 	}
 
 	/**
@@ -271,7 +271,8 @@ class HET_WriterOBJ {
 	 * @param path
 	 * @param name
 	 */
-	public static void saveMesh(final HE_Mesh mesh, final String path, final String name) {
+	public static void saveMesh(final HE_Mesh mesh, final String path,
+			final String name) {
 		beginSave(path, name);
 		addMesh(mesh);
 		endSave();
@@ -284,7 +285,8 @@ class HET_WriterOBJ {
 	 * @param path
 	 * @param name
 	 */
-	public static void saveMeshNN(final HE_Mesh mesh, final String path, final String name) {
+	public static void saveMeshNN(final HE_Mesh mesh, final String path,
+			final String name) {
 		beginSave(path, name);
 		addMeshNN(mesh);
 		endSave();
@@ -297,7 +299,8 @@ class HET_WriterOBJ {
 	 * @param path
 	 * @param name
 	 */
-	public static void saveMeshWithFaceColor(final HE_Mesh mesh, final String path, final String name) {
+	public static void saveMeshWithFaceColor(final HE_Mesh mesh,
+			final String path, final String name) {
 		beginSave(path, name);
 		addMeshWithFaceColor(mesh, name, 0);
 		endSave();
@@ -310,10 +313,10 @@ class HET_WriterOBJ {
 	 * @param path
 	 * @param name
 	 */
-	public static void saveMeshWithVertexColor(final HE_Mesh mesh, final String path, final String name) {
+	public static void saveMeshWithVertexColor(final HE_Mesh mesh,
+			final String path, final String name) {
 		beginSave(path, name);
 		addMeshWithVertexColor(mesh, name, 0);
-
 		endSave();
 	}
 
@@ -324,21 +327,23 @@ class HET_WriterOBJ {
 	 * @param path
 	 * @param name
 	 */
-	public static void saveMesh(final Collection<? extends HE_Mesh> meshes, final String path, final String name) {
+	public static void saveMesh(final Collection<? extends HE_Mesh> meshes,
+			final String path, final String name) {
 		beginSave(path, name);
 		for (final HE_Mesh mesh : meshes) {
 			if (mesh != null && mesh.getNumberOfVertices() > 0) {
 				addMesh(mesh);
 			}
-
 		}
 		endSave();
 	}
 
-	public static void saveMesh(final HE_MeshCollection meshes, final String path, final String name) {
+	public static void saveMesh(final HE_MeshCollection meshes,
+			final String path, final String name) {
 		beginSave(path, name);
 		for (int i = 0; i < meshes.getNumberOfMeshes(); i++) {
-			if (meshes.getMesh(i) != null && meshes.getMesh(i).getNumberOfVertices() > 0) {
+			if (meshes.getMesh(i) != null
+					&& meshes.getMesh(i).getNumberOfVertices() > 0) {
 				addMesh(meshes.getMesh(i));
 			}
 		}
@@ -352,7 +357,8 @@ class HET_WriterOBJ {
 	 * @param path
 	 * @param name
 	 */
-	public static void saveMeshNN(final Collection<? extends HE_Mesh> meshes, final String path, final String name) {
+	public static void saveMeshNN(final Collection<? extends HE_Mesh> meshes,
+			final String path, final String name) {
 		beginSave(path, name);
 		for (final HE_Mesh mesh : meshes) {
 			if (mesh != null && mesh.getNumberOfVertices() > 0) {
@@ -362,10 +368,12 @@ class HET_WriterOBJ {
 		endSave();
 	}
 
-	public static void saveMeshNN(final HE_MeshCollection meshes, final String path, final String name) {
+	public static void saveMeshNN(final HE_MeshCollection meshes,
+			final String path, final String name) {
 		beginSave(path, name);
 		for (int i = 0; i < meshes.getNumberOfMeshes(); i++) {
-			if (meshes.getMesh(i) != null && meshes.getMesh(i).getNumberOfVertices() > 0) {
+			if (meshes.getMesh(i) != null
+					&& meshes.getMesh(i).getNumberOfVertices() > 0) {
 				addMeshNN(meshes.getMesh(i));
 			}
 		}
@@ -379,7 +387,8 @@ class HET_WriterOBJ {
 	 * @param path
 	 * @param name
 	 */
-	public static void saveMeshWithFaceColor(final Collection<? extends HE_Mesh> meshes, final String path,
+	public static void saveMeshWithFaceColor(
+			final Collection<? extends HE_Mesh> meshes, final String path,
 			final String name) {
 		beginSave(path, name);
 		int offset = 0;
@@ -392,11 +401,13 @@ class HET_WriterOBJ {
 		endSave();
 	}
 
-	public static void saveMeshWithFaceColor(final HE_MeshCollection meshes, final String path, final String name) {
+	public static void saveMeshWithFaceColor(final HE_MeshCollection meshes,
+			final String path, final String name) {
 		beginSave(path, name);
 		int offset = 0;
 		for (int i = 0; i < meshes.getNumberOfMeshes(); i++) {
-			if (meshes.getMesh(i) != null && meshes.getMesh(i).getNumberOfVertices() > 0) {
+			if (meshes.getMesh(i) != null
+					&& meshes.getMesh(i).getNumberOfVertices() > 0) {
 				addMeshWithFaceColor(meshes.getMesh(i), name, offset);
 				offset += meshes.getMesh(i).getNumberOfFaces();
 			}
@@ -411,7 +422,8 @@ class HET_WriterOBJ {
 	 * @param path
 	 * @param name
 	 */
-	public static void saveMeshWithVertexColor(final Collection<? extends HE_Mesh> meshes, final String path,
+	public static void saveMeshWithVertexColor(
+			final Collection<? extends HE_Mesh> meshes, final String path,
 			final String name) {
 		beginSave(path, name);
 		int offset = 0;
@@ -424,11 +436,13 @@ class HET_WriterOBJ {
 		endSave();
 	}
 
-	public static void saveMeshWithVertexColor(final HE_MeshCollection meshes, final String path, final String name) {
+	public static void saveMeshWithVertexColor(final HE_MeshCollection meshes,
+			final String path, final String name) {
 		beginSave(path, name);
 		int offset = 0;
 		for (int i = 0; i < meshes.getNumberOfMeshes(); i++) {
-			if (meshes.getMesh(i) != null && meshes.getMesh(i).getNumberOfVertices() > 0) {
+			if (meshes.getMesh(i) != null
+					&& meshes.getMesh(i).getNumberOfVertices() > 0) {
 				addMeshWithVertexColor(meshes.getMesh(i), name, offset);
 				offset += meshes.getMesh(i).getNumberOfVertices();
 			}
@@ -443,7 +457,8 @@ class HET_WriterOBJ {
 	 * @param path
 	 * @param name
 	 */
-	public static void saveMesh(final HE_Mesh[] meshes, final String path, final String name) {
+	public static void saveMesh(final HE_Mesh[] meshes, final String path,
+			final String name) {
 		beginSave(path, name);
 		for (final HE_Mesh mesh : meshes) {
 			if (mesh != null && mesh.getNumberOfVertices() > 0) {
@@ -460,7 +475,8 @@ class HET_WriterOBJ {
 	 * @param path
 	 * @param name
 	 */
-	public static void saveMeshNN(final HE_Mesh[] meshes, final String path, final String name) {
+	public static void saveMeshNN(final HE_Mesh[] meshes, final String path,
+			final String name) {
 		beginSave(path, name);
 		for (final HE_Mesh mesh : meshes) {
 			if (mesh != null && mesh.getNumberOfVertices() > 0) {
@@ -477,7 +493,8 @@ class HET_WriterOBJ {
 	 * @param path
 	 * @param name
 	 */
-	public static void saveMeshWithFaceColor(final HE_Mesh[] meshes, final String path, final String name) {
+	public static void saveMeshWithFaceColor(final HE_Mesh[] meshes,
+			final String path, final String name) {
 		beginSave(path, name);
 		int offset = 0;
 		for (final HE_Mesh mesh : meshes) {
@@ -496,14 +513,14 @@ class HET_WriterOBJ {
 	 * @param path
 	 * @param name
 	 */
-	public static void saveMeshWithVertexColor(final HE_Mesh[] meshes, final String path, final String name) {
+	public static void saveMeshWithVertexColor(final HE_Mesh[] meshes,
+			final String path, final String name) {
 		beginSave(path, name);
 		for (final HE_Mesh mesh : meshes) {
 			if (mesh != null && mesh.getNumberOfVertices() > 0) {
 				addMeshWithVertexColor(mesh, name, 0);
 				mesh.getNumberOfVertices();
 			}
-
 		}
 		endSave();
 	}
@@ -524,13 +541,13 @@ class HET_WriterOBJ {
 		int i = 0;
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			keyToIndex.put(v.key(), i);
+			keyToIndex.put(v.getKey(), i);
 			writeVertex(v);
 			i++;
 		}
 		vItr = mesh.vItr();
 		while (vItr.hasNext()) {
-			writeNormal(vItr.next().getVertexNormal());
+			writeNormal(HE_MeshOp.getVertexNormal(vItr.next()));
 		}
 		// faces
 		final Iterator<HE_Face> fItr = mesh.fItr();
@@ -543,8 +560,9 @@ class HET_WriterOBJ {
 			final int[] indices = new int[n];
 			final int[] normalindices = new int[n];
 			for (i = 0; i < n; i++) {
-				indices[i] = keyToIndex.get(he.getVertex().key()) + vOffset;
-				normalindices[i] = keyToIndex.get(he.getVertex().key()) + nOffset;
+				indices[i] = keyToIndex.get(he.getVertex().getKey()) + vOffset;
+				normalindices[i] = keyToIndex.get(he.getVertex().getKey())
+						+ nOffset;
 				he = he.getNextInFace();
 			}
 			writeFaceWithNormals(indices, normalindices);
@@ -566,7 +584,7 @@ class HET_WriterOBJ {
 		int i = 0;
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			keyToIndex.put(v.key(), i);
+			keyToIndex.put(v.getKey(), i);
 			writeVertex(v);
 			i++;
 		}
@@ -580,7 +598,7 @@ class HET_WriterOBJ {
 			final int n = f.getFaceDegree();
 			final int[] indices = new int[n];
 			for (i = 0; i < n; i++) {
-				indices[i] = keyToIndex.get(he.getVertex().key()) + vOffset;
+				indices[i] = keyToIndex.get(he.getVertex().getKey()) + vOffset;
 				he = he.getNextInFace();
 			}
 			writeFace(indices);
@@ -593,7 +611,8 @@ class HET_WriterOBJ {
 	 * @param mesh
 	 * @param name
 	 */
-	private static void addMeshWithFaceColor(final HE_Mesh mesh, final String name, final int offset) {
+	private static void addMeshWithFaceColor(final HE_Mesh mesh,
+			final String name, final int offset) {
 		final int vOffset = getCurrVertexOffset() + 1;
 		final int nOffset = getCurrNormalOffset() + 1;
 		objWriter.println("mtllib " + name + ".mtl");
@@ -605,13 +624,13 @@ class HET_WriterOBJ {
 		int i = 0;
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			keyToIndex.put(v.key(), i);
+			keyToIndex.put(v.getKey(), i);
 			writeVertex(v);
 			i++;
 		}
 		vItr = mesh.vItr();
 		while (vItr.hasNext()) {
-			writeNormal(vItr.next().getVertexNormal());
+			writeNormal(HE_MeshOp.getVertexNormal(vItr.next()));
 		}
 		// faces
 		final Iterator<HE_Face> fItr = mesh.fItr();
@@ -627,8 +646,9 @@ class HET_WriterOBJ {
 			final int[] indices = new int[n];
 			final int[] normalindices = new int[n];
 			for (i = 0; i < n; i++) {
-				indices[i] = keyToIndex.get(he.getVertex().key()) + vOffset;
-				normalindices[i] = keyToIndex.get(he.getVertex().key()) + nOffset;
+				indices[i] = keyToIndex.get(he.getVertex().getKey()) + vOffset;
+				normalindices[i] = keyToIndex.get(he.getVertex().getKey())
+						+ nOffset;
 				he = he.getNextInFace();
 			}
 			writeFaceWithNormals(indices, normalindices);
@@ -641,7 +661,8 @@ class HET_WriterOBJ {
 	 * @param mesh
 	 * @param name
 	 */
-	private static void addMeshWithVertexColor(final HE_Mesh mesh, final String name, final int offset) {
+	private static void addMeshWithVertexColor(final HE_Mesh mesh,
+			final String name, final int offset) {
 		final int vOffset = getCurrVertexOffset() + 1;
 		final int nOffset = getCurrNormalOffset() + 1;
 		objWriter.println("mtllib " + name + ".mtl");
@@ -655,13 +676,13 @@ class HET_WriterOBJ {
 			v = vItr.next();
 			writeVertexColor(i, v.getColor());
 			objWriter.println("usemtl v" + i);
-			keyToIndex.put(v.key(), i);
+			keyToIndex.put(v.getKey(), i);
 			writeVertex(v);
 			i++;
 		}
 		vItr = mesh.vItr();
 		while (vItr.hasNext()) {
-			writeNormal(vItr.next().getVertexNormal());
+			writeNormal(HE_MeshOp.getVertexNormal(vItr.next()));
 		}
 		// faces
 		final Iterator<HE_Face> fItr = mesh.fItr();
@@ -674,8 +695,9 @@ class HET_WriterOBJ {
 			final int[] indices = new int[n];
 			final int[] normalindices = new int[n];
 			for (i = 0; i < n; i++) {
-				indices[i] = keyToIndex.get(he.getVertex().key()) + vOffset;
-				normalindices[i] = keyToIndex.get(he.getVertex().key()) + nOffset;
+				indices[i] = keyToIndex.get(he.getVertex().getKey()) + vOffset;
+				normalindices[i] = keyToIndex.get(he.getVertex().getKey())
+						+ nOffset;
 				he = he.getNextInFace();
 			}
 			writeFaceWithNormals(indices, normalindices);

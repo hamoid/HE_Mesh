@@ -67,7 +67,7 @@ public class HET_WriterWRL {
 			while (vItr.hasNext()) {
 				v = vItr.next();
 				out.write(("\t\t\t" + v.xf() + " " + v.yf() + " " + v.zf() + ",\n").getBytes());
-				vertexKeys.put(v.key(), counter);
+				vertexKeys.put(v.getKey(), counter);
 				counter++;
 			}
 			out.write("\t\t] #point\n".getBytes());
@@ -82,8 +82,8 @@ public class HET_WriterWRL {
 				f = fItr.next();
 				vlist = f.getFaceVertices();
 				if (vlist.size() == 3) {
-					out.write(("\t\t\t" + vertexKeys.get(vlist.get(0).key()) + " " + vertexKeys.get(vlist.get(1).key())
-							+ " " + vertexKeys.get(vlist.get(2).key()) + " -1\n").getBytes());
+					out.write(("\t\t\t" + vertexKeys.get(vlist.get(0).getKey()) + " " + vertexKeys.get(vlist.get(1).getKey())
+							+ " " + vertexKeys.get(vlist.get(2).getKey()) + " -1\n").getBytes());
 				}
 
 				counter++;
@@ -208,7 +208,7 @@ public class HET_WriterWRL {
 			while (vItr.hasNext()) {
 				v = vItr.next();
 				out.write(("\t\t\t" + v.xf() + " " + v.yf() + " " + v.zf() + ",\n").getBytes());
-				vertexKeys.put(v.key(), counter);
+				vertexKeys.put(v.getKey(), counter);
 				counter++;
 			}
 			out.write("\t\t] #point\n".getBytes());
@@ -223,8 +223,8 @@ public class HET_WriterWRL {
 				f = fItr.next();
 				vlist = f.getFaceVertices();
 				if (vlist.size() == 3) {
-					out.write(("\t\t\t" + vertexKeys.get(vlist.get(0).key()) + " " + vertexKeys.get(vlist.get(1).key())
-							+ " " + vertexKeys.get(vlist.get(2).key()) + " -1\n").getBytes());
+					out.write(("\t\t\t" + vertexKeys.get(vlist.get(0).getKey()) + " " + vertexKeys.get(vlist.get(1).getKey())
+							+ " " + vertexKeys.get(vlist.get(2).getKey()) + " -1\n").getBytes());
 				}
 				counter++;
 			}
@@ -295,7 +295,7 @@ public class HET_WriterWRL {
 			while (vItr.hasNext()) {
 				v = vItr.next();
 				out.write(("\t\t\t" + v.xf() + " " + v.yf() + " " + v.zf() + ",\n").getBytes());
-				vertexKeys.put(v.key(), counter);
+				vertexKeys.put(v.getKey(), counter);
 				counter++;
 			}
 			out.write("\t\t] #point\n".getBytes());
@@ -310,8 +310,8 @@ public class HET_WriterWRL {
 				f = fItr.next();
 				vlist = f.getFaceVertices();
 				if (vlist.size() == 3) {
-					out.write(("\t\t\t" + vertexKeys.get(vlist.get(0).key()) + " " + vertexKeys.get(vlist.get(1).key())
-							+ " " + vertexKeys.get(vlist.get(2).key()) + " -1\n").getBytes());
+					out.write(("\t\t\t" + vertexKeys.get(vlist.get(0).getKey()) + " " + vertexKeys.get(vlist.get(1).getKey())
+							+ " " + vertexKeys.get(vlist.get(2).getKey()) + " -1\n").getBytes());
 				}
 
 				counter++;

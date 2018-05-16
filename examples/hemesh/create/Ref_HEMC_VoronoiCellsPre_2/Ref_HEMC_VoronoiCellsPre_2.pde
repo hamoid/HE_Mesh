@@ -13,15 +13,16 @@ void setup() {
   fullScreen(P3D);
   smooth(8);
  
-  container=new HE_Mesh(new HEC_Torus(120,320,16,64));
+  container=new HE_Mesh(new HEC_Torus(120,320,8,32));
 
 
   HEMC_VoronoiCells multiCreator=new HEMC_VoronoiCells();
   multiCreator.setMesh(container,true);
  
-  multiCreator.setOffset(2);
+  multiCreator.setOffset(8);
   cells=new HE_MeshCollection();
   cells.createThreaded(multiCreator);
+  cells.modifyThreaded(new HEM_HideEdges());
   render=new WB_Render(this);
   noCursor();
 }

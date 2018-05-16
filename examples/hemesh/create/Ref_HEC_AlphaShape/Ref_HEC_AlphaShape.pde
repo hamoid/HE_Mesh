@@ -37,6 +37,7 @@ void setup() {
   triangles=triangulation.getAlphaTriangles(50.0);
   mesh=new HE_Mesh(new HEC_AlphaShape().setTriangulation(triangulation).setAlpha(56.0));
   mesh.smooth();
+  mesh.stats();
 }
 
 

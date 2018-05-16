@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import wblut.geom.WB_Coord;
@@ -21,10 +18,9 @@ import wblut.math.WB_ScalarParameter;
  */
 public class HEMC_Panelizer extends HEMC_MultiCreator {
 	/** Source mesh. */
-	private HE_Mesh mesh;
-
-	private WB_ScalarParameter thickness;
-	private WB_ScalarParameter offset;
+	private HE_Mesh				mesh;
+	private WB_ScalarParameter	thickness;
+	private WB_ScalarParameter	offset;
 
 	public HEMC_Panelizer() {
 		super();
@@ -70,15 +66,14 @@ public class HEMC_Panelizer extends HEMC_MultiCreator {
 			_numberOfMeshes = 0;
 			return;
 		}
-
 		int id = 0;
 		final HEC_Polygon pc = new HEC_Polygon();
 		WB_Coord fc;
 		for (final HE_Face f : mesh.getFaces()) {
-			fc = f.getFaceCenter();
+			fc = HE_MeshOp.getFaceCenter(f);
 			pc.setThickness(-thickness.evaluate(fc.xd(), fc.yd(), fc.zd()));
 			pc.setOffset(-offset.evaluate(fc.xd(), fc.yd(), fc.zd()));
-			pc.setPolygon(f.toPolygon());
+			pc.setPolygon(HE_MeshOp.getPolygon(f));
 			result.add(new HE_Mesh(pc));
 			id++;
 		}

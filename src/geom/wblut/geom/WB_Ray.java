@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.geom;
 
 import wblut.math.WB_Math;
@@ -74,8 +71,8 @@ public class WB_Ray extends WB_Line {
 	 * @param dy
 	 * @param dz
 	 */
-	public WB_Ray(final double ox, final double oy, final double oz, final double dx, final double dy,
-			final double dz) {
+	public WB_Ray(final double ox, final double oy, final double oz,
+			final double dx, final double dy, final double dz) {
 		origin = new WB_Point(ox, oy, oz);
 		final WB_Vector dn = new WB_Vector(dx, dy, dz);
 		dn.normalizeSelf();
@@ -84,7 +81,6 @@ public class WB_Ray extends WB_Line {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -94,7 +90,6 @@ public class WB_Ray extends WB_Line {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Linear#set(wblut.geom.WB_Coordinate,
 	 * wblut.geom.WB_Coordinate)
 	 */
@@ -122,7 +117,6 @@ public class WB_Ray extends WB_Line {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Linear#getPointOnLine(double)
 	 */
 	@Override
@@ -140,7 +134,6 @@ public class WB_Ray extends WB_Line {
 		} else {
 			p.set(origin);
 		}
-
 	}
 
 	@Override
@@ -152,18 +145,17 @@ public class WB_Ray extends WB_Line {
 	}
 
 	@Override
-	public void getParametricPointInto(final double t, final WB_MutableCoord p) {
+	public void getParametricPointInto(final double t,
+			final WB_MutableCoord p) {
 		if (t > 0) {
 			p.set(direction.mul(t).addSelf(origin));
 		} else {
 			p.set(origin);
 		}
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Linear#getOrigin()
 	 */
 	@Override
@@ -173,7 +165,6 @@ public class WB_Ray extends WB_Line {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Linear#getDirection()
 	 */
 	@Override
@@ -183,7 +174,6 @@ public class WB_Ray extends WB_Line {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Curve#curvePoint(double)
 	 */
 	@Override
@@ -196,18 +186,15 @@ public class WB_Ray extends WB_Line {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Curve#curveDirection(double)
 	 */
 	@Override
 	public WB_Vector curveDirection(final double u) {
-
 		return new WB_Vector(direction);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Curve#curveDerivative(double)
 	 */
 	@Override
@@ -217,7 +204,6 @@ public class WB_Ray extends WB_Line {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Curve#loweru()
 	 */
 	@Override
@@ -227,7 +213,6 @@ public class WB_Ray extends WB_Line {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Curve#upperu()
 	 */
 	@Override
@@ -237,7 +222,6 @@ public class WB_Ray extends WB_Line {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -248,12 +232,12 @@ public class WB_Ray extends WB_Line {
 		if (!(o instanceof WB_Ray)) {
 			return false;
 		}
-		return origin.equals(((WB_Ray) o).getOrigin()) && direction.equals(((WB_Ray) o).getDirection());
+		return origin.equals(((WB_Ray) o).getOrigin())
+				&& direction.equals(((WB_Ray) o).getDirection());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -261,4 +245,27 @@ public class WB_Ray extends WB_Line {
 		return 31 * origin.hashCode() + direction.hashCode();
 	}
 
+	@Override
+	public WB_Ray apply2D(WB_Transform2D T) {
+		return new WB_Ray(origin.apply2D(T), direction.apply2D(T));
+	}
+
+	@Override
+	public WB_Ray apply2DSelf(WB_Transform2D T) {
+		origin.apply2DSelf(T);
+		direction.apply2DSelf(T);
+		return this;
+	}
+
+	@Override
+	public WB_Ray apply(WB_Transform T) {
+		return new WB_Ray(origin.apply(T), direction.apply(T));
+	}
+
+	@Override
+	public WB_Ray applySelf(WB_Transform T) {
+		origin.applySelf(T);
+		direction.applySelf(T);
+		return this;
+	}
 }

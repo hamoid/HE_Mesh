@@ -1,27 +1,18 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.collections.impl.list.mutable.FastList;
-
-import wblut.geom.WB_Coord;
-import wblut.geom.WB_CoordOp3D;
 import wblut.geom.WB_GeometryOp3D;
 import wblut.geom.WB_Plane;
 import wblut.geom.WB_Point;
-import wblut.math.WB_ConstantScalarParameter;
-import wblut.math.WB_ScalarParameter;
 
 /**
  * Tries to expand a mesh by moving all faces a distance along their normal. No
@@ -39,96 +30,78 @@ import wblut.math.WB_ScalarParameter;
  */
 public class HEM_FacePlanarize extends HEM_Modifier {
 	/**
-	
-
-	/**
+	 * 
+	 * 
+	 * /**
 	 *
 	 */
 	public HEM_FacePlanarize() {
 		super();
-		
 	}
-
-	
-
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Modifier#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Mesh mesh) {
-		
 		HE_Vertex v;
-		
-		
-		
-			
-			
 		HE_Face f;
-	for(int r=0;r<100;r++){
-		List<HE_Face> faces=mesh.getFaces();
-		Collections.shuffle(faces);
-		Iterator<HE_Face> fItr =faces.iterator();
-		while (fItr.hasNext()) {
-			f = fItr.next();
-			WB_Plane P=f.getPlane();
-			HE_FaceVertexCirculator fvCrc=f.fvCrc();
-			while(fvCrc.hasNext()){
-				v=fvCrc.next();
-				v.getPosition().mulAddMulSelf(0.9,0.1,WB_GeometryOp3D.projectOnPlane(v, P));
+		for (int r = 0; r < 100; r++) {
+			List<HE_Face> faces = mesh.getFaces();
+			Collections.shuffle(faces);
+			Iterator<HE_Face> fItr = faces.iterator();
+			while (fItr.hasNext()) {
+				f = fItr.next();
+				WB_Plane P = HE_MeshOp.getPlane(f);
+				HE_FaceVertexCirculator fvCrc = f.fvCrc();
+				while (fvCrc.hasNext()) {
+					v = fvCrc.next();
+					v.getPosition().mulAddMulSelf(0.9, 0.1,
+							WB_GeometryOp3D.projectOnPlane(v, P));
+				}
 			}
-			
-			
 		}
-	}
 		return mesh;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Modifier#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
-		
 		selection.collectVertices();
-		HE_Mesh mesh=selection.parent;
-		WB_Plane[] planes=mesh.getFacePlanes();
-		HE_FaceIterator fItr=mesh.fItr();
-		int id=0;
-		while(fItr.hasNext()) {
+		HE_Mesh mesh = selection.getParent();
+		WB_Plane[] planes = mesh.getFacePlanes();
+		HE_FaceIterator fItr = mesh.fItr();
+		int id = 0;
+		while (fItr.hasNext()) {
 			fItr.next().setInternalLabel(id++);
 		}
-		
-		
 		HE_Vertex v;
 		Iterator<HE_Vertex> vItr = selection.vItr();
 		List<HE_Face> faces;
 		WB_Point target;
-		WB_Point[] targets=new WB_Point[selection.getNumberOfVertices()];
-		id=0;
+		WB_Point[] targets = new WB_Point[selection.getNumberOfVertices()];
+		id = 0;
 		while (vItr.hasNext()) {
 			v = vItr.next();
 			faces = v.getFaceStar();
-			target=new WB_Point();
-			for(HE_Face f:faces) {
-				target.addSelf(WB_GeometryOp3D.projectOnPlane(v, planes[f.getInternalLabel()]));
+			target = new WB_Point();
+			for (HE_Face f : faces) {
+				target.addSelf(WB_GeometryOp3D.projectOnPlane(v,
+						planes[f.getInternalLabel()]));
 			}
 			target.divSelf(faces.size());
-			targets[id++]=target;
+			targets[id++] = target;
 		}
-		
 		vItr = selection.vItr();
-		id=0;
+		id = 0;
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			v.getPosition().mulAddMulSelf(0.5,0.5,targets[id++]);
-			
+			v.getPosition().mulAddMulSelf(0.5, 0.5, targets[id++]);
 		}
-		
 		return mesh;
 	}
 }

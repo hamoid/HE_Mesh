@@ -70,7 +70,7 @@ public class HEM_KeepLargestParts extends HEM_Modifier {
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
-		return applySelf(selection.parent);
+		return applySelf(selection.getParent());
 	}
 
 	static class MeshSizeComparator implements Comparator<HE_Mesh> {

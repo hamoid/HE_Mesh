@@ -50,3 +50,7 @@ void mousePressed(){
   d+=2;
   expanded.modify(new HEM_VertexExpand().setDistance(d));
 }
+
+void keyPressed(){
+ expanded.smooth(); 
+}

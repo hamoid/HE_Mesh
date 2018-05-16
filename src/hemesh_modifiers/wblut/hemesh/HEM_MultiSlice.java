@@ -258,6 +258,6 @@ public class HEM_MultiSlice extends HEM_Modifier {
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
-		return applySelf(selection.parent);
+		return applySelf(selection.getParent());
 	}
 }

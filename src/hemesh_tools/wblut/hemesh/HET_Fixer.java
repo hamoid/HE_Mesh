@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.Iterator;
@@ -24,7 +21,7 @@ import wblut.geom.WB_CoordOp3D;
 import wblut.geom.WB_GeometryOp;
 import wblut.geom.WB_GeometryOp3D;
 import wblut.geom.WB_IntersectionResult;
-import wblut.geom.WB_Plane;
+import wblut.geom.WB_Point;
 import wblut.geom.WB_Segment;
 import wblut.geom.WB_Triangle;
 import wblut.geom.WB_Vector;
@@ -35,11 +32,14 @@ import wblut.math.WB_Epsilon;
  *
  */
 public class HET_Fixer {
-	public static final WB_ProgressTracker tracker = WB_ProgressTracker.instance();
+	public static final WB_ProgressTracker tracker = WB_ProgressTracker
+			.instance();
 
 	/**
 	 * Iterate through all halfedges and reset the halfedge link to its face to
 	 * itself. f=he.getFace() f.setHalfedge(he)
+	 * 
+	 * @param mesh
 	 */
 	public void fixHalfedgeFaceAssignment(final HE_Mesh mesh) {
 		final Iterator<HE_Halfedge> heItr = mesh.heItr();
@@ -55,6 +55,8 @@ public class HET_Fixer {
 	/**
 	 * Iterate through all halfedges and reset the halfedge link to its vertex
 	 * to itself. v=he.getVertex() v.setHalfedge(he)
+	 * 
+	 * @param mesh
 	 */
 	public void fixHalfedgeVertexAssignment(final HE_Mesh mesh) {
 		final Iterator<HE_Halfedge> heItr = mesh.heItr();
@@ -74,7 +76,7 @@ public class HET_Fixer {
 		if (mesh.contains(f)) {
 			final HE_Halfedge he = f.getHalfedge();
 			final HE_Halfedge hen = he.getNextInFace();
-			if (he == he.getNextInFace(2)) {
+			if (he == hen.getNextInFace()) {
 				final HE_Halfedge hePair = he.getPair();
 				final HE_Halfedge henPair = hen.getPair();
 				mesh.remove(f);
@@ -83,7 +85,6 @@ public class HET_Fixer {
 				mesh.remove(hen);
 				mesh.setHalfedge(hen.getVertex(), hen.getNextInVertex());
 				mesh.setPair(hePair, henPair);
-
 			}
 		}
 	}
@@ -107,7 +108,6 @@ public class HET_Fixer {
 				mesh.remove(hen);
 				mesh.setHalfedge(hen.getVertex(), hen.getNextInVertex());
 				mesh.setPair(hePair, henPair);
-
 			}
 		}
 	}
@@ -117,7 +117,8 @@ public class HET_Fixer {
 	 * @param mesh
 	 * @param v
 	 */
-	public static void deleteTwoEdgeVertex(final HE_Mesh mesh, final HE_Vertex v) {
+	public static void deleteTwoEdgeVertex(final HE_Mesh mesh,
+			final HE_Vertex v) {
 		if (mesh.contains(v) && v.getVertexDegree() == 2) {
 			final HE_Halfedge he0 = v.getHalfedge();
 			final HE_Halfedge he1 = he0.getNextInVertex();
@@ -170,12 +171,13 @@ public class HET_Fixer {
 		HE_Halfedge e;
 		while (eItr.hasNext()) {
 			e = eItr.next();
-			if (WB_Epsilon.isZeroSq(WB_CoordOp3D.getSqDistance3D(e.getVertex(), e.getEndVertex()))) {
+			if (WB_Epsilon.isZeroSq(WB_CoordOp3D.getSqDistance3D(e.getVertex(),
+					e.getEndVertex()))) {
 				edgesToRemove.add(e);
 			}
 		}
 		for (int i = 0; i < edgesToRemove.size(); i++) {
-			HET_MeshOp.collapseEdge(mesh, edgesToRemove.get(i));
+			HE_MeshOp.collapseEdge(mesh, edgesToRemove.get(i));
 		}
 	}
 
@@ -184,19 +186,21 @@ public class HET_Fixer {
 	 * @param mesh
 	 * @param d
 	 */
-	public static void collapseDegenerateEdges(final HE_Mesh mesh, final double d) {
+	public static void collapseDegenerateEdges(final HE_Mesh mesh,
+			final double d) {
 		final FastList<HE_Halfedge> edgesToRemove = new FastList<HE_Halfedge>();
 		final Iterator<HE_Halfedge> eItr = mesh.eItr();
 		HE_Halfedge e;
 		final double d2 = d * d;
 		while (eItr.hasNext()) {
 			e = eItr.next();
-			if (WB_CoordOp3D.getSqDistance3D(e.getVertex(), e.getEndVertex()) < d2) {
+			if (WB_CoordOp3D.getSqDistance3D(e.getVertex(),
+					e.getEndVertex()) < d2) {
 				edgesToRemove.add(e);
 			}
 		}
 		for (int i = 0; i < edgesToRemove.size(); i++) {
-			HET_MeshOp.collapseEdge(mesh, edgesToRemove.get(i));
+			HE_MeshOp.collapseEdge(mesh, edgesToRemove.get(i));
 		}
 	}
 
@@ -216,28 +220,31 @@ public class HET_Fixer {
 		final LongObjectHashMap<VertexInfo> vertexLists = new LongObjectHashMap<VertexInfo>();
 		HE_Vertex v;
 		VertexInfo vi;
-		WB_ProgressCounter counter = new WB_ProgressCounter(mesh.getNumberOfHalfedges(), 10);
-		tracker.setCounterStatus("HET_Fixer", "Classifying halfedges per vertex.", counter);
+		WB_ProgressCounter counter = new WB_ProgressCounter(
+				mesh.getNumberOfHalfedges(), 10);
+		tracker.setCounterStatus("HET_Fixer",
+				"Classifying halfedges per vertex.", counter);
 		HE_HalfedgeIterator heItr = mesh.heItr();
 		HE_Halfedge he;
 		while (heItr.hasNext()) {
 			he = heItr.next();
 			v = he.getVertex();
-			vi = vertexLists.get(v.key());
+			vi = vertexLists.get(v.getKey());
 			if (vi == null) {
 				vi = new VertexInfo();
-				vertexLists.put(v.key(), vi);
+				vertexLists.put(v.getKey(), vi);
 			}
 			vi.out.add(he);
 			counter.increment();
 		}
 		final List<HE_Vertex> toUnweld = new FastList<HE_Vertex>();
 		counter = new WB_ProgressCounter(mesh.getNumberOfVertices(), 10);
-		tracker.setCounterStatus("HET_Fixer", "Checking vertex umbrellas.", counter);
+		tracker.setCounterStatus("HET_Fixer", "Checking vertex umbrellas.",
+				counter);
 		Iterator<HE_Vertex> vItr = mesh.vItr();
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			final List<HE_Halfedge> outgoing = vertexLists.get(v.key()).out;
+			final List<HE_Halfedge> outgoing = vertexLists.get(v.getKey()).out;
 			final List<HE_Halfedge> vStar = v.getHalfedgeStar();
 			if (outgoing.size() != vStar.size()) {
 				toUnweld.add(v);
@@ -245,11 +252,12 @@ public class HET_Fixer {
 		}
 		vItr = toUnweld.iterator();
 		counter = new WB_ProgressCounter(toUnweld.size(), 10);
-		tracker.setCounterStatus("HET_Fixer", "Splitting vertex umbrellas. ", counter);
-
+		tracker.setCounterStatus("HET_Fixer", "Splitting vertex umbrellas. ",
+				counter);
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			final List<HE_Halfedge> vHalfedges = vertexLists.get(v.key()).out;
+			final List<HE_Halfedge> vHalfedges = vertexLists
+					.get(v.getKey()).out;
 			final List<HE_Halfedge> vStar = v.getHalfedgeStar();
 			final HE_Vertex vc = new HE_Vertex(v);
 			mesh.add(vc);
@@ -274,20 +282,20 @@ public class HET_Fixer {
 		HE_Face f;
 		while (fItr.hasNext()) {
 			f = fItr.next();
-			if (f.isDegenerate() && f.getFaceDegree() == 3 && mesh.contains(f)) {
-				double d = f.getHalfedge().getLength();
+			if (f.isDegenerate() && f.getFaceDegree() == 3
+					&& mesh.contains(f)) {
+				double d = HE_MeshOp.getLength(f.getHalfedge());
 				double dmax = d;
 				HE_Halfedge he = f.getHalfedge();
 				HE_Halfedge longesthe = he;
 				if (d > WB_Epsilon.EPSILON) {
 					do {
 						he = he.getNextInFace();
-						d = he.getLength();
+						d = HE_MeshOp.getLength(he);
 						if (WB_Epsilon.isZero(d)) {
 							longesthe = he;
 							break;
 						}
-
 						if (d > dmax) {
 							longesthe = he;
 							dmax = d;
@@ -296,7 +304,6 @@ public class HET_Fixer {
 				}
 				mesh.deleteEdge(longesthe);
 			}
-
 		}
 	}
 
@@ -318,99 +325,92 @@ public class HET_Fixer {
 	 * Remove all redundant vertices in straight edges.
 	 *
 	 */
-		public static void deleteCollinearVertices(final HE_Mesh mesh) {
-			final HE_VertexIterator vItr = mesh.vItr();
-			HE_Vertex v;
-			HE_Halfedge hef1, hef2, hepf1, hepf2, henf1, henf2;
-			List<HE_Vertex> vertices = new FastList<HE_Vertex>();
-			while (vItr.hasNext()) {
-				v = vItr.next();
-				if (v.getVertexDegree() == 2) {
-					hef1 = v.getHalfedge();
-					hef2 = hef1.getPair();
-					henf2 = hef2.getNextInFace();
-					if (WB_Vector.dot(hef1.getHalfedgeTangent(), henf2.getHalfedgeTangent())<1.0-WB_Epsilon.EPSILON) {
-						vertices.add(v);
-					}
-				}
-			}
-
-			for (HE_Vertex vv : vertices) {
-				hef1 = vv.getHalfedge();
+	public static void deleteCollinearVertices(final HE_Mesh mesh) {
+		final HE_VertexIterator vItr = mesh.vItr();
+		HE_Vertex v;
+		HE_Halfedge hef1, hef2, hepf1, hepf2, henf1, henf2;
+		List<HE_Vertex> vertices = new FastList<HE_Vertex>();
+		while (vItr.hasNext()) {
+			v = vItr.next();
+			if (v.getVertexDegree() == 2) {
+				hef1 = v.getHalfedge();
 				hef2 = hef1.getPair();
-				hepf1 = hef1.getPrevInFace();
-				hepf2 = hef2.getPrevInFace();
-				henf1 = hef1.getNextInFace();
 				henf2 = hef2.getNextInFace();
-				mesh.setNext(hepf1, henf1);
-				mesh.setNext(hepf2, henf2);
-				mesh.setVertex(henf2, hef2.getVertex());
-				mesh.setHalfedge(hef2.getVertex(), henf2);
-				if (hef1.getFace() != null) {
-					if (hef1.getFace().getHalfedge() == hef1) {
-						mesh.setHalfedge(hef1.getFace(), henf1);
-					}
-					hef1.getFace().clearPrecomputed();
-				}
-				if (hef2.getFace() != null) {
-					if (hef2.getFace().getHalfedge() == hef2) {
-						mesh.setHalfedge(hef2.getFace(), henf2);
-					}
-					hef2.getFace().clearPrecomputed();
-				}
-
-				mesh.remove(vv);
-				mesh.remove(hef1);
-				mesh.remove(hef2);
-
-			}
-		}
-	
-
-		public static HE_Selection selectCollinearVertices(final HE_Mesh mesh) {
-			final HE_VertexIterator vItr = mesh.vItr();
-			HE_Vertex v;
-			HE_Halfedge hef1, hef2, henf2;
-			List<HE_Vertex> vertices = new FastList<HE_Vertex>();
-			while (vItr.hasNext()) {
-				v = vItr.next();
-				
-				if (v.getVertexDegree() == 2) {
-					hef1 = v.getHalfedge();
-					hef2 = hef1.getPair();
-					henf2 = hef2.getNextInFace();
-					if (WB_Vector.dot(hef1.getHalfedgeTangent(), henf2.getHalfedgeTangent())<1.0-WB_Epsilon.EPSILON) {
-						vertices.add(v);
-					}
+				if (WB_Vector.dot(HE_MeshOp.getHalfedgeTangent(hef1),
+						HE_MeshOp.getHalfedgeTangent(henf2)) < 1.0
+								- WB_Epsilon.EPSILON) {
+					vertices.add(v);
 				}
 			}
-
-			HE_Selection sel=new HE_Selection(mesh);
-			sel.addVertices(vertices);
-			return sel;
 		}
-	
-		
-		public static HE_Selection selectVerticesWithDegree(int degree,final HE_Mesh mesh) {
-			final HE_VertexIterator vItr = mesh.vItr();
-			HE_Vertex v;
-			
-			List<HE_Vertex> vertices = new FastList<HE_Vertex>();
-			while (vItr.hasNext()) {
-				v = vItr.next();
-				
-				if (v.getVertexDegree() == degree) {
-					
-						vertices.add(v);
-					
+		for (HE_Vertex vv : vertices) {
+			hef1 = vv.getHalfedge();
+			hef2 = hef1.getPair();
+			hepf1 = hef1.getPrevInFace();
+			hepf2 = hef2.getPrevInFace();
+			henf1 = hef1.getNextInFace();
+			henf2 = hef2.getNextInFace();
+			mesh.setNext(hepf1, henf1);
+			mesh.setNext(hepf2, henf2);
+			mesh.setVertex(henf2, hef2.getVertex());
+			mesh.setHalfedge(hef2.getVertex(), henf2);
+			if (hef1.getFace() != null) {
+				if (hef1.getFace().getHalfedge() == hef1) {
+					mesh.setHalfedge(hef1.getFace(), henf1);
+				}
+				hef1.getFace().clearPrecomputed();
+			}
+			if (hef2.getFace() != null) {
+				if (hef2.getFace().getHalfedge() == hef2) {
+					mesh.setHalfedge(hef2.getFace(), henf2);
+				}
+				hef2.getFace().clearPrecomputed();
+			}
+			mesh.remove(vv);
+			mesh.remove(hef1);
+			mesh.remove(hef2);
+		}
+	}
+
+	public static HE_Selection selectCollinearVertices(final HE_Mesh mesh) {
+		final HE_VertexIterator vItr = mesh.vItr();
+		HE_Vertex v;
+		HE_Halfedge hef1, hef2, henf2;
+		List<HE_Vertex> vertices = new FastList<HE_Vertex>();
+		while (vItr.hasNext()) {
+			v = vItr.next();
+			if (v.getVertexDegree() == 2) {
+				hef1 = v.getHalfedge();
+				hef2 = hef1.getPair();
+				henf2 = hef2.getNextInFace();
+				if (WB_Vector.dot(HE_MeshOp.getHalfedgeTangent(hef1),
+						HE_MeshOp.getHalfedgeTangent(henf2)) < 1.0
+								- WB_Epsilon.EPSILON) {
+					vertices.add(v);
 				}
 			}
-
-			HE_Selection sel=new HE_Selection(mesh);
-			sel.addVertices(vertices);
-			return sel;
 		}
-		
+		HE_Selection sel = new HE_Selection(mesh);
+		sel.addVertices(vertices);
+		return sel;
+	}
+
+	public static HE_Selection selectVerticesWithDegree(int degree,
+			final HE_Mesh mesh) {
+		final HE_VertexIterator vItr = mesh.vItr();
+		HE_Vertex v;
+		List<HE_Vertex> vertices = new FastList<HE_Vertex>();
+		while (vItr.hasNext()) {
+			v = vItr.next();
+			if (v.getVertexDegree() == degree) {
+				vertices.add(v);
+			}
+		}
+		HE_Selection sel = new HE_Selection(mesh);
+		sel.addVertices(vertices);
+		return sel;
+	}
+
 	/**
 	 *
 	 */
@@ -427,7 +427,7 @@ public class HET_Fixer {
 					HE_Halfedge degeneratehe = null;
 					he = face.getHalfedge();
 					do {
-						if (WB_Epsilon.isZero(he.getLength())) {
+						if (WB_Epsilon.isZero(HE_MeshOp.getLength(he))) {
 							degeneratehe = he;
 							break;
 						}
@@ -435,14 +435,14 @@ public class HET_Fixer {
 					} while (he != face.getHalfedge());
 					if (degeneratehe != null) {
 						// System.out.println("Zero length change!");
-						HET_MeshOp.collapseHalfedge(mesh, he);
+						HE_MeshOp.collapseHalfedge(mesh, he);
 						continue;
 					}
 					he = face.getHalfedge();
 					double d;
 					double dmax = 0;
 					do {
-						d = he.getLength();
+						d = HE_MeshOp.getLength(he);
 						if (d > dmax) {
 							degeneratehe = he;
 							dmax = d;
@@ -475,11 +475,11 @@ public class HET_Fixer {
 		}
 	}
 
-	public static List<HET_SelfIntersectionResult> getSelfIntersection(final HE_Mesh mesh) {
+	public static List<HET_SelfIntersectionResult> getSelfIntersection(
+			final HE_Mesh mesh) {
 		final List<HET_SelfIntersectionResult> selfints = new FastList<HET_SelfIntersectionResult>();
 		mesh.triangulate();
 		mesh.resetFaceInternalLabels();
-
 		HE_Selection sifs = HE_Selection.getSelection(mesh);
 		WB_AABBTree tree = new WB_AABBTree(mesh, 1);
 		List<WB_AABBNode[]> atat = WB_GeometryOp.getIntersection3D(tree, tree);
@@ -487,7 +487,7 @@ public class HET_Fixer {
 		List<HE_Face> neighbors;
 		for (WB_AABBNode[] node : atat) {
 			for (HE_Face f0 : node[0].getFaces()) {
-				T0 = f0.toTriangle();
+				T0 = HE_MeshOp.getTriangle(f0);
 				neighbors = f0.getNeighborFaces();
 				for (HE_Face f1 : node[1].getFaces()) {
 					if (!neighbors.contains(f1) && f1.getKey() > f0.getKey()) {// Check
@@ -495,24 +495,23 @@ public class HET_Fixer {
 																				// face
 																				// pair
 																				// only
-						T1 = f1.toTriangle();
-						final WB_IntersectionResult ir = WB_GeometryOp3D.getIntersection3D(T0, T1);
-						if (ir.intersection && ir.object != null
-								&& !WB_Epsilon.isZero(((WB_Segment) ir.object).getLength())) {
+						T1 = HE_MeshOp.getTriangle(f1);
+						final WB_IntersectionResult ir = WB_GeometryOp3D
+								.getIntersection3D(T0, T1);
+						if (ir.intersection && ir.object != null && !WB_Epsilon
+								.isZero(((WB_Segment) ir.object).getLength())) {
 							f0.setInternalLabel(1);
 							f1.setInternalLabel(1);
 							sifs.add(f0);
 							sifs.add(f1);
-							selfints.add(new HET_SelfIntersectionResult(f0, f1, (WB_Segment) ir.object));
+							selfints.add(new HET_SelfIntersectionResult(f0, f1,
+									(WB_Segment) ir.object));
 						}
 					}
 				}
 			}
-
 		}
-
 		mesh.addSelection("self", sifs);
-
 		return selfints;
 	}
 
@@ -523,15 +522,15 @@ public class HET_Fixer {
 		/**
 		 *
 		 */
-		HE_Face f1;
+		HE_Face		f1;
 		/**
 		 *
 		 */
-		HE_Face f2;
+		HE_Face		f2;
 		/**
 		 *
 		 */
-		WB_Segment segment;
+		WB_Segment	segment;
 
 		/**
 		 *
@@ -540,7 +539,8 @@ public class HET_Fixer {
 		 * @param f2
 		 * @param seg
 		 */
-		public HET_SelfIntersectionResult(final HE_Face f1, final HE_Face f2, final WB_Segment seg) {
+		public HET_SelfIntersectionResult(final HE_Face f1, final HE_Face f2,
+				final WB_Segment seg) {
 			this.f1 = f1;
 			this.f2 = f2;
 			segment = seg;
@@ -585,23 +585,24 @@ public class HET_Fixer {
 			v = current.getStartVertex();
 			for (HE_Halfedge check : bhes) {
 				if (check != current && check != heprev) {
-					dse2 = WB_GeometryOp.getDistanceToSegment3D(v, check.getStartVertex(), check.getEndVertex());
+					dse2 = WB_GeometryOp.getDistanceToSegment3D(v,
+							check.getStartVertex(), check.getEndVertex());
 					if (WB_Epsilon.isZeroSq(dse2)) {
-						ds2 = WB_CoordOp3D.getSqDistance3D(v, check.getStartVertex());
-						de2 = WB_CoordOp3D.getSqDistance3D(v, check.getEndVertex());
-						if (!WB_Epsilon.isZeroSq(ds2) && !WB_Epsilon.isZeroSq(de2)) {
+						ds2 = WB_CoordOp3D.getSqDistance3D(v,
+								check.getStartVertex());
+						de2 = WB_CoordOp3D.getSqDistance3D(v,
+								check.getEndVertex());
+						if (!WB_Epsilon.isZeroSq(ds2)
+								&& !WB_Epsilon.isZeroSq(de2)) {
 							sel.add(v);
 							//
 							break;
 						}
 					}
-
 				}
 			}
 		}
-
 		mesh.addSelection("tjunctions", sel);
-
 	}
 
 	public static void fixTJunctions(final HE_Mesh mesh) {
@@ -615,25 +616,26 @@ public class HET_Fixer {
 			v = current.getStartVertex();
 			for (HE_Halfedge check : bhes) {
 				if (check != current && check != heprev) {
-					dse2 = WB_GeometryOp.getDistanceToSegment3D(v, check.getStartVertex(), check.getEndVertex());
+					dse2 = WB_GeometryOp.getDistanceToSegment3D(v,
+							check.getStartVertex(), check.getEndVertex());
 					if (WB_Epsilon.isZeroSq(dse2)) {
-						ds2 = WB_CoordOp3D.getSqDistance3D(v, check.getStartVertex());
-						de2 = WB_CoordOp3D.getSqDistance3D(v, check.getEndVertex());
-						if (!WB_Epsilon.isZeroSq(ds2) && !WB_Epsilon.isZeroSq(de2)) {
+						ds2 = WB_CoordOp3D.getSqDistance3D(v,
+								check.getStartVertex());
+						de2 = WB_CoordOp3D.getSqDistance3D(v,
+								check.getEndVertex());
+						if (!WB_Epsilon.isZeroSq(ds2)
+								&& !WB_Epsilon.isZeroSq(de2)) {
 							sel.add(v);
-							HET_MeshOp.splitEdge(mesh, check, v);
+							HE_MeshOp.splitEdge(mesh, check, v);
 							break;
 						}
 					}
-
 				}
 			}
 		}
-
 		mesh.addSelection("tjunctions", sel);
-
 	}
-	
+
 	private static boolean deleteDanglingEdgesOnePass(final HE_Mesh mesh) {
 		HE_HalfedgeIterator heItr = mesh.heItr();
 		HE_Selection sel = mesh.getNewSelection("dangling");
@@ -641,26 +643,26 @@ public class HET_Fixer {
 		boolean found = false;
 		while (heItr.hasNext()) {
 			he = heItr.next();
-			   mesh.setHalfedge(he.getVertex(),he);
-			if (he.getFace() != null && he.getPair() != null && he.getPair().getFace() != null
-					&& he.getFace() == he.getPair().getFace() && he.getVertex() == he.getNextInFace().getEndVertex()) {
+			mesh.setHalfedge(he.getVertex(), he);
+			if (he.getFace() != null && he.getPair() != null
+					&& he.getPair().getFace() != null
+					&& he.getFace() == he.getPair().getFace()
+					&& he.getVertex() == he.getNextInFace().getEndVertex()) {
 				sel.add(he);
 				found = true;
 			}
 		}
-
 		heItr = sel.heItr();
 		while (heItr.hasNext()) {
 			he = heItr.next();
-			mesh.setNext(he.getPrevInFace(), he.getNextInFace().getNextInFace());
+			mesh.setNext(he.getPrevInFace(),
+					he.getNextInFace().getNextInFace());
 			mesh.setHalfedge(he.getFace(), he.getPrevInFace());
 			mesh.remove(he.getNextInFace().getVertex());
 			mesh.remove(he);
 			mesh.remove(he.getNextInFace());
-			
 		}
 		return found;
-
 	}
 
 	public static void deleteDanglingEdges(final HE_Mesh mesh) {
@@ -668,10 +670,84 @@ public class HET_Fixer {
 		do {
 			found = deleteDanglingEdgesOnePass(mesh);
 		} while (found);
-
 	}
 
+	public static int findSubmeshes(HE_Mesh mesh) {
+		mesh.clearVisitedElements();
+		HE_Face start = mesh.getFaceWithIndex(0);
+		int lastfound = 0;
+		HE_Selection submesh;
+		int id = 0;
+		do {
+			// find next unvisited face
+			for (int i = lastfound; i < mesh.getNumberOfFaces(); i++) {
+				start = mesh.getFaceWithIndex(i);
+				lastfound = i;
+				if (!start.isVisited()) {// found
+					break;
+				}
+			}
+			// reached last face, was already visited
+			if (start.isVisited()) {
+				break;
+			}
+			start.setVisited();// visited
+			submesh = HE_Selection.getSelection(mesh);
+			submesh.add(start);
+			// find all unvisited faces connected to face
+			HE_RAS<HE_Face> facesToProcess = new HE_RAS<HE_Face>();
+			HE_RAS<HE_Face> newFacesToProcess;
+			facesToProcess.add(start);
+			List<HE_Face> neighbors;
+			do {
+				newFacesToProcess = new HE_RAS<HE_Face>();
+				for (final HE_Face f : facesToProcess) {
+					neighbors = f.getNeighborFaces();
+					for (final HE_Face neighbor : neighbors) {
+						if (!neighbor.isVisited()) {
+							neighbor.setVisited();// visited
+							submesh.add(neighbor);
+							newFacesToProcess.add(neighbor);
+						}
+					}
+				}
+				facesToProcess = newFacesToProcess;
+			} while (facesToProcess.size() > 0);
+			if (id > 1)
+				mesh.addSelection("submesh" + (id++), submesh);
+		} while (true);
+		return id;
+	}
 
-	
-	
+	public static void unifyNormals(HE_Mesh mesh) {
+		int num = findSubmeshes(mesh);
+		for (int i = 0; i < num; i++) {
+			HE_Selection sel = num == 1 ? mesh.selectAllFaces()
+					: mesh.getSelection("submesh" + i);
+			HE_FaceIterator fItr = sel.fItr();
+			WB_Point c = new WB_Point();
+			while (fItr.hasNext()) {
+				c.addSelf(HE_MeshOp.getFaceCenter(fItr.next()));
+			}
+			c.divSelf(sel.getNumberOfFaces());
+			fItr = sel.fItr();
+			HE_Face f;
+			WB_Coord fn, fo;
+			int plus = 0, minus = 0;
+			while (fItr.hasNext()) {
+				f = fItr.next();
+				fn = HE_MeshOp.getFaceNormal(f);
+				fo = new WB_Vector(c, HE_MeshOp.getFaceCenter(f));
+				if (WB_Vector.dot(fn, fo) >= 0.0) {
+					plus++;
+				} else {
+					minus++;
+				}
+			}
+			if (plus < minus) {
+				HE_MeshOp.flipFaces(sel);
+			}
+		}
+		mesh.clearPrecomputed();
+	}
 }

@@ -120,6 +120,6 @@ public class HEM_Spherify extends HEM_Modifier {
 			v = vItr.next();
 			v.set(gf.createInterpolatedPoint(v, sphere.projectToSphere(v), factor));
 		}
-		return selection.parent;
+		return selection.getParent();
 	}
 }

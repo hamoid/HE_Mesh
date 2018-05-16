@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.Iterator;
@@ -24,8 +21,8 @@ import wblut.math.WB_ScalarParameter;
  */
 public class HEM_RadialNoise extends HEM_Modifier {
 	/** Expansion distance. */
-	private WB_ScalarParameter d;
-	private final WB_MTRandom rng;
+	private WB_ScalarParameter	d;
+	private final WB_MTRandom	rng;
 
 	/**
 	 * Instantiates a new hE m_ noise.
@@ -44,7 +41,8 @@ public class HEM_RadialNoise extends HEM_Modifier {
 	 * @return this
 	 */
 	public HEM_RadialNoise setDistance(final double d) {
-		this.d = d == 0 ? WB_ScalarParameter.ZERO : new WB_ConstantScalarParameter(d);
+		this.d = d == 0 ? WB_ScalarParameter.ZERO
+				: new WB_ConstantScalarParameter(d);
 		return this;
 	}
 
@@ -73,7 +71,6 @@ public class HEM_RadialNoise extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Modifier#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
@@ -87,16 +84,15 @@ public class HEM_RadialNoise extends HEM_Modifier {
 		WB_Coord n;
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			n = v.getVertexNormal();
-			v.getPosition().addMulSelf(rng.nextDouble() * d.evaluate(v.xd(), v.yd(), v.zd()), n);
+			n = HE_MeshOp.getVertexNormal(v);
+			v.getPosition().addMulSelf(
+					rng.nextDouble() * d.evaluate(v.xd(), v.yd(), v.zd()), n);
 		}
-
 		return mesh;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Modifier#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
@@ -108,10 +104,10 @@ public class HEM_RadialNoise extends HEM_Modifier {
 		WB_Coord n;
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			n = v.getVertexNormal();
-			v.getPosition().addMulSelf(rng.nextDouble() * d.evaluate(v.xd(), v.yd(), v.zd()), n);
+			n = HE_MeshOp.getVertexNormal(v);
+			v.getPosition().addMulSelf(
+					rng.nextDouble() * d.evaluate(v.xd(), v.yd(), v.zd()), n);
 		}
-
-		return selection.parent;
+		return selection.getParent();
 	}
 }

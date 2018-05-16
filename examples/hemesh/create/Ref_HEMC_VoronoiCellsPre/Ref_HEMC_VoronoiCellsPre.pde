@@ -20,7 +20,7 @@ void setup() {
 
   numpoints=500;
   points=new WB_Point[numpoints];
-  WB_RandomPoint rp=new WB_RandomBox().set(container.getAABB());
+  WB_RandomPoint rp=new WB_RandomBox().set(HE_MeshOp.getAABB(container));
   for (int i=0; i<numpoints; i++) {
     points[i]=rp.nextPoint();
   }
@@ -32,13 +32,14 @@ void setup() {
   multiCreator.setOffset(new Gradient());// offset of the bisector cutting planes, sides of the voronoi cells will be separated by twice this distance
   cells=new HE_MeshCollection();
   cells.createThreaded(multiCreator);
+  cells.modifyThreaded(new HEM_HideEdges());
   render=new WB_Render(this);
   noCursor();
 }
 
 void draw() {
   cells.update();
-  background(55);
+  background(25);
   directionalLight(255, 255, 255, 1, 1, -1);
   directionalLight(127, 127, 127, -1, -1, 1);
   translate(width/2, height/2);
@@ -49,18 +50,18 @@ void draw() {
 }
 
 void drawEdges() {
-  stroke(0);
+  stroke(240);
   render.drawEdges(cells);
 }
 
 void drawFaces() {
   noStroke();
-  fill(255);
+  fill(55);
   render.drawFaces(cells);
 }
 
 class Gradient implements WB_ScalarParameter {
   public double evaluate(double... x) {
-    return  max(0,map((float)x[1],-400,400,0,14));
+    return  max(0,map((float)x[1],-400,400,0,24));
   }
 }

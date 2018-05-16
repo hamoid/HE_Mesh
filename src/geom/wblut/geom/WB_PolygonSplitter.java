@@ -31,12 +31,12 @@ import wblut.math.WB_Epsilon;
  *
  */
 public class WB_PolygonSplitter {
-	static List<PolyEdge> splitPoly;
-	static List<PolyEdge> edgesOnLine;
-	static WB_GeometryFactory gf = new WB_GeometryFactory();
+	List<PolyEdge> splitPoly;
+	List<PolyEdge> edgesOnLine;
+	WB_GeometryFactory gf = new WB_GeometryFactory();
 
 	// Split a convex or concave polygon without holes with a given line
-	public static List<WB_Polygon> splitSimplePolygon2D(final WB_Polygon polygon, final WB_Line L) {
+	public List<WB_Polygon> splitSimplePolygon2D(final WB_Polygon polygon, final WB_Line L) {
 		List<WB_Polygon> polys = new ArrayList<WB_Polygon>();
 		List<WB_Coord> coords = polygon.getPoints().toList();
 		splitEdges(coords, L);
@@ -48,7 +48,7 @@ public class WB_PolygonSplitter {
 	}
 
 	// Split a convex or concave polygon without holes with a given plane
-	public static List<WB_Polygon> splitSimplePolygon3D(final WB_Polygon polygon, final WB_Plane P) {
+	public List<WB_Polygon> splitSimplePolygon3D(final WB_Polygon polygon, final WB_Plane P) {
 		List<WB_Polygon> polys = new ArrayList<WB_Polygon>();
 		WB_Plane Q = polygon.getPlane();
 		WB_IntersectionResult intersection = WB_GeometryOp3D.getIntersection3D(P, Q);
@@ -65,7 +65,7 @@ public class WB_PolygonSplitter {
 		return polys;
 	}
 
-	public static List<WB_Polygon> splitPolygon2D(final WB_Polygon polygon, final WB_Line L) {
+	public List<WB_Polygon> splitPolygon2D(final WB_Polygon polygon, final WB_Line L) {
 		List<WB_Polygon> polys = new ArrayList<WB_Polygon>();
 		WB_Polygon spolygon = gf.createSimplePolygon(polygon);
 		List<WB_Coord> coords = spolygon.getPoints().toList();
@@ -78,7 +78,7 @@ public class WB_PolygonSplitter {
 	}
 
 	// Split a convex or concave polygon without holes with a given plane
-	public static List<WB_Polygon> splitPolygon3D(final WB_Polygon polygon, final WB_Plane P) {
+	public List<WB_Polygon> splitPolygon3D(final WB_Polygon polygon, final WB_Plane P) {
 		WB_Polygon spolygon = gf.createSimplePolygon(polygon);
 		List<WB_Polygon> polys = new ArrayList<WB_Polygon>();
 		WB_Plane Q = spolygon.getPlane();
@@ -96,7 +96,7 @@ public class WB_PolygonSplitter {
 		return polys;
 	}
 
-	static void splitEdges(final List<? extends WB_Coord> coords, final WB_Plane P) {
+	void splitEdges(final List<? extends WB_Coord> coords, final WB_Plane P) {
 		splitPoly = new FastList<PolyEdge>();
 		edgesOnLine = new FastList<PolyEdge>();
 
@@ -124,7 +124,7 @@ public class WB_PolygonSplitter {
 
 	}
 
-	static void splitEdges(final List<? extends WB_Coord> coords, final WB_Line L) {
+	void splitEdges(final List<? extends WB_Coord> coords, final WB_Line L) {
 		splitPoly = new FastList<PolyEdge>();
 		edgesOnLine = new FastList<PolyEdge>();
 
@@ -152,15 +152,15 @@ public class WB_PolygonSplitter {
 
 	}
 
-	static void sortEdges(final WB_Line L) {
+	void sortEdges(final WB_Line L) {
 		Collections.sort(edgesOnLine, new EdgeOnLineComparator(L));
 		for (int i = 1; i < edgesOnLine.size(); i++) {
 			edgesOnLine.get(i).distOnLine = WB_Point.getDistance3D(edgesOnLine.get(i).pos, edgesOnLine.get(0).pos);
 		}
-		;
+		
 	}
 
-	static void splitPolygon() {
+	void splitPolygon() {
 		PolyEdge reUseSrc = null;
 
 		for (int i = 0; i < edgesOnLine.size(); i++) {
@@ -221,7 +221,7 @@ public class WB_PolygonSplitter {
 		}
 	}
 
-	static void createBridge(final PolyEdge srcEdge, final PolyEdge dstEdge) {
+	void createBridge(final PolyEdge srcEdge, final PolyEdge dstEdge) {
 		PolyEdge srcToDst = new PolyEdge(srcEdge.pos, srcEdge.side);
 		PolyEdge dstToSrc = new PolyEdge(dstEdge.pos, dstEdge.side);
 
@@ -238,7 +238,7 @@ public class WB_PolygonSplitter {
 		dstEdge.prev = srcToDst;
 	}
 
-	static void verifyCycles() {
+	void verifyCycles() {
 		for (PolyEdge edge : splitPoly) {
 			PolyEdge curEdge = edge;
 			int count = 0;
@@ -251,7 +251,7 @@ public class WB_PolygonSplitter {
 		}
 	}
 
-	static List<WB_Polygon> collectPolygons() {
+	List<WB_Polygon> collectPolygons() {
 		List<WB_Polygon> resPolys = new ArrayList<WB_Polygon>();
 		for (PolyEdge e : splitPoly) {
 			if (!e.visited) {
@@ -310,7 +310,7 @@ public class WB_PolygonSplitter {
 		}
 	}
 
-	static WB_Polygon polygonFromArray(final double[][] points) {
+	WB_Polygon polygonFromArray(final double[][] points) {
 		List<WB_Coord> coords = new FastList<WB_Coord>();
 		for (double[] p : points) {
 			if (p.length == 2) {
@@ -324,7 +324,7 @@ public class WB_PolygonSplitter {
 
 	}
 
-	static WB_Plane planeFromArray(final double[][] points) {
+	WB_Plane planeFromArray(final double[][] points) {
 		WB_Point p0 = new WB_Point(points[0]);
 		WB_Point p1 = new WB_Point(points[1]);
 		WB_Point p2 = p0.add(0, 0, 100);
@@ -332,7 +332,7 @@ public class WB_PolygonSplitter {
 
 	}
 
-	static WB_Line lineFromArray(final double[][] points) {
+	WB_Line lineFromArray(final double[][] points) {
 		WB_Point p0 = new WB_Point(points[0]);
 		WB_Point p1 = new WB_Point(points[1]);
 		return gf.createLineThroughPoints(p0, p1);
@@ -340,21 +340,21 @@ public class WB_PolygonSplitter {
 	}
 
 	public static void main(final String[] args) {
-
-		WB_Polygon poly0 = polygonFromArray(new double[][] { { -50, 50 }, { -50, -50 }, { 50, -50 }, { 50, 50 } });
-		WB_Polygon poly1 = polygonFromArray(
+WB_PolygonSplitter ps=new WB_PolygonSplitter();
+		WB_Polygon poly0 = ps.polygonFromArray(new double[][] { { -50, 50 }, { -50, -50 }, { 50, -50 }, { 50, 50 } });
+		WB_Polygon poly1 = ps.polygonFromArray(
 				new double[][] { { -50, 50 }, { -50, -50 }, { 50, -50 }, { 50, 50 }, { 0, 0 } });
-		WB_Polygon poly2 = polygonFromArray(new double[][] { { -50, 50 }, { -50, -50 }, { 50, -50 }, { 50, 50 },
+		WB_Polygon poly2 = ps.polygonFromArray(new double[][] { { -50, 50 }, { -50, -50 }, { 50, -50 }, { 50, 50 },
 				{ 15, 50 }, { 15, 25 }, { -15, 25 }, { -15, 50 } });
-		WB_Polygon poly3 = polygonFromArray(new double[][] { { -50, 50 }, { -50, -50 }, { 50, -50 }, { 50, 50 },
+		WB_Polygon poly3 = ps.polygonFromArray(new double[][] { { -50, 50 }, { -50, -50 }, { 50, -50 }, { 50, 50 },
 				{ 15, 50 }, { 15, 25 }, { 0, 40 }, { -15, 25 }, { -15, 50 } });
-		WB_Polygon poly4 = polygonFromArray(new double[][] { { -40, 50 }, { -50, 40 }, { -50, -50 }, { 50, -50 },
+		WB_Polygon poly4 = ps.polygonFromArray(new double[][] { { -40, 50 }, { -50, 40 }, { -50, -50 }, { 50, -50 },
 				{ 50, 50 }, { 15, 50 }, { 15, 15 }, { -30, 15 }, { -30, 40 } });
-		WB_Polygon poly5 = polygonFromArray(new double[][] { { -40, 40 }, { -50, 30 }, { -50, -50 }, { 50, -50 },
+		WB_Polygon poly5 = ps.polygonFromArray(new double[][] { { -40, 40 }, { -50, 30 }, { -50, -50 }, { 50, -50 },
 				{ 50, 50 }, { 15, 50 }, { 15, 15 }, { -30, 15 }, { -30, 30 } });
-		WB_Polygon poly6 = polygonFromArray(
+		WB_Polygon poly6 = ps.polygonFromArray(
 				new double[][] { { -50, 50 }, { -50, -50 }, { 50, -50 }, { 50, 50 }, { 0, 50 } });
-		WB_Polygon poly7 = polygonFromArray(new double[][] { { -50, 50 }, { -50, -50 }, { 50, -50 }, { 50, 50 },
+		WB_Polygon poly7 = ps.polygonFromArray(new double[][] { { -50, 50 }, { -50, -50 }, { 50, -50 }, { 50, 50 },
 				{ 25, 50 }, { 25, 15 }, { 10, 40 }, { -10, 40 }, { -25, 15 }, { -25, 50 } });
 
 		class TestCase2D {
@@ -363,7 +363,7 @@ public class WB_PolygonSplitter {
 
 			TestCase2D(final WB_Polygon polygon, final double[][] line) {
 				this.polygon = polygon;
-				this.L = lineFromArray(line);
+				this.L = ps.lineFromArray(line);
 			}
 
 		}
@@ -419,7 +419,7 @@ public class WB_PolygonSplitter {
 		int counter = 1;
 		for (TestCase2D testCase : cases2D) {
 			System.out
-					.println("2D case " + counter++ + ": " + splitSimplePolygon2D(testCase.polygon, testCase.L).size());
+					.println("2D case " + counter++ + ": " + ps.splitSimplePolygon2D(testCase.polygon, testCase.L).size());
 
 		}
 
@@ -429,7 +429,7 @@ public class WB_PolygonSplitter {
 
 			TestCase3D(final WB_Polygon polygon, final double[][] plane) {
 				this.polygon = polygon;
-				this.P = planeFromArray(plane);
+				this.P = ps.planeFromArray(plane);
 			}
 
 		}
@@ -485,7 +485,7 @@ public class WB_PolygonSplitter {
 
 		for (TestCase3D testCase : cases3D) {
 			System.out
-					.println("3D case " + counter++ + ": " + splitSimplePolygon3D(testCase.polygon, testCase.P).size());
+					.println("3D case " + counter++ + ": " + ps.splitSimplePolygon3D(testCase.polygon, testCase.P).size());
 
 		}
 

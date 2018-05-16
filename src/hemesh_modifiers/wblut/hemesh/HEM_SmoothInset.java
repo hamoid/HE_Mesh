@@ -69,7 +69,7 @@ public class HEM_SmoothInset extends HEM_Modifier {
 			mesh.getSelection("extruded").collectEdgesByFace();
 			final Iterator<HE_Halfedge> eItr = mesh.getSelection("extruded").eItr();
 			while (eItr.hasNext()) {
-				HET_MeshOp.divideEdge(mesh, eItr.next(), 2);
+				HE_MeshOp.divideEdge(mesh, eItr.next(), 2);
 			}
 			mesh.getSelection("extruded").collectVertices();
 			mesh.getSelection("extruded").modify(new HEM_Smooth());
@@ -90,15 +90,15 @@ public class HEM_SmoothInset extends HEM_Modifier {
 		final HEM_Extrude ext = new HEM_Extrude().setChamfer(offset).setRelative(false);
 		selection.modify(ext);
 		for (int i = 0; i < rep; i++) {
-			selection.parent.getSelection("extruded").collectEdgesByFace();
-			final Iterator<HE_Halfedge> eItr = selection.parent.getSelection("extruded").eItr();
+			selection.getParent().getSelection("extruded").collectEdgesByFace();
+			final Iterator<HE_Halfedge> eItr = selection.getParent().getSelection("extruded").eItr();
 			while (eItr.hasNext()) {
-				HET_MeshOp.divideEdge(selection.parent, eItr.next(), 2);
+				HE_MeshOp.divideEdge(selection.getParent(), eItr.next(), 2);
 			}
-			selection.parent.getSelection("extruded").collectVertices();
-			selection.parent.getSelection("extruded").modify(new HEM_Smooth());
+			selection.getParent().getSelection("extruded").collectVertices();
+			selection.getParent().getSelection("extruded").modify(new HEM_Smooth());
 		}
-		selection.parent.renameSelection("extruded", "inset");
-		return selection.parent;
+		selection.getParent().renameSelection("extruded", "inset");
+		return selection.getParent();
 	}
 }

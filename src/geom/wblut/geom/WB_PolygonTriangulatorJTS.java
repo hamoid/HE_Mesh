@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.geom;
 
 import java.util.ArrayList;
@@ -38,6 +35,7 @@ import wblut.hemesh.HEM_Slice;
 import wblut.hemesh.HE_Face;
 import wblut.hemesh.HE_Halfedge;
 import wblut.hemesh.HE_Mesh;
+import wblut.hemesh.HE_MeshOp;
 import wblut.math.WB_Epsilon;
 
 /**
@@ -64,17 +62,19 @@ public class WB_PolygonTriangulatorJTS {
 	 * @param p3
 	 * @return
 	 */
-	public static int[] triangulateQuad(final WB_Coord p0, final WB_Coord p1, final WB_Coord p2, final WB_Coord p3) {
-		final boolean p0inside = WB_GeometryOp3D.pointInTriangleBary3D(p0, p1, p2, p3);
+	public static int[] triangulateQuad(final WB_Coord p0, final WB_Coord p1,
+			final WB_Coord p2, final WB_Coord p3) {
+		final boolean p0inside = WB_GeometryOp3D.pointInTriangleBary3D(p0, p1,
+				p2, p3);
 		if (p0inside) {
 			return new int[] { 0, 1, 2, 0, 2, 3 };
 		}
-		final boolean p2inside = WB_GeometryOp3D.pointInTriangleBary3D(p2, p1, p0, p3);
+		final boolean p2inside = WB_GeometryOp3D.pointInTriangleBary3D(p2, p1,
+				p0, p3);
 		if (p2inside) {
 			return new int[] { 0, 1, 2, 0, 2, 3 };
 		}
 		return new int[] { 0, 1, 3, 1, 2, 3 };
-
 	}
 
 	/**
@@ -100,16 +100,17 @@ public class WB_PolygonTriangulatorJTS {
 		 * @param sharedVertices
 		 * @return
 		 */
-		public boolean flip(final IndexedTriangle ear0, final IndexedTriangle ear1, final int[] sharedVertices) {
+		public boolean flip(final IndexedTriangle ear0,
+				final IndexedTriangle ear1, final int[] sharedVertices) {
 			if (sharedVertices == null || sharedVertices.length != 2) {
 				return false;
 			}
 			final Coordinate shared0 = shellCoords.get(sharedVertices[0]);
 			final Coordinate shared1 = shellCoords.get(sharedVertices[1]);
-
 			int[] vertices = ear0.getVertices();
 			int i = 0;
-			while (vertices[i] == sharedVertices[0] || vertices[i] == sharedVertices[1]) {
+			while (vertices[i] == sharedVertices[0]
+					|| vertices[i] == sharedVertices[1]) {
 				i++;
 			}
 			final int v0 = vertices[i];
@@ -120,7 +121,8 @@ public class WB_PolygonTriangulatorJTS {
 			final Coordinate c0 = shellCoords.get(v0);
 			i = 0;
 			vertices = ear1.getVertices();
-			while (vertices[i] == sharedVertices[0] || vertices[i] == sharedVertices[1]) {
+			while (vertices[i] == sharedVertices[0]
+					|| vertices[i] == sharedVertices[1]) {
 				i++;
 			}
 			final int v1 = vertices[i];
@@ -217,8 +219,8 @@ public class WB_PolygonTriangulatorJTS {
 		}
 	}
 
-	private List<Coordinate> shellCoords;
-	private boolean[] shellCoordAvailable;
+	private List<Coordinate>	shellCoords;
+	private boolean[]			shellCoordAvailable;
 
 	/**
 	 *
@@ -228,13 +230,15 @@ public class WB_PolygonTriangulatorJTS {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public WB_Triangulation2D triangulatePolygon2D(final WB_Polygon polygon, final boolean optimize) {
+	public WB_Triangulation2D triangulatePolygon2D(final WB_Polygon polygon,
+			final boolean optimize) {
 		final List<WB_Point> pts = new FastList<WB_Point>();
 		for (int i = 0; i < polygon.numberOfShellPoints; i++) {
 			pts.add(polygon.getPoint(i));
 		}
 		int index = polygon.numberOfShellPoints;
-		final List<WB_Point>[] hpts = new FastList[polygon.numberOfContours - 1];
+		final List<WB_Point>[] hpts = new FastList[polygon.numberOfContours
+				- 1];
 		for (int i = 0; i < polygon.numberOfContours - 1; i++) {
 			hpts[i] = new FastList<WB_Point>();
 			for (int j = 0; j < polygon.numberOfPointsPerContour[i + 1]; j++) {
@@ -246,8 +250,8 @@ public class WB_PolygonTriangulatorJTS {
 		 * if (P.getNormal().getLength() < WB_Epsilon.EPSILON) { P = new
 		 * WB_Plane(P.getOrigin(), WB_Vector.Z()); }
 		 */
-		final WB_Triangulation2DWithPoints triangulation = triangulatePolygon2D(pts, hpts, optimize,
-				geometryfactory.createEmbeddedPlane(P));
+		final WB_Triangulation2DWithPoints triangulation = triangulatePolygon2D(
+				pts, hpts, optimize, geometryfactory.createEmbeddedPlane(P));
 		final WB_KDTreeInteger<WB_Point> pointmap = new WB_KDTreeInteger<WB_Point>();
 		for (int i = 0; i < polygon.numberOfPoints; i++) {
 			pointmap.add(polygon.getPoint(i), i);
@@ -257,9 +261,9 @@ public class WB_PolygonTriangulatorJTS {
 		final WB_CoordCollection tripoints = triangulation.getPoints();
 		final int[] intmap = new int[tripoints.size()];
 		index = 0;
-
 		for (int i = 0; i < tripoints.size(); i++) {
-			final int found = pointmap.getNearestNeighbor(tripoints.get(i)).value;
+			final int found = pointmap
+					.getNearestNeighbor(tripoints.get(i)).value;
 			intmap[index++] = found;
 		}
 		for (int i = 0; i < triangles.length; i++) {
@@ -280,8 +284,10 @@ public class WB_PolygonTriangulatorJTS {
 	 * @param context
 	 * @return
 	 */
-	public WB_Triangulation2DWithPoints triangulatePolygon2D(final List<? extends WB_Coord> outerPolygon,
-			final List<? extends WB_Coord>[] innerPolygons, final boolean optimize, final WB_Map2D context) {
+	public WB_Triangulation2DWithPoints triangulatePolygon2D(
+			final List<? extends WB_Coord> outerPolygon,
+			final List<? extends WB_Coord>[] innerPolygons,
+			final boolean optimize, final WB_Map2D context) {
 		final Coordinate[] coords = new Coordinate[outerPolygon.size() + 1];
 		WB_Point point = geometryfactory.createPoint();
 		for (int i = 0; i < outerPolygon.size(); i++) {
@@ -294,28 +300,34 @@ public class WB_PolygonTriangulatorJTS {
 		if (innerPolygons != null) {
 			holes = new LinearRing[innerPolygons.length];
 			for (int j = 0; j < innerPolygons.length; j++) {
-				final Coordinate[] icoords = new Coordinate[innerPolygons[j].size() + 1];
+				final Coordinate[] icoords = new Coordinate[innerPolygons[j]
+						.size() + 1];
 				for (int i = 0; i < innerPolygons[j].size(); i++) {
 					context.mapPoint3D(innerPolygons[j].get(i), point);
 					icoords[i] = new Coordinate(point.xd(), point.yd(), 0);
 				}
 				context.mapPoint3D(innerPolygons[j].get(0), point);
-				icoords[innerPolygons[j].size()] = new Coordinate(point.xd(), point.yd(), 0);
-				final LinearRing hole = new GeometryFactory(new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
-						.createLinearRing(icoords);
+				icoords[innerPolygons[j].size()] = new Coordinate(point.xd(),
+						point.yd(), 0);
+				final LinearRing hole = new GeometryFactory(
+						new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
+								.createLinearRing(icoords);
 				holes[j] = hole;
 			}
 		}
-		final LinearRing shell = new GeometryFactory(new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
-				.createLinearRing(coords);
-		final Polygon inputPolygon = new GeometryFactory(new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
-				.createPolygon(shell, holes);
+		final LinearRing shell = new GeometryFactory(
+				new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
+						.createLinearRing(coords);
+		final Polygon inputPolygon = new GeometryFactory(
+				new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
+						.createPolygon(shell, holes);
 		final int[] ears = triangulate(inputPolygon, optimize);
 		final int[] E = extractEdgesTri(ears);
 		final List<WB_Point> Points = new FastList<WB_Point>();
 		for (int i = 0; i < shellCoords.size() - 1; i++) {
 			point = geometryfactory.createPoint();
-			context.unmapPoint2D(shellCoords.get(i).x, shellCoords.get(i).y, point);
+			context.unmapPoint2D(shellCoords.get(i).x, shellCoords.get(i).y,
+					point);
 			Points.add(point);
 		}
 		return new WB_Triangulation2DWithPoints(ears, E, Points);
@@ -330,7 +342,8 @@ public class WB_PolygonTriangulatorJTS {
 	 * @param context
 	 * @return
 	 */
-	public WB_Triangulation2DWithPoints triangulatePolygon2D(final int[] polygon, final WB_Coord[] points,
+	public WB_Triangulation2DWithPoints triangulatePolygon2D(
+			final int[] polygon, final WB_Coord[] points,
 			final boolean optimize, final WB_Map2D context) {
 		final Coordinate[] coords = new Coordinate[polygon.length + 1];
 		WB_Point point = geometryfactory.createPoint();
@@ -340,18 +353,19 @@ public class WB_PolygonTriangulatorJTS {
 		}
 		context.mapPoint3D(points[polygon[0]], point);
 		coords[polygon.length] = new Coordinate(point.xd(), point.yd(), 0);
-		final Polygon inputPolygon = new GeometryFactory(new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
-				.createPolygon(coords);
+		final Polygon inputPolygon = new GeometryFactory(
+				new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
+						.createPolygon(coords);
 		final int[] ears = triangulate(inputPolygon, optimize);
 		for (int i = 0; i < ears.length; i++) {
 			ears[i] = polygon[ears[i]];
-
 		}
 		final int[] E = extractEdgesTri(ears);
 		final List<WB_Point> Points = new FastList<WB_Point>();
 		for (int i = 0; i < shellCoords.size() - 1; i++) {
 			point = geometryfactory.createPoint();
-			context.unmapPoint2D(shellCoords.get(i).x, shellCoords.get(i).y, point);
+			context.unmapPoint2D(shellCoords.get(i).x, shellCoords.get(i).y,
+					point);
 			Points.add(point);
 		}
 		return new WB_Triangulation2DWithPoints(ears, E, Points);
@@ -366,8 +380,9 @@ public class WB_PolygonTriangulatorJTS {
 	 * @param context
 	 * @return
 	 */
-	public WB_Triangulation2D triangulatePolygon2D(final int[] polygon, final List<? extends WB_Coord> points,
-			final boolean optimize, final WB_Map2D context) {
+	public WB_Triangulation2D triangulatePolygon2D(final int[] polygon,
+			final List<? extends WB_Coord> points, final boolean optimize,
+			final WB_Map2D context) {
 		final Coordinate[] coords = new Coordinate[polygon.length + 1];
 		final WB_Point point = geometryfactory.createPoint();
 		for (int i = 0; i < polygon.length; i++) {
@@ -375,13 +390,14 @@ public class WB_PolygonTriangulatorJTS {
 			coords[i] = new Coordinate(point.xd(), point.yd(), polygon[i]);
 		}
 		context.mapPoint3D(points.get(polygon[0]), point);
-		coords[polygon.length] = new Coordinate(point.xd(), point.yd(), polygon[0]);
-		final Polygon inputPolygon = new GeometryFactory(new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
-				.createPolygon(coords);
+		coords[polygon.length] = new Coordinate(point.xd(), point.yd(),
+				polygon[0]);
+		final Polygon inputPolygon = new GeometryFactory(
+				new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
+						.createPolygon(coords);
 		final int[] ears = triangulate(inputPolygon, optimize);
 		for (int i = 0; i < ears.length; i++) {
 			ears[i] = (int) shellCoords.get(ears[i]).z;
-
 		}
 		final int[] E = extractEdgesTri(ears);
 		return new WB_Triangulation2D(ears, E);
@@ -390,34 +406,41 @@ public class WB_PolygonTriangulatorJTS {
 	public int[] triangulateFace(final HE_Face face, final boolean optimize) {
 		int fo = face.getFaceDegree();
 		final Coordinate[] coords = new Coordinate[fo + 1];
-		WB_Coord normal = face.getFaceNormal();
+		WB_Coord normal = HE_MeshOp.getFaceNormal(face);
 		WB_Swizzle coordViewer;
 		if (Math.abs(normal.xd()) > Math.abs(normal.yd())) {
-			coordViewer = Math.abs(normal.xd()) > Math.abs(normal.zd()) ? WB_Swizzle.YZ : WB_Swizzle.XY;
+			coordViewer = Math.abs(normal.xd()) > Math.abs(normal.zd())
+					? WB_Swizzle.YZ
+					: WB_Swizzle.XY;
 		} else {
-			coordViewer = Math.abs(normal.yd()) > Math.abs(normal.zd()) ? WB_Swizzle.ZX : WB_Swizzle.XY;
+			coordViewer = Math.abs(normal.yd()) > Math.abs(normal.zd())
+					? WB_Swizzle.ZX
+					: WB_Swizzle.XY;
 		}
 		final WB_KDTreeInteger<WB_Point> pointmap = new WB_KDTreeInteger<WB_Point>();
-
 		int i = 0;
 		HE_Halfedge he = face.getHalfedge();
 		do {
-			coords[i] = new Coordinate(coordViewer.xd(he.getVertex()), coordViewer.yd(he.getVertex()), 0);
-			pointmap.add(new WB_Point(coordViewer.xd(he.getVertex()), coordViewer.yd(he.getVertex())), i);
+			coords[i] = new Coordinate(coordViewer.xd(he.getVertex()),
+					coordViewer.yd(he.getVertex()), 0);
+			pointmap.add(new WB_Point(coordViewer.xd(he.getVertex()),
+					coordViewer.yd(he.getVertex())), i);
 			i++;
 			he = he.getNextInFace();
 		} while (he != face.getHalfedge());
-		coords[i] = new Coordinate(coordViewer.xd(he.getVertex()), coordViewer.yd(he.getVertex()), 0);
-
-		final LinearRing shell = new GeometryFactory(new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
-				.createLinearRing(coords);
-		final Polygon inputPolygon = new GeometryFactory(new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
-				.createPolygon(shell);
+		coords[i] = new Coordinate(coordViewer.xd(he.getVertex()),
+				coordViewer.yd(he.getVertex()), 0);
+		final LinearRing shell = new GeometryFactory(
+				new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
+						.createLinearRing(coords);
+		final Polygon inputPolygon = new GeometryFactory(
+				new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
+						.createPolygon(shell);
 		final int[] ears = triangulate(inputPolygon, optimize);
-
 		final List<WB_Point> tripoints = new FastList<WB_Point>();
 		for (int j = 0; j < shellCoords.size() - 1; j++) {
-			tripoints.add(new WB_Point(shellCoords.get(j).x, shellCoords.get(j).y));
+			tripoints.add(
+					new WB_Point(shellCoords.get(j).x, shellCoords.get(j).y));
 		}
 		final int[] intmap = new int[tripoints.size()];
 		i = 0;
@@ -431,15 +454,20 @@ public class WB_PolygonTriangulatorJTS {
 		return ears;
 	}
 
-	public int[] triangulateSimplePolygon(final WB_Polygon polygon, final boolean optimize) {
+	public int[] triangulateSimplePolygon(final WB_Polygon polygon,
+			final boolean optimize) {
 		int fo = polygon.getNumberOfShellPoints();
 		final Coordinate[] coords = new Coordinate[fo + 1];
 		WB_Coord normal = polygon.getNormal();
 		WB_Swizzle coordViewer;
 		if (Math.abs(normal.xd()) > Math.abs(normal.yd())) {
-			coordViewer = Math.abs(normal.xd()) > Math.abs(normal.zd()) ? WB_Swizzle.YZ : WB_Swizzle.XY;
+			coordViewer = Math.abs(normal.xd()) > Math.abs(normal.zd())
+					? WB_Swizzle.YZ
+					: WB_Swizzle.XY;
 		} else {
-			coordViewer = Math.abs(normal.yd()) > Math.abs(normal.zd()) ? WB_Swizzle.ZX : WB_Swizzle.XY;
+			coordViewer = Math.abs(normal.yd()) > Math.abs(normal.zd())
+					? WB_Swizzle.ZX
+					: WB_Swizzle.XY;
 		}
 		final WB_KDTreeInteger<WB_Point> pointmap = new WB_KDTreeInteger<WB_Point>();
 		WB_Coord c;
@@ -448,18 +476,18 @@ public class WB_PolygonTriangulatorJTS {
 			coords[i] = new Coordinate(coordViewer.xd(c), coordViewer.yd(c), 0);
 			pointmap.add(new WB_Point(coordViewer.xd(c), coordViewer.yd(c)), i);
 			i++;
-
 		}
-
-		final LinearRing shell = new GeometryFactory(new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
-				.createLinearRing(coords);
-		final Polygon inputPolygon = new GeometryFactory(new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
-				.createPolygon(shell);
+		final LinearRing shell = new GeometryFactory(
+				new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
+						.createLinearRing(coords);
+		final Polygon inputPolygon = new GeometryFactory(
+				new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
+						.createPolygon(shell);
 		final int[] ears = triangulate(inputPolygon, optimize);
-
 		final List<WB_Point> tripoints = new FastList<WB_Point>();
 		for (int j = 0; j < shellCoords.size() - 1; j++) {
-			tripoints.add(new WB_Point(shellCoords.get(j).x, shellCoords.get(j).y));
+			tripoints.add(
+					new WB_Point(shellCoords.get(j).x, shellCoords.get(j).y));
 		}
 		final int[] intmap = new int[tripoints.size()];
 		int i = 0;
@@ -525,8 +553,10 @@ public class WB_PolygonTriangulatorJTS {
 	 *            post-processing step
 	 * @return GeometryCollection of triangular polygons
 	 */
-	private int[] triangulate(final Polygon inputPolygon, final boolean improve) {
-		final GeometryFactory gf = new GeometryFactory(new PrecisionModel(WB_Epsilon.PRECISIONMODEL));
+	private int[] triangulate(final Polygon inputPolygon,
+			final boolean improve) {
+		final GeometryFactory gf = new GeometryFactory(
+				new PrecisionModel(WB_Epsilon.PRECISIONMODEL));
 		final List<IndexedTriangle> earList = new ArrayList<IndexedTriangle>();
 		createShell(inputPolygon);
 		final Geometry test = inputPolygon.buffer(0);
@@ -541,8 +571,8 @@ public class WB_PolygonTriangulatorJTS {
 		int firstK = 0;
 		do {
 			found = false;
-			while (CGAlgorithms.computeOrientation(shellCoords.get(k0), shellCoords.get(k1),
-					shellCoords.get(k2)) == 0) {
+			while (CGAlgorithms.computeOrientation(shellCoords.get(k0),
+					shellCoords.get(k1), shellCoords.get(k2)) == 0) {
 				k0 = k1;
 				if (k0 == firstK) {
 					finished = true;
@@ -552,15 +582,19 @@ public class WB_PolygonTriangulatorJTS {
 				k2 = nextShellCoord(k2 + 1);
 			}
 			if (!finished && isValidEdge(k0, k2)) {
-				final LineString ls = gf
-						.createLineString(new Coordinate[] { shellCoords.get(k0), shellCoords.get(k2) });
+				final LineString ls = gf.createLineString(new Coordinate[] {
+						shellCoords.get(k0), shellCoords.get(k2) });
 				if (test.covers(ls)) {
-					final Polygon earPoly = gf.createPolygon(gf.createLinearRing(new Coordinate[] { shellCoords.get(k0),
-							shellCoords.get(k1), shellCoords.get(k2), shellCoords.get(k0) }), null);
+					final Polygon earPoly = gf.createPolygon(
+							gf.createLinearRing(new Coordinate[] {
+									shellCoords.get(k0), shellCoords.get(k1),
+									shellCoords.get(k2), shellCoords.get(k0) }),
+							null);
 					if (test.covers(earPoly)) {
 						found = true;
 						// System.out.println(earPoly);
-						final IndexedTriangle ear = new IndexedTriangle(k0, k1, k2);
+						final IndexedTriangle ear = new IndexedTriangle(k0, k1,
+								k2);
 						earList.add(ear);
 						shellCoordAvailable[k1] = false;
 						N--;
@@ -596,9 +630,7 @@ public class WB_PolygonTriangulatorJTS {
 			 * (CGAlgorithms.orientationIndex(shellCoords.get(tri[0]),
 			 * shellCoords.get(tri[1]), shellCoords.get(tri[2])) > 0) { flip =
 			 * false;
-			 *
 			 * } }
-			 *
 			 * if (flip) {
 			 */
 			tris[3 * i] = tri[0];
@@ -623,9 +655,9 @@ public class WB_PolygonTriangulatorJTS {
 		createShell(poly);
 		Coordinate[] coords = new Coordinate[shellCoords.size()];
 		return geometryfactory
-				.createPolygonFromJTSPolygon2D(new GeometryFactory(new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
-						.createPolygon(shellCoords.toArray(coords)));
-
+				.createPolygonFromJTSPolygon2D(new GeometryFactory(
+						new PrecisionModel(WB_Epsilon.PRECISIONMODEL))
+								.createPolygon(shellCoords.toArray(coords)));
 	}
 
 	/**
@@ -663,7 +695,8 @@ public class WB_PolygonTriangulatorJTS {
 	 *         vertices; false otherwise
 	 */
 	private boolean isValidEdge(final int index0, final int index1) {
-		final Coordinate[] line = { shellCoords.get(index0), shellCoords.get(index1) };
+		final Coordinate[] line = { shellCoords.get(index0),
+				shellCoords.get(index1) };
 		int index = nextShellCoord(index0 + 1);
 		while (index != index0) {
 			if (index != index1) {
@@ -737,7 +770,8 @@ public class WB_PolygonTriangulatorJTS {
 		final List<IndexedEnvelope> bounds = new ArrayList<IndexedEnvelope>();
 		if (poly.getNumInteriorRing() > 0) {
 			for (int i = 0; i < poly.getNumInteriorRing(); i++) {
-				bounds.add(new IndexedEnvelope(i, poly.getInteriorRingN(i).getEnvelopeInternal()));
+				bounds.add(new IndexedEnvelope(i,
+						poly.getInteriorRingN(i).getEnvelopeInternal()));
 			}
 			Collections.sort(bounds, new IndexedEnvelopeComparator());
 			for (int i = 0; i < bounds.size(); i++) {
@@ -755,8 +789,10 @@ public class WB_PolygonTriangulatorJTS {
 	 * @param hole
 	 *            the hole to join
 	 */
-	private void joinHoleToShell(final Polygon inputPolygon, final Geometry hole) {
-		final GeometryFactory gf = new GeometryFactory(new PrecisionModel(WB_Epsilon.PRECISIONMODEL));
+	private void joinHoleToShell(final Polygon inputPolygon,
+			final Geometry hole) {
+		final GeometryFactory gf = new GeometryFactory(
+				new PrecisionModel(WB_Epsilon.PRECISIONMODEL));
 		double minD2 = Double.MAX_VALUE;
 		int shellVertexIndex = -1;
 		final int Ns = shellCoords.size() - 1;
@@ -773,7 +809,8 @@ public class WB_PolygonTriangulatorJTS {
 		 */
 		for (int i = Ns - 1; i >= 0; i--) {
 			final Coordinate cs = shellCoords.get(i);
-			final double d2 = (ch.x - cs.x) * (ch.x - cs.x) + (ch.y - cs.y) * (ch.y - cs.y);
+			final double d2 = (ch.x - cs.x) * (ch.x - cs.x)
+					+ (ch.y - cs.y) * (ch.y - cs.y);
 			if (d2 < minD2) {
 				minD2 = d2;
 				shellVertexIndex = i;
@@ -784,7 +821,8 @@ public class WB_PolygonTriangulatorJTS {
 		 * Try a quick join: if the closest shell vertex is reachable without
 		 * crossing any holes.
 		 */
-		LineString join = gf.createLineString(new Coordinate[] { ch, shellCoords.get(shellVertexIndex) });
+		LineString join = gf.createLineString(
+				new Coordinate[] { ch, shellCoords.get(shellVertexIndex) });
 		if (inputPolygon.covers(join)) {
 			doJoinHole(shellVertexIndex, holeCoords, holeVertexIndex);
 			return;
@@ -795,7 +833,8 @@ public class WB_PolygonTriangulatorJTS {
 		 */
 		Collections.sort(distanceList, new IndexedDoubleComparator());
 		for (int i = 1; i < distanceList.size(); i++) {
-			join = gf.createLineString(new Coordinate[] { ch, shellCoords.get(distanceList.get(i).index) });
+			join = gf.createLineString(new Coordinate[] { ch,
+					shellCoords.get(distanceList.get(i).index) });
 			if (inputPolygon.covers(join)) {
 				shellVertexIndex = distanceList.get(i).index;
 				doJoinHole(shellVertexIndex, holeCoords, holeVertexIndex);
@@ -817,7 +856,8 @@ public class WB_PolygonTriangulatorJTS {
 	 * @param holeVertexIndex
 	 *            attachment point of hole
 	 */
-	private void doJoinHole(final int shellVertexIndex, final Coordinate[] holeCoords, final int holeVertexIndex) {
+	private void doJoinHole(final int shellVertexIndex,
+			final Coordinate[] holeCoords, final int holeVertexIndex) {
 		final List<Coordinate> newCoords = new ArrayList<Coordinate>();
 		newCoords.add(new Coordinate(shellCoords.get(shellVertexIndex)));
 		final int N = holeCoords.length - 1;
@@ -855,11 +895,11 @@ public class WB_PolygonTriangulatorJTS {
 		/**
 		 *
 		 */
-		int index;
+		int			index;
 		/**
 		 *
 		 */
-		Envelope envelope;
+		Envelope	envelope;
 
 		/**
 		 *
@@ -876,10 +916,10 @@ public class WB_PolygonTriangulatorJTS {
 	/**
 	 *
 	 */
-	private static class IndexedEnvelopeComparator implements Comparator<IndexedEnvelope> {
+	private static class IndexedEnvelopeComparator
+			implements Comparator<IndexedEnvelope> {
 		/*
 		 * (non-Javadoc)
-		 *
 		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 		 */
 		@Override
@@ -902,12 +942,11 @@ public class WB_PolygonTriangulatorJTS {
 		/**
 		 *
 		 */
-		int index;
-
+		int		index;
 		/**
 		 *
 		 */
-		double value;
+		double	value;
 
 		/**
 		 *
@@ -924,10 +963,10 @@ public class WB_PolygonTriangulatorJTS {
 	/**
 	 *
 	 */
-	private static class IndexedDoubleComparator implements Comparator<IndexedDouble> {
+	private static class IndexedDoubleComparator
+			implements Comparator<IndexedDouble> {
 		/*
 		 * (non-Javadoc)
-		 *
 		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 		 */
 		@Override
@@ -949,7 +988,5 @@ public class WB_PolygonTriangulatorJTS {
 		mesh.modify(new HEM_Extrude().setDistance(0).setChamfer(0.1));
 		mesh.modify(new HEM_Lattice().setWidth(15).setDepth(8));
 		mesh.modify(new HEM_Slice().setPlane(0, 0, 0, 0, 1, 1.1));
-
 	}
-
 }

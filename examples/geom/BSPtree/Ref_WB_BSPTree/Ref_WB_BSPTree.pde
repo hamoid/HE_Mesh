@@ -3,35 +3,42 @@ import wblut.processing.*;
 import wblut.core.*;
 import wblut.hemesh.*;
 import wblut.geom.*;
-
-HE_Mesh mesh;
+import java.util.List;
+HE_Mesh mesh, mesh2;
+List<WB_Point> points;
 WB_Render render;
-
+WB_BSPTree tree;
 void setup() {
-  size(1000,1000,P3D);
+  fullScreen(P3D);
   smooth(8);
-  HEC_Dodecahedron creator=new HEC_Dodecahedron();
-  creator.setEdge(100); 
-  //alternatively 
-  //creator.setRadius(200);
-  //creator.setInnerRadius(200);// radius of sphere inscribed in cube
-  //creator.setOuterRadius(200);// radius of sphere circumscribing cube
-  //creator.setMidRadius(200);// radius of sphere tangential to edges
-  mesh=new HE_Mesh(creator); 
-  HET_Diagnosis.validate(mesh);
   render=new WB_Render(this);
+  mesh=new HE_Mesh(new HEC_Icosahedron().setRadius(200)); 
+  mesh.modify(new HEM_Crocodile().setDistance(200));
+  tree=new WB_BSPTree();
+  tree.build(mesh);
+  points=new ArrayList<WB_Point>();
+  WB_RandomPoint rp=new WB_RandomInSphere().setRadius(350);
+  for (int i=0; i<25000; i++) {
+    points.add(rp.nextPoint());
+  }
 }
 
 void draw() {
   background(55);
   directionalLight(255, 255, 255, 1, 1, -1);
   directionalLight(127, 127, 127, -1, -1, 1);
-  translate(width/2,height/2);
+  translate(width/2, height/2);
   rotateY(mouseX*1.0f/width*TWO_PI);
   rotateX(mouseY*1.0f/height*TWO_PI);
   stroke(0);
   render.drawEdges(mesh);
-   
-  noStroke();
-  render.drawFaces(mesh);
+  for (WB_Point p : points) {
+    if (tree.pointLocation(p)>0) {
+      stroke(255, 0, 0);
+      render.drawPoint(p);
+    } else {
+      stroke(0, 255, 0);
+      render.drawPoint(p);
+    }
+  }
 }

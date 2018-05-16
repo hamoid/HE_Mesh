@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.Iterator;
@@ -20,20 +17,16 @@ import wblut.geom.WB_Point;
  *
  */
 public class HEM_Soapfilm extends HEM_Modifier {
-
-	private HE_Selection fixed;
-
+	private HE_Selection	fixed;
 	/**
 	 *
 	 */
-	private boolean keepBoundary;
-
-	private double lambda;
-
+	private boolean			keepBoundary;
+	private double			lambda;
 	/**
 	 *
 	 */
-	private int iter;
+	private int				iter;
 
 	/**
 	 *
@@ -43,7 +36,6 @@ public class HEM_Soapfilm extends HEM_Modifier {
 		iter = 1;
 		keepBoundary = false;
 		fixed = null;
-
 	}
 
 	public HEM_Soapfilm setFixed(final HE_Selection fixed) {
@@ -86,23 +78,22 @@ public class HEM_Soapfilm extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HEM_Modifier#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Mesh mesh) {
 		tracker.setStartStatus(this, "Starting HEM_Soapfilm.");
-		if (fixed == null || fixed.parent != mesh) {
+		if (fixed == null || fixed.getParent() != mesh) {
 			return mesh;
 		}
 		fixed.collectVertices();
-
-		final WB_Coord[] newPositions = new WB_Coord[mesh.getNumberOfVertices()];
+		final WB_Coord[] newPositions = new WB_Coord[mesh
+				.getNumberOfVertices()];
 		if (iter < 1) {
 			iter = 1;
 		}
-		WB_ProgressCounter counter = new WB_ProgressCounter(iter * mesh.getNumberOfVertices(), 10);
-
+		WB_ProgressCounter counter = new WB_ProgressCounter(
+				iter * mesh.getNumberOfVertices(), 10);
 		tracker.setCounterStatus(this, "Smoothing vertices.", counter);
 		for (int r = 0; r < iter; r++) {
 			Iterator<HE_Vertex> vItr = mesh.vItr();
@@ -117,9 +108,9 @@ public class HEM_Soapfilm extends HEM_Modifier {
 				} else {
 					p = new WB_Point(v).mulSelf(1.0 - lambda);
 					neighbors = v.getNeighborVertices();
-
 					for (int i = 0; i < neighbors.size(); i++) {
-						p.addMulSelf(lambda / neighbors.size(), neighbors.get(i));
+						p.addMulSelf(lambda / neighbors.size(),
+								neighbors.get(i));
 					}
 					newPositions[id] = p;
 				}
@@ -133,32 +124,30 @@ public class HEM_Soapfilm extends HEM_Modifier {
 				counter.increment();
 			}
 		}
-
 		tracker.setStopStatus(this, "Exiting HEM_Soapfilm.");
 		return mesh;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.hemesh.modifiers.HEB_Modifier#modifySelected(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
 		tracker.setStartStatus(this, "Starting HEM_Soapfilm.");
-		if (fixed == null || fixed.parent != selection.parent) {
-			return selection.parent;
+		if (fixed == null || fixed.getParent() != selection.getParent()) {
+			return selection.getParent();
 		}
 		fixed.collectVertices();
 		selection.collectVertices();
-
-		final WB_Coord[] newPositions = new WB_Coord[selection.getNumberOfVertices()];
+		final WB_Coord[] newPositions = new WB_Coord[selection
+				.getNumberOfVertices()];
 		if (iter < 1) {
 			iter = 1;
 		}
-		WB_ProgressCounter counter = new WB_ProgressCounter(iter * selection.getNumberOfVertices(), 10);
-
+		WB_ProgressCounter counter = new WB_ProgressCounter(
+				iter * selection.getNumberOfVertices(), 10);
 		tracker.setCounterStatus(this, "Smoothing vertices.", counter);
 		for (int r = 0; r < iter; r++) {
 			Iterator<HE_Vertex> vItr = selection.vItr();
@@ -180,9 +169,9 @@ public class HEM_Soapfilm extends HEM_Modifier {
 							nItr.remove();
 						}
 					}
-
 					for (int i = 0; i < neighbors.size(); i++) {
-						p.addMulSelf(lambda / neighbors.size(), neighbors.get(i));
+						p.addMulSelf(lambda / neighbors.size(),
+								neighbors.get(i));
 					}
 					newPositions[id] = p.addMulSelf(1.0 - lambda, v);
 				}
@@ -196,8 +185,7 @@ public class HEM_Soapfilm extends HEM_Modifier {
 				counter.increment();
 			}
 		}
-
 		tracker.setStopStatus(this, "Exiting HEM_Soapfilm.");
-		return selection.parent;
+		return selection.getParent();
 	}
 }

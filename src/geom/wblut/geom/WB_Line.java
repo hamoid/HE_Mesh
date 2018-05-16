@@ -1,16 +1,12 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
-
  * I , Frederik Vanhoutte, have waived all copyright and related or neighboring
  * rights.
- *
- * This work is published from Belgium. (http://creativecommons.org/publicdomain/zero/1.0/)
- *
+ * This work is published from Belgium.
+ * (http://creativecommons.org/publicdomain/zero/1.0/)
  */
 package wblut.geom;
 
@@ -20,11 +16,9 @@ import wblut.math.WB_Math;
 /**
  *
  */
-public class WB_Line implements WB_Curve {
-
-	protected WB_Point origin;
-
-	protected WB_Vector direction;
+public class WB_Line implements WB_Curve, WB_Geometry3D {
+	protected WB_Point	origin;
+	protected WB_Vector	direction;
 
 	/**
 	 *
@@ -85,8 +79,8 @@ public class WB_Line implements WB_Curve {
 	 * @param dy
 	 * @param dz
 	 */
-	public WB_Line(final double ox, final double oy, final double oz, final double dx, final double dy,
-			final double dz) {
+	public WB_Line(final double ox, final double oy, final double oz,
+			final double dx, final double dy, final double dz) {
 		this(new WB_Point(ox, oy, oz), new WB_Vector(dx, dy, dz));
 	}
 
@@ -97,16 +91,15 @@ public class WB_Line implements WB_Curve {
 	 * @param dx
 	 * @param dy
 	 */
-	public WB_Line(final double ox, final double oy, final double dx, final double dy) {
+	public WB_Line(final double ox, final double oy, final double dx,
+			final double dy) {
 		this(new WB_Point(ox, oy), new WB_Vector(dx, dy));
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#toString()
 	 */
-
 	@Override
 	public String toString() {
 		return "Line: " + origin.toString() + " " + direction.toString();
@@ -143,10 +136,8 @@ public class WB_Line implements WB_Curve {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Curve#curvePoint(double)
 	 */
-
 	@Override
 	public WB_Point curvePoint(final double u) {
 		return this.getPoint(u);
@@ -154,22 +145,17 @@ public class WB_Line implements WB_Curve {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Curve#curveDirection(double)
 	 */
-
 	@Override
 	public WB_Vector curveDirection(final double u) {
-
 		return new WB_Vector(direction);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Curve#curveDerivative(double)
 	 */
-
 	@Override
 	public WB_Vector curveDerivative(final double u) {
 		return new WB_Vector(direction);
@@ -177,10 +163,8 @@ public class WB_Line implements WB_Curve {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Curve#loweru()
 	 */
-
 	@Override
 	public double getLowerU() {
 		return Double.NEGATIVE_INFINITY;
@@ -188,10 +172,8 @@ public class WB_Line implements WB_Curve {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_Curve#upperu()
 	 */
-
 	@Override
 	public double getUpperU() {
 		return Double.POSITIVE_INFINITY;
@@ -202,7 +184,6 @@ public class WB_Line implements WB_Curve {
 	 *
 	 * @return a for a 2D line
 	 */
-
 	public double a() {
 		return -direction.yd();
 	}
@@ -212,7 +193,6 @@ public class WB_Line implements WB_Curve {
 	 *
 	 * @return b for a 2D line
 	 */
-
 	public double b() {
 		return direction.xd();
 	}
@@ -222,7 +202,6 @@ public class WB_Line implements WB_Curve {
 	 *
 	 * @return c for a 2D line
 	 */
-
 	public double c() {
 		return origin.xd() * direction.yd() - origin.yd() * direction.xd();
 	}
@@ -232,7 +211,6 @@ public class WB_Line implements WB_Curve {
 	 *
 	 * @return
 	 */
-
 	public WB_Coord getDirection() {
 		return direction;
 	}
@@ -242,7 +220,6 @@ public class WB_Line implements WB_Curve {
 	 *
 	 * @return
 	 */
-
 	public WB_Vector getNormal() {
 		WB_Vector n = new WB_Vector(0, 0, 1);
 		n = n.cross(direction);
@@ -258,7 +235,6 @@ public class WB_Line implements WB_Curve {
 	 *
 	 * @return
 	 */
-
 	public WB_Coord getOrigin() {
 		return origin;
 	}
@@ -269,7 +245,6 @@ public class WB_Line implements WB_Curve {
 	 * @param t
 	 * @return
 	 */
-
 	public WB_Point getParametricPoint(final double t) {
 		final WB_Point result = new WB_Point(direction);
 		result.scaleSelf(t);
@@ -283,8 +258,8 @@ public class WB_Line implements WB_Curve {
 	 * @param t
 	 * @param result
 	 */
-
-	public void getParametricPointInto(final double t, final WB_MutableCoord result) {
+	public void getParametricPointInto(final double t,
+			final WB_MutableCoord result) {
 		result.set(new WB_Vector(direction).mulSelf(t).addSelf(origin));
 	}
 
@@ -294,7 +269,6 @@ public class WB_Line implements WB_Curve {
 	 * @param t
 	 * @return
 	 */
-
 	public WB_Point getPoint(final double t) {
 		final WB_Point result = new WB_Point(direction);
 		result.scaleSelf(t);
@@ -308,7 +282,6 @@ public class WB_Line implements WB_Curve {
 	 * @param t
 	 * @param result
 	 */
-
 	public void getPointInto(final double t, final WB_MutableCoord result) {
 		result.set(new WB_Vector(direction).mulSelf(t).addSelf(origin));
 	}
@@ -319,7 +292,6 @@ public class WB_Line implements WB_Curve {
 	 * @param o
 	 * @param d
 	 */
-
 	protected void set(final WB_Coord o, final WB_Coord d) {
 		origin = new WB_Point(o);
 		final WB_Vector dn = new WB_Vector(d);
@@ -329,7 +301,6 @@ public class WB_Line implements WB_Curve {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -340,12 +311,12 @@ public class WB_Line implements WB_Curve {
 		if (!(o instanceof WB_Line)) {
 			return false;
 		}
-		return origin.equals(((WB_Line) o).getOrigin()) && direction.equals(((WB_Line) o).getDirection());
+		return origin.equals(((WB_Line) o).getOrigin())
+				&& direction.equals(((WB_Line) o).getDirection());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -353,4 +324,27 @@ public class WB_Line implements WB_Curve {
 		return 31 * origin.hashCode() + direction.hashCode();
 	}
 
+	@Override
+	public WB_Line apply2D(WB_Transform2D T) {
+		return new WB_Line(origin.apply2D(T), direction.apply2D(T));
+	}
+
+	@Override
+	public WB_Line apply2DSelf(WB_Transform2D T) {
+		origin.apply2DSelf(T);
+		direction.apply2DSelf(T);
+		return this;
+	}
+
+	@Override
+	public WB_Line apply(WB_Transform T) {
+		return new WB_Line(origin.apply(T), direction.apply(T));
+	}
+
+	@Override
+	public WB_Line applySelf(WB_Transform T) {
+		origin.applySelf(T);
+		direction.applySelf(T);
+		return this;
+	}
 }

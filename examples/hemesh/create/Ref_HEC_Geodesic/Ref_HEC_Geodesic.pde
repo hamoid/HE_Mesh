@@ -45,6 +45,7 @@ void draw() {
   strokeWeight(1);
   stroke(0);
   render.drawEdges(mesh);
+
 }
 
 void mousePressed() {

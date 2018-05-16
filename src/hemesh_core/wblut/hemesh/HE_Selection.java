@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.Collection;
@@ -15,11 +12,7 @@ import java.util.List;
 
 import org.eclipse.collections.impl.list.mutable.FastList;
 
-import wblut.geom.WB_AABB;
 import wblut.geom.WB_GeometryFactory;
-import wblut.geom.WB_GeometryOp3D;
-import wblut.geom.WB_Point;
-import wblut.geom.WB_Sphere;
 
 /**
  * Collection of mesh elements. Contains methods to manipulate selections
@@ -27,19 +20,19 @@ import wblut.geom.WB_Sphere;
  * @author Frederik Vanhoutte (W:Blut)
  *
  */
-public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure {
+public class HE_Selection extends HE_MeshElement
+		implements HE_HalfedgeStructure {
 	/**
 	 *
 	 */
-	HE_Mesh parent;
-	String createdBy;
-	protected WB_GeometryFactory gf = new WB_GeometryFactory();
-	private HE_RAS<HE_Vertex> vertices;
-	private HE_RAS<HE_Halfedge> halfedges;
-	private HE_RAS<HE_Halfedge> edges;
-	private HE_RAS<HE_Face> faces;
-
-	String name;
+	private HE_Mesh					parent;
+	String							createdBy;
+	protected WB_GeometryFactory	gf	= new WB_GeometryFactory();
+	private HE_RAS<HE_Vertex>		vertices;
+	private HE_RAS<HE_Halfedge>		halfedges;
+	private HE_RAS<HE_Halfedge>		edges;
+	private HE_RAS<HE_Face>			faces;
+	String							name;
 
 	private HE_Selection() {
 		super();
@@ -140,9 +133,7 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 			return he;
 		}
 		he = halfedges.getWithKey(key);
-
 		return he;
-
 	}
 
 	/**
@@ -159,9 +150,7 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 			return he;
 		}
 		he = halfedges.getWithKey(key);
-
 		return he;
-
 	}
 
 	/**
@@ -188,7 +177,8 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	@Override
 	public final HE_Face getFaceWithIndex(final int i) {
 		if (i < 0 || i >= faces.size()) {
-			throw new IndexOutOfBoundsException("Requested face index " + i + "not in range.");
+			throw new IndexOutOfBoundsException(
+					"Requested face index " + i + "not in range.");
 		}
 		return faces.getWithIndex(i);
 	}
@@ -204,7 +194,8 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	@Override
 	public final HE_Halfedge getHalfedgeWithIndex(final int i) {
 		if (i < 0 || i >= edges.size() + halfedges.size()) {
-			throw new IndexOutOfBoundsException("Requested halfedge index " + i + "not in range.");
+			throw new IndexOutOfBoundsException(
+					"Requested halfedge index " + i + "not in range.");
 		}
 		if (i >= edges.size()) {
 			return halfedges.getWithIndex(i - edges.size());
@@ -223,7 +214,8 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	@Override
 	public final HE_Halfedge getEdgeWithIndex(final int i) {
 		if (i < 0 || i >= edges.size()) {
-			throw new IndexOutOfBoundsException("Requested edge index " + i + "not in range.");
+			throw new IndexOutOfBoundsException(
+					"Requested edge index " + i + "not in range.");
 		}
 		return edges.getWithIndex(i);
 	}
@@ -239,7 +231,8 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	@Override
 	public final HE_Vertex getVertexWithIndex(final int i) {
 		if (i < 0 || i >= vertices.size()) {
-			throw new IndexOutOfBoundsException("Requested vertex index " + i + "not in range.");
+			throw new IndexOutOfBoundsException(
+					"Requested vertex index " + i + "not in range.");
 		}
 		return vertices.getWithIndex(i);
 	}
@@ -304,7 +297,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 		addFaces(mesh.getFaces());
 		addHalfedges(mesh.getHalfedges());
 		addHalfedges(mesh.getEdges());
-
 	}
 
 	/**
@@ -363,7 +355,8 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	 *            halfedges to add as Collection<? extends HE_Halfedge>
 	 */
 	@Override
-	public final void addHalfedges(final Collection<? extends HE_Halfedge> halfedges) {
+	public final void addHalfedges(
+			final Collection<? extends HE_Halfedge> halfedges) {
 		for (HE_Halfedge he : halfedges) {
 			add(he);
 		}
@@ -379,7 +372,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 		for (HE_Halfedge he : source.getHalfedges()) {
 			add(he);
 		}
-
 	}
 
 	/**
@@ -388,7 +380,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	 * @param halfedges
 	 *            halfedges to add as HE_Halfedge[]
 	 */
-
 	public final void addEdges(final HE_Halfedge[] edges) {
 		for (final HE_Halfedge edge : edges) {
 			add(edge);
@@ -401,7 +392,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	 * @param halfedges
 	 *            halfedges to add as Collection<? extends HE_Halfedge>
 	 */
-
 	public final void addEdges(final Collection<? extends HE_Halfedge> edges) {
 		for (HE_Halfedge e : edges) {
 			add(e);
@@ -413,11 +403,8 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	 *
 	 * @param source
 	 */
-
 	public final void addEdges(final HE_HalfedgeStructure source) {
-
 		edges.addAll(source.getEdges());
-
 	}
 
 	/**
@@ -450,19 +437,10 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	 *            vertices to add as Collection<? extends HE_Vertex>
 	 */
 	@Override
-	public final void addVertices(final Collection<? extends HE_Vertex> vertices) {
+	public final void addVertices(
+			final Collection<? extends HE_Vertex> vertices) {
 		for (HE_Vertex v : vertices) {
 			add(v);
-		}
-	}
-
-	/**
-	 *
-	 * @param boundaries
-	 */
-	public final void addBoundaries(final HE_Boundary[] boundaries) {
-		for (final HE_Boundary boundary : boundaries) {
-			add(boundary);
 		}
 	}
 
@@ -546,7 +524,8 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	 *            halfedges to remove as Collection<? extends HE_Halfedge>
 	 */
 	@Override
-	public final void removeHalfedges(final Collection<? extends HE_Halfedge> halfedges) {
+	public final void removeHalfedges(
+			final Collection<? extends HE_Halfedge> halfedges) {
 		for (final HE_Halfedge he : halfedges) {
 			remove(he);
 		}
@@ -572,7 +551,8 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	 *            edges to remove as Collection<? extends HE_Halfedge>
 	 */
 	@Override
-	public final void removeEdges(final Collection<? extends HE_Halfedge> edges) {
+	public final void removeEdges(
+			final Collection<? extends HE_Halfedge> edges) {
 		for (final HE_Halfedge e : edges) {
 			remove(e);
 		}
@@ -598,7 +578,8 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	 *            vertices to remove as Collection<? extends HE_Vertex>
 	 */
 	@Override
-	public final void removeVertices(final Collection<? extends HE_Vertex> vertices) {
+	public final void removeVertices(
+			final Collection<? extends HE_Vertex> vertices) {
 		for (final HE_Vertex v : vertices) {
 			remove(v);
 		}
@@ -607,7 +588,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	/**
 	 * Clear entire structure.
 	 */
-
 	@Override
 	public void clear() {
 		clearVertices();
@@ -621,7 +601,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	@Override
 	public void clearFaces() {
 		faces = new HE_RAS<HE_Face>();
-
 	}
 
 	/**
@@ -631,7 +610,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	public void clearHalfedges() {
 		halfedges = new HE_RAS<HE_Halfedge>();
 		edges = new HE_RAS<HE_Halfedge>();
-
 	}
 
 	/**
@@ -639,9 +617,7 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	 */
 	@Override
 	public final void clearEdges() {
-
 		edges = new HE_RAS<HE_Halfedge>();
-
 	}
 
 	/**
@@ -657,7 +633,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	 */
 	void clearFacesNoSelectionCheck() {
 		faces = new HE_RAS<HE_Face>();
-
 	}
 
 	/**
@@ -675,8 +650,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 			return contains((HE_Vertex) el);
 		} else if (el instanceof HE_Halfedge) {
 			return contains((HE_Halfedge) el);
-		} else if (el instanceof HE_Boundary) {
-			return contains(el);
 		}
 		return false;
 	}
@@ -703,7 +676,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	@Override
 	public final boolean contains(final HE_Halfedge he) {
 		return edges.contains(he) || halfedges.contains(he);
-
 	}
 
 	/**
@@ -716,57 +688,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	@Override
 	public final boolean contains(final HE_Vertex v) {
 		return vertices.contains(v);
-	}
-
-	/**
-	 * Get axis-aligned bounding box surrounding mesh.
-	 *
-	 * @return WB_AABB axis-aligned bounding box
-	 */
-	@Override
-	public final WB_AABB getAABB() {
-		final double[] result = getLimits();
-		final WB_Point min = gf.createPoint(result[0], result[1], result[2]);
-		final WB_Point max = gf.createPoint(result[3], result[4], result[5]);
-		return new WB_AABB(min, max);
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	@Override
-	public final WB_Sphere getBoundingSphere() {
-
-		return WB_GeometryOp3D.getBoundingSphere(vertices);
-	}
-
-	/**
-	 * Get range of vertex coordinates.
-	 *
-	 * @return array of limit values: min x, min y, min z, max x, max y, max z
-	 */
-	@Override
-	public final double[] getLimits() {
-		final double[] result = new double[6];
-		for (int i = 0; i < 3; i++) {
-			result[i] = Double.POSITIVE_INFINITY;
-		}
-		for (int i = 3; i < 6; i++) {
-			result[i] = Double.NEGATIVE_INFINITY;
-		}
-		HE_Vertex v;
-		for (int i = 0; i < vertices.size(); i++) {
-			v = getVertexWithIndex(i);
-			result[0] = Math.min(result[0], v.xd());
-			result[1] = Math.min(result[1], v.yd());
-			result[2] = Math.min(result[2], v.zd());
-			result[3] = Math.max(result[3], v.xd());
-			result[4] = Math.max(result[4], v.yd());
-			result[5] = Math.max(result[5], v.zd());
-		}
-		return result;
 	}
 
 	/**
@@ -824,7 +745,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 			halfedges[i] = he;
 			i++;
 		}
-
 		return halfedges;
 	}
 
@@ -1061,7 +981,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	 */
 	@Override
 	public HE_Mesh subdivide(final HES_Subdividor subdividor, final int rep) {
-
 		for (int i = 0; i < rep; i++) {
 			subdividor.apply(this);
 			parent.clearPrecomputed();
@@ -1099,7 +1018,8 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 			if (he.isEdge()) {
 				final HE_Face f1 = he.getFace();
 				final HE_Face f2 = he.getPair().getFace();
-				if (f1 == null || f2 == null || !contains(f1) || !contains(f2)) {
+				if (f1 == null || f2 == null || !contains(f1)
+						|| !contains(f2)) {
 					result.add(he);
 				}
 			}
@@ -1123,7 +1043,8 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 			if (he.isEdge()) {
 				final HE_Face f1 = he.getFace();
 				final HE_Face f2 = he.getPair().getFace();
-				if (!(f1 == null || f2 == null || !contains(f1) || !contains(f2))) {
+				if (!(f1 == null || f2 == null || !contains(f1)
+						|| !contains(f2))) {
 					result.add(he);
 				}
 			}
@@ -1179,7 +1100,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	 *
 	 * @return boundary vertices in selection as FastList<HE_Vertex>
 	 */
-
 	public List<HE_Vertex> getAllBoundaryVertices() {
 		final List<HE_Vertex> result = new FastList<HE_Vertex>();
 		final List<HE_Halfedge> outerEdges = getOuterEdges();
@@ -1318,11 +1238,13 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 		HE_Halfedge he;
 		while (fitr.hasNext()) {
 			f = fitr.next();
-			final HE_FaceVertexCirculator fvcrc = new HE_FaceVertexCirculator(f);
+			final HE_FaceVertexCirculator fvcrc = new HE_FaceVertexCirculator(
+					f);
 			while (fvcrc.hasNext()) {
 				add(fvcrc.next());
 			}
-			final HE_FaceHalfedgeInnerCirculator fheicrc = new HE_FaceHalfedgeInnerCirculator(f);
+			final HE_FaceHalfedgeInnerCirculator fheicrc = new HE_FaceHalfedgeInnerCirculator(
+					f);
 			while (fheicrc.hasNext()) {
 				he = fheicrc.next();
 				add(he);
@@ -1334,7 +1256,8 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 		fitr = this.fItr();
 		while (fitr.hasNext()) {
 			f = fitr.next();
-			final HE_FaceHalfedgeInnerCirculator fheicrc = new HE_FaceHalfedgeInnerCirculator(f);
+			final HE_FaceHalfedgeInnerCirculator fheicrc = new HE_FaceHalfedgeInnerCirculator(
+					f);
 			while (fheicrc.hasNext()) {
 				he = fheicrc.next();
 				if (!contains(he.getVertex().getHalfedge())) {
@@ -1689,7 +1612,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 	 * @return current selection
 	 */
 	public HE_Selection cleanSelection() {
-
 		final HE_RAS<HE_Face> newFaces = new HE_RAS<HE_Face>();
 		HE_FaceIterator fItr = fItr();
 		HE_Face f;
@@ -1701,7 +1623,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 		}
 		clearFaces();
 		addFaces(newFaces);
-
 		final HE_RAS<HE_Halfedge> newHalfedges = new HE_RAS<HE_Halfedge>();
 		Iterator<HE_Halfedge> heItr = heItr();
 		HE_Halfedge he;
@@ -1736,7 +1657,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 		HE_Face f;
 		while (fItr.hasNext()) {
 			f = fItr.next();
-
 			tmpVertices = f.getUniqueFaceVertices();
 			addVertices(tmpVertices);
 		}
@@ -1798,7 +1718,6 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 			f = fItr.next();
 			addHalfedges(f.getFaceHalfedgesTwoSided());
 		}
-
 	}
 
 	public void addEdge(final HE_Halfedge he) {
@@ -1817,18 +1736,24 @@ public class HE_Selection extends HE_MeshElement implements HE_HalfedgeStructure
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Element#clearPrecomputed()
 	 */
 	@Override
 	protected void clearPrecomputed() {
 		// TODO Auto-generated method stub
-
 	}
 
 	public HE_Mesh getParent() {
-		
 		return parent;
 	}
 
+	@Override
+	public void stats() {
+		System.out.println(
+				"HE_Selection: " + getKey() + " (parent: " + parent.getKey());
+		System.out.println("Number of vertices: " + this.getNumberOfVertices());
+		System.out.println("Number of faces: " + this.getNumberOfFaces());
+		System.out
+				.println("Number of halfedges: " + this.getNumberOfHalfedges());
+	}
 }

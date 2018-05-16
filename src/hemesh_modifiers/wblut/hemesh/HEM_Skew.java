@@ -172,6 +172,6 @@ public class HEM_Skew extends HEM_Modifier {
 			}
 		}
 
-		return selection.parent;
+		return selection.getParent();
 	}
 }

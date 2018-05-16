@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import wblut.geom.WB_Geodesic;
@@ -17,23 +14,22 @@ import wblut.geom.WB_Sphere;
  *
  */
 public class HEC_Geodesic extends HEC_Creator {
-
 	/**
 	 *
 	 */
-	private double rx, ry, rz;
+	private double	rx, ry, rz;
 	/**
 	 *
 	 */
-	private Type type;
+	private Type	type;
 	/**
 	 *
 	 */
-	private int b;
+	private int		b;
 	/**
 	 *
 	 */
-	private int c;
+	private int		c;
 
 	/**
 	 *
@@ -81,7 +77,8 @@ public class HEC_Geodesic extends HEC_Creator {
 	 * @param rz
 	 * @return
 	 */
-	public HEC_Geodesic setRadius(final double rx, final double ry, final double rz) {
+	public HEC_Geodesic setRadius(final double rx, final double ry,
+			final double rz) {
 		this.rx = rx;
 		this.ry = ry;
 		this.rz = rz;
@@ -123,13 +120,14 @@ public class HEC_Geodesic extends HEC_Creator {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Creator#create()
 	 */
 	@Override
 	protected HE_Mesh createBase() {
 		final WB_Geodesic geo = new WB_Geodesic(1.0, b, c, type);
-		final HE_Mesh mesh = new HE_Mesh(new HEC_FromWBMesh(geo));
+		final HE_Mesh mesh = new HE_Mesh(
+				new HEC_FromWBMesh(geo).setNormalsCheck(false)
+						.setUniformityCheck(false).setManifoldCheck(false));
 		mesh.scaleSelf(rx, ry, rz);
 		return mesh;
 	}

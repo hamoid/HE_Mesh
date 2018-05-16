@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.Collection;
@@ -26,18 +23,17 @@ import java.util.concurrent.Future;
 import org.eclipse.collections.impl.list.mutable.FastList;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.map.mutable.primitive.LongIntHashMap;
-import org.eclipse.collections.impl.map.mutable.primitive.LongObjectHashMap;
 
 import wblut.core.WB_ProgressReporter.WB_ProgressCounter;
+import wblut.core.WB_ProgressReporter.WB_ProgressTracker;
 import wblut.geom.WB_AABB;
 import wblut.geom.WB_Classification;
 import wblut.geom.WB_Coord;
 import wblut.geom.WB_CoordCollection;
-import wblut.geom.WB_CoordOp3D;
+import wblut.geom.WB_Geometry3D;
 import wblut.geom.WB_GeometryFactory;
 import wblut.geom.WB_GeometryOp3D;
 import wblut.geom.WB_KDTree;
-import wblut.geom.WB_KDTree.WB_KDEntry;
 import wblut.geom.WB_Mesh;
 import wblut.geom.WB_MeshCreator;
 import wblut.geom.WB_Network;
@@ -45,8 +41,8 @@ import wblut.geom.WB_Plane;
 import wblut.geom.WB_Point;
 import wblut.geom.WB_Polygon;
 import wblut.geom.WB_Segment;
-import wblut.geom.WB_Sphere;
 import wblut.geom.WB_Transform;
+import wblut.geom.WB_Transform2D;
 import wblut.geom.WB_TriangleGenerator;
 import wblut.geom.WB_Vector;
 import wblut.math.WB_Epsilon;
@@ -58,7 +54,11 @@ import wblut.math.WB_MTRandom;
  * @author Frederik Vanhoutte (W:Blut)
  *
  */
-public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_HalfedgeStructure {
+public class HE_Mesh extends HE_MeshElement
+		implements WB_TriangleGenerator, HE_HalfedgeStructure, WB_Geometry3D {
+	protected final static WB_ProgressTracker	tracker	= WB_ProgressTracker
+			.instance();
+	protected WB_GeometryFactory				gf		= new WB_GeometryFactory();
 
 	/**
 	 *
@@ -72,7 +72,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 
 		/*
 		 * (non-Javadoc)
-		 *
 		 * @see java.util.concurrent.Callable#call()
 		 */
 		@Override
@@ -86,8 +85,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *
 	 */
 	class ModifierThread implements Callable<HE_Mesh> {
-		HEM_Modifier machine;
-		HE_Mesh mesh;
+		HEM_Modifier	machine;
+		HE_Mesh			mesh;
 
 		ModifierThread(final HEM_Modifier machine, final HE_Mesh mesh) {
 			this.machine = machine;
@@ -96,7 +95,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 
 		/*
 		 * (non-Javadoc)
-		 *
 		 * @see java.util.concurrent.Callable#call()
 		 */
 		@Override
@@ -113,8 +111,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *
 	 */
 	class SimplifierThread implements Callable<HE_Mesh> {
-		HES_Simplifier machine;
-		HE_Mesh mesh;
+		HES_Simplifier	machine;
+		HE_Mesh			mesh;
 
 		SimplifierThread(final HES_Simplifier machine, final HE_Mesh mesh) {
 			this.machine = machine;
@@ -123,7 +121,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 
 		/*
 		 * (non-Javadoc)
-		 *
 		 * @see java.util.concurrent.Callable#call()
 		 */
 		@Override
@@ -140,8 +137,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *
 	 */
 	class SubdividorThread implements Callable<HE_Mesh> {
-		HES_Subdividor machine;
-		HE_Mesh mesh;
+		HES_Subdividor	machine;
+		HE_Mesh			mesh;
 
 		SubdividorThread(final HES_Subdividor machine, final HE_Mesh mesh) {
 			this.machine = machine;
@@ -150,7 +147,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 
 		/*
 		 * (non-Javadoc)
-		 *
 		 * @see java.util.concurrent.Callable#call()
 		 */
 		@Override
@@ -163,25 +159,18 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		}
 	}
 
-	private HE_RAS<HE_Boundary> boundaries;
-	private HE_RAS<HE_Halfedge> edges;
-	ExecutorService executor;
-	private HE_RAS<HE_Face> faces;
-
-	boolean finished;
-	Future<HE_Mesh> future;
-	protected WB_GeometryFactory gf = new WB_GeometryFactory();
-	private HE_RAS<HE_Halfedge> halfedges;
-	String name;
-	Map<String, HE_Selection> selections;
-
-	LinkedList<Callable<HE_Mesh>> tasks;
-
-	int[] triangles;
-
-	private HE_RAS<HE_Halfedge> unpairedHalfedges;
-
-	private HE_RAS<HE_Vertex> vertices;
+	String							name;
+	private HE_RAS<HE_Vertex>		vertices;
+	private HE_RAS<HE_Face>			faces;
+	private HE_RAS<HE_Halfedge>		edges;
+	private HE_RAS<HE_Halfedge>		halfedges;
+	private HE_RAS<HE_Halfedge>		unpairedHalfedges;
+	ExecutorService					executor;
+	LinkedList<Callable<HE_Mesh>>	tasks;
+	boolean							finished;
+	Future<HE_Mesh>					future;
+	Map<String, HE_Selection>		selections;
+	int[]							triangles;
 
 	/**
 	 * Instantiates a new HE_Mesh.
@@ -194,7 +183,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		edges = new HE_RAS<HE_Halfedge>();
 		unpairedHalfedges = new HE_RAS<HE_Halfedge>();
 		faces = new HE_RAS<HE_Face>();
-		boundaries = new HE_RAS<HE_Boundary>();
 		selections = new UnifiedMap<String, HE_Selection>();
 		tasks = new LinkedList<Callable<HE_Mesh>>();
 		future = null;
@@ -246,10 +234,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		triangles = null;
 	}
 
-	public void add(final HE_Boundary b) {
-		boundaries.add(b);
-	}
-
 	@Override
 	public void add(final HE_Element el) {
 		if (el instanceof HE_Face) {
@@ -258,8 +242,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 			add((HE_Vertex) el);
 		} else if (el instanceof HE_Halfedge) {
 			add((HE_Halfedge) el);
-		} else if (el instanceof HE_Boundary) {
-			add((HE_Boundary) el);
 		}
 	}
 
@@ -272,94 +254,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	@Override
 	public void add(final HE_Face f) {
 		faces.add(f);
-	}
-
-	/**
-	 * Adds halfedge.
-	 *
-	 * @param he
-	 *            halfedge to add
-	 */
-	@Override
-	public void add(final HE_Halfedge he) {
-		if (he.getPair() == null) {
-			unpairedHalfedges.add(he);
-		} else if (he.isEdge()) {
-			edges.add(he);
-		} else {
-			halfedges.add(he);
-		}
-	}
-
-	/**
-	 * Add all mesh elements to this mesh. No copies are made.
-	 *
-	 * @param mesh
-	 *            mesh to add
-	 */
-
-	@Override
-	public void add(final HE_Mesh mesh) {
-		addVertices(mesh.vertices);
-		addFaces(mesh.faces);
-		addHalfedges(mesh.edges);
-		addHalfedges(mesh.halfedges);
-		addHalfedges(mesh.unpairedHalfedges);
-		addBoundaries(mesh.boundaries);
-		Set<String> selections = mesh.getSelectionNames();
-		for (String name : selections) {
-			HE_Selection sourceSel = mesh.getSelection(name);
-			HE_Selection currentSel = getSelection(name);
-			HE_Selection sel = sourceSel.get();
-			sel.parent = this;
-			if (currentSel == null) {
-				addSelection(name, sel);
-			} else {
-				currentSel.add(sel);
-			}
-
-		}
-
-	}
-
-	/**
-	 * Add vertex.
-	 *
-	 * @param v
-	 *            vertex to add
-	 */
-	@Override
-	public void add(final HE_Vertex v) {
-		vertices.add(v);
-	}
-
-	/**
-	 *
-	 * @param boundaries
-	 */
-	public void addBoundaries(final Collection<? extends HE_Boundary> boundaries) {
-		for (HE_Boundary b : boundaries) {
-			add(b);
-		}
-	}
-
-	/**
-	 *
-	 * @param boundaries
-	 */
-	public void addBoundaries(final HE_Boundary[] boundaries) {
-		for (final HE_Boundary boundary : boundaries) {
-			add(boundary);
-		}
-	}
-
-	/**
-	 *
-	 *
-	 * @param source
-	 */
-	public void addBoundaries(final HE_Mesh source) {
-		boundaries.addAll(source.getBoundaries());
 	}
 
 	/**
@@ -383,57 +277,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 			}
 			if (contains) {
 				sel.add(f);
-			}
-		}
-	}
-
-	/**
-	 * Adds a halfedge to the mesh. The halfedge is also added to any selection
-	 * that contains one of the elements it derives from.
-	 *
-	 * @param he
-	 *            new halfedge
-	 * @param el
-	 *            elements the halfedge derives from
-	 */
-	public void addDerivedElement(final HE_Halfedge he, final HE_Element... el) {
-		add(he);
-		for (HE_Selection sel : selections.values()) {
-			boolean contains = false;
-			for (int i = 0; i < el.length; i++) {
-				contains |= sel.contains(el[i]);
-				if (contains) {
-					break;
-				}
-			}
-			if (contains) {
-				sel.add(he);
-			}
-		}
-
-	}
-
-	/**
-	 * Adds a vertex to the mesh. The vertex is also added to any selection that
-	 * contains one of the elements it derives from.
-	 *
-	 * @param v
-	 *            new vertex
-	 * @param el
-	 *            elements the vertex derives from
-	 */
-	public void addDerivedElement(final HE_Vertex v, final HE_Element... el) {
-		add(v);
-		for (HE_Selection sel : selections.values()) {
-			boolean contains = false;
-			for (int i = 0; i < el.length; i++) {
-				contains |= sel.contains(el[i]);
-				if (contains) {
-					break;
-				}
-			}
-			if (contains) {
-				sel.add(v);
 			}
 		}
 	}
@@ -475,13 +318,57 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	}
 
 	/**
+	 * Adds halfedge.
+	 *
+	 * @param he
+	 *            halfedge to add
+	 */
+	@Override
+	public void add(final HE_Halfedge he) {
+		if (he.getPair() == null) {
+			unpairedHalfedges.add(he);
+		} else if (he.isEdge()) {
+			edges.add(he);
+		} else {
+			halfedges.add(he);
+		}
+	}
+
+	/**
+	 * Adds a halfedge to the mesh. The halfedge is also added to any selection
+	 * that contains one of the elements it derives from.
+	 *
+	 * @param he
+	 *            new halfedge
+	 * @param el
+	 *            elements the halfedge derives from
+	 */
+	public void addDerivedElement(final HE_Halfedge he,
+			final HE_Element... el) {
+		add(he);
+		for (HE_Selection sel : selections.values()) {
+			boolean contains = false;
+			for (int i = 0; i < el.length; i++) {
+				contains |= sel.contains(el[i]);
+				if (contains) {
+					break;
+				}
+			}
+			if (contains) {
+				sel.add(he);
+			}
+		}
+	}
+
+	/**
 	 * Adds halfedges.
 	 *
 	 * @param halfedges
 	 *            halfedges to add as Collection<? extends HE_Halfedge>
 	 */
 	@Override
-	public void addHalfedges(final Collection<? extends HE_Halfedge> halfedges) {
+	public void addHalfedges(
+			final Collection<? extends HE_Halfedge> halfedges) {
 		for (HE_Halfedge he : halfedges) {
 			add(he);
 		}
@@ -510,76 +397,41 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		for (HE_Halfedge he : source.getHalfedges()) {
 			add(he);
 		}
-
 	}
 
 	/**
-	 * Split the closest face in the query point.
+	 * Add vertex.
 	 *
-	 * @param p
-	 *            query point
-	 * @param vertexTree
-	 *            KD-tree from mesh (from vertexTree())
+	 * @param v
+	 *            vertex to add
 	 */
-	public void addPointInClosestFace(final WB_Coord p, final WB_KDTree<WB_Coord, Long> vertexTree) {
-		final WB_KDEntry<WB_Coord, Long>[] closestVertex = vertexTree.getNearestNeighbors(p, 1);
-		final HE_Vertex v = getVertexWithKey(closestVertex[0].value);
-		final List<HE_Face> faces = v.getFaceStar();
-		double d;
-		double dmin = Double.POSITIVE_INFINITY;
-		HE_Face face = new HE_Face();
-		for (int i = 0; i < faces.size(); i++) {
-			final WB_Polygon poly = faces.get(i).toPolygon();
-			final WB_Coord tmp = WB_GeometryOp3D.getClosestPoint3D(p, poly);
-			d = WB_CoordOp3D.getSqDistance3D(tmp, p);
-			if (d < dmin) {
-				dmin = d;
-				face = faces.get(i);
-				;
-			}
-		}
-		final HE_Vertex nv = HEM_TriSplit.splitFaceTri(this, face, p).vItr().next();
-		vertexTree.add(nv, nv.key());
-	}
-
-	void addSelection(final String name, final HE_Machine machine, final HE_Selection sel) {
-
-		if (sel.parent == this && sel != null) {
-			sel.createdBy = machine.getName();
-			HE_Selection prevsel = selections.get(name);
-			if (prevsel == null) {
-				tracker.setDuringStatus(this, "Adding to selection " + name + ".");
-				selections.put(name, sel);
-			} else {
-				tracker.setDuringStatus(this, "Adding selection " + name + ".");
-				prevsel.add(sel);
-			}
-
-		} else {
-			tracker.setDuringStatus(this,
-					"Selection " + name + " not added: selection is null or parent mesh is not the same.");
-		}
+	@Override
+	public void add(final HE_Vertex v) {
+		vertices.add(v);
 	}
 
 	/**
+	 * Adds a vertex to the mesh. The vertex is also added to any selection that
+	 * contains one of the elements it derives from.
 	 *
-	 * @param name
-	 * @param sel
+	 * @param v
+	 *            new vertex
+	 * @param el
+	 *            elements the vertex derives from
 	 */
-	public void addSelection(final String name, final HE_Selection sel) {
-		if (sel.parent == this && sel != null) {
-			HE_Selection prevsel = selections.get(name);
-			if (prevsel == null) {
-				tracker.setDuringStatus(this, "Adding to selection " + name + ".");
-				selections.put(name, sel);
-			} else {
-				tracker.setDuringStatus(this, "Adding selection " + name + ".");
-				prevsel.add(sel);
+	public void addDerivedElement(final HE_Vertex v, final HE_Element... el) {
+		add(v);
+		for (HE_Selection sel : selections.values()) {
+			boolean contains = false;
+			for (int i = 0; i < el.length; i++) {
+				contains |= sel.contains(el[i]);
+				if (contains) {
+					break;
+				}
 			}
-
-		} else {
-			tracker.setDuringStatus(this,
-					"Selection " + name + " not added: selection is null or parent mesh is not the same.");
+			if (contains) {
+				sel.add(v);
+			}
 		}
 	}
 
@@ -619,6 +471,76 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		}
 	}
 
+	/**
+	 * Add all mesh elements to this mesh. No copies are made.
+	 *
+	 * @param mesh
+	 *            mesh to add
+	 */
+	@Override
+	public void add(final HE_Mesh mesh) {
+		addVertices(mesh.vertices);
+		addFaces(mesh.faces);
+		addHalfedges(mesh.edges);
+		addHalfedges(mesh.halfedges);
+		addHalfedges(mesh.unpairedHalfedges);
+		Set<String> selections = mesh.getSelectionNames();
+		for (String name : selections) {
+			HE_Selection sourceSel = mesh.getSelection(name);
+			HE_Selection currentSel = getSelection(name);
+			HE_Selection sel = sourceSel.get();
+			if (currentSel == null) {
+				currentSel = new HE_Selection(this);
+				currentSel.add(sel);
+				addSelection(name, currentSel);
+			} else {
+				currentSel.add(sel);
+			}
+		}
+	}
+
+	void addSelection(final String name, final HE_Machine machine,
+			final HE_Selection sel) {
+		if (sel.getParent() == this && sel != null) {
+			sel.createdBy = machine.getName();
+			HE_Selection prevsel = selections.get(name);
+			if (prevsel == null) {
+				tracker.setDuringStatus(this,
+						"Adding to selection " + name + ".");
+				selections.put(name, sel);
+			} else {
+				tracker.setDuringStatus(this, "Adding selection " + name + ".");
+				prevsel.add(sel);
+			}
+		} else {
+			tracker.setDuringStatus(this, "Selection " + name
+					+ " not added: selection is null or parent mesh is not the same.");
+		}
+	}
+
+	/**
+	 *
+	 * @param name
+	 * @param sel
+	 */
+	public void addSelection(final String name, final HE_Selection sel) {
+		if (sel.getParent() == this && sel != null) {
+			HE_Selection prevsel = selections.get(name);
+			if (prevsel == null) {
+				tracker.setDuringStatus(this,
+						"Adding to selection " + name + ".");
+				selections.put(name, sel);
+			} else {
+				tracker.setDuringStatus(this, "Adding selection " + name + ".");
+				prevsel.add(sel);
+			}
+		} else {
+			tracker.setDuringStatus(this, "Selection " + name
+					+ " not added: selection is null or parent mesh is not the same.");
+		}
+	}
+
+	@Override
 	public HE_Mesh apply(final WB_Transform T) {
 		return new HEC_Transform(this, T).create();
 	}
@@ -628,57 +550,24 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param T
 	 * @return
 	 */
+	@Override
 	public HE_Mesh applySelf(final WB_Transform T) {
-
 		return modify(new HEM_Transform(T));
 	}
 
-	public HE_BoundaryIterator bItr() {
-		List<HE_Boundary> bs = new FastList<HE_Boundary>(getBoundaries());
-		return new HE_BoundaryIterator(bs);
+	@Override
+	public HE_Mesh apply2D(final WB_Transform2D T) {
+		return new HEC_Transform2D(this, T).create();
 	}
 
 	/**
-	 * Cap all remaining unpaired halfedges. Only use after pairHalfedges();
+	 *
+	 * @param T
+	 * @return
 	 */
-
-	public void capHalfedges() {
-
-		tracker.setStartStatus(this, "Capping unpaired halfedges.");
-		final List<HE_Halfedge> unpairedHalfedges = getUnpairedHalfedges();
-		final int nuh = unpairedHalfedges.size();
-		final HE_Halfedge[] newHalfedges = new HE_Halfedge[nuh];
-		HE_Halfedge he1, he2;
-		WB_ProgressCounter counter = new WB_ProgressCounter(nuh, 10);
-		tracker.setCounterStatus(this, "Capping unpaired halfedges.", counter);
-		for (int i = 0; i < nuh; i++) {
-			he1 = unpairedHalfedges.get(i);
-			he2 = new HE_Halfedge();
-			setVertex(he2, he1.getNextInFace().getVertex());
-			setPair(he1, he2);
-			newHalfedges[i] = he2;
-			addDerivedElement(he2);
-			counter.increment();
-		}
-		counter = new WB_ProgressCounter(nuh, 10);
-		tracker.setCounterStatus(this, "Cycling new halfedges.", counter);
-		for (int i = 0; i < nuh; i++) {
-			he1 = newHalfedges[i];
-			if (he1.getNextInFace() == null) {
-				for (int j = 0; j < nuh; j++) {
-					he2 = newHalfedges[j];
-					if (!he2.isVisited()) {
-						if (he2.getVertex() == he1.getPair().getVertex()) {
-							setNext(he1, he2);
-							he2.setVisited();
-							break;
-						}
-					}
-				}
-			}
-			counter.increment();
-		}
-		tracker.setStopStatus(this, "Processed unpaired halfedges.");
+	@Override
+	public HE_Mesh apply2DSelf(final WB_Transform2D T) {
+		return modify(new HEM_Transform2D(T));
 	}
 
 	/**
@@ -703,7 +592,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return self
 	 */
 	public HE_Mesh cleanUnusedElementsByFace() {
-		return HET_MeshOp.cleanUnusedElementsByFace(this);
+		return HE_MeshOp.cleanUnusedElementsByFace(this);
 	}
 
 	/**
@@ -715,12 +604,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		clearVertices();
 		clearHalfedges();
 		clearFaces();
-		clearBoundaries();
-	}
-
-	public void clearBoundaries() {
-		boundaries = new HE_RAS<HE_Boundary>();
-
 	}
 
 	/**
@@ -728,12 +611,9 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 */
 	@Override
 	public void clearEdges() {
-
 		edges = new HE_RAS<HE_Halfedge>();
 		for (HE_Selection sel : selections.values()) {
-
 			sel.clearEdges();
-
 		}
 	}
 
@@ -743,24 +623,20 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param he
 	 */
 	public void clearFace(final HE_Halfedge he) {
-		he._clearFace();
+		he.clearFace();
 		if (he.getPair() != null) {
 			setPair(he, he.getPair());
 		}
-
 	}
 
 	/**
 	 * Clear faces.
 	 */
-
 	@Override
 	public void clearFaces() {
 		faces = new HE_RAS<HE_Face>();
 		for (HE_Selection sel : selections.values()) {
-
 			sel.clearFaces();
-
 		}
 	}
 
@@ -769,16 +645,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 */
 	void clearFacesNoSelectionCheck() {
 		faces = new HE_RAS<HE_Face>();
-
-	}
-
-	/**
-	 * Unlink halfedge from boundary
-	 *
-	 * @param b
-	 */
-	public void clearHalfedge(final HE_Boundary b) {
-		b._clearHalfedge();
 	}
 
 	/**
@@ -787,7 +653,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param f
 	 */
 	public void clearHalfedge(final HE_Face f) {
-		f._clearHalfedge();
+		f.clearHalfedge();
 	}
 
 	/**
@@ -796,22 +662,19 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param v
 	 */
 	public void clearHalfedge(final HE_Vertex v) {
-		v._clearHalfedge();
+		v.clearHalfedge();
 	}
 
 	/**
 	 * Clear halfedges.
 	 */
-
 	@Override
 	public void clearHalfedges() {
 		halfedges = new HE_RAS<HE_Halfedge>();
 		edges = new HE_RAS<HE_Halfedge>();
 		unpairedHalfedges = new HE_RAS<HE_Halfedge>();
 		for (HE_Selection sel : selections.values()) {
-
 			sel.clearHalfedges();
-
 		}
 	}
 
@@ -823,9 +686,9 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 */
 	public void clearNext(final HE_Halfedge he) {
 		if (he.getNextInFace() != null) {
-			he.getNextInFace()._clearPrev();
+			he.getNextInFace().clearPrev();
 		}
-		he._clearNext();
+		he.clearNext();
 	}
 
 	/**
@@ -841,8 +704,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Halfedge hep = he.getPair();
 		removeNoSelectionCheck(he);
 		removeNoSelectionCheck(hep);
-		he._clearPair();
-		hep._clearPair();
+		he.clearPair();
+		hep.clearPair();
 		add(he);
 		add(hep);
 	}
@@ -859,7 +722,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_FaceIterator fItr = fItr();
 		while (fItr.hasNext()) {
 			fItr.next().clearPrecomputed();
-
 		}
 	}
 
@@ -867,7 +729,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_HalfedgeIterator heItr = heItr();
 		while (heItr.hasNext()) {
 			heItr.next().clearPrecomputed();
-
 		}
 	}
 
@@ -875,7 +736,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_VertexIterator vItr = vItr();
 		while (vItr.hasNext()) {
 			vItr.next().clearPrecomputed();
-
 		}
 	}
 
@@ -887,16 +747,15 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 */
 	public void clearPrev(final HE_Halfedge he) {
 		if (he.getPrevInFace() != null) {
-			he.getPrevInFace()._clearNext();
+			he.getPrevInFace().clearNext();
 		}
-		he._clearPrev();
+		he.clearPrev();
 	}
 
 	/**
 	 *
 	 */
 	public void clearSelections() {
-
 	}
 
 	/**
@@ -905,20 +764,17 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param he
 	 */
 	public void clearVertex(final HE_Halfedge he) {
-		he._clearVertex();
+		he.clearVertex();
 	}
 
 	/**
 	 * Clear vertices.
 	 */
-
 	@Override
 	public void clearVertices() {
 		vertices = new HE_RAS<HE_Vertex>();
 		for (HE_Selection sel : selections.values()) {
-
 			sel.clearVertices();
-
 		}
 	}
 
@@ -947,10 +803,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		}
 	}
 
-	public boolean contains(final HE_Boundary b) {
-		return boundaries.contains(b);
-	}
-
 	@Override
 	public boolean contains(final HE_Element el) {
 		if (el instanceof HE_Face) {
@@ -959,8 +811,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 			return contains((HE_Vertex) el);
 		} else if (el instanceof HE_Halfedge) {
 			return contains((HE_Halfedge) el);
-		} else if (el instanceof HE_Boundary) {
-			return contains((HE_Boundary) el);
 		}
 		return false;
 	}
@@ -972,7 +822,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            face
 	 * @return true, if successful
 	 */
-
 	@Override
 	public boolean contains(final HE_Face f) {
 		return faces.contains(f);
@@ -985,11 +834,10 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            halfedge
 	 * @return true, if successful
 	 */
-
 	@Override
 	public boolean contains(final HE_Halfedge he) {
-		return edges.contains(he) || halfedges.contains(he) || unpairedHalfedges.contains(he);
-
+		return edges.contains(he) || halfedges.contains(he)
+				|| unpairedHalfedges.contains(he);
 	}
 
 	/**
@@ -999,14 +847,9 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            vertex
 	 * @return true, if successful
 	 */
-
 	@Override
 	public boolean contains(final HE_Vertex v) {
 		return vertices.contains(v);
-	}
-
-	public boolean containsBoundary(final long key) {
-		return boundaries.containsKey(key);
 	}
 
 	/**
@@ -1039,7 +882,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 */
 	@Override
 	public boolean containsHalfedge(final long key) {
-		return halfedges.containsKey(key) || edges.containsKey(key) || unpairedHalfedges.containsKey(key);
+		return halfedges.containsKey(key) || edges.containsKey(key)
+				|| unpairedHalfedges.containsKey(key);
 	}
 
 	/**
@@ -1048,7 +892,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param key
 	 * @return
 	 */
-
 	@Override
 	public boolean containsVertex(final long key) {
 		return vertices.containsKey(key);
@@ -1074,45 +917,9 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		if (sel == null) {
 			tracker.setDuringStatus(this, "Selection " + from + " not found.");
 		}
-
 		HE_Selection copy = sel.get();
 		addSelection(to, copy);
 		return copy;
-	}
-
-	/**
-	 *
-	 *
-	 * @param vertices
-	 * @param loop
-	 * @return
-	 */
-	public HE_Path createPathFromIndices(final int[] vertices, final boolean loop) {
-		final List<HE_Halfedge> halfedges = new FastList<HE_Halfedge>();
-		if (vertices.length > 1) {
-			HE_Halfedge he;
-			for (int i = 0; i < vertices.length - 1; i++) {
-				he = getHalfedgeFromTo(getVertexWithIndex(vertices[i]), getVertexWithIndex(vertices[i + 1]));
-				if (he == null) {
-					// throw new IllegalArgumentException(
-					// "Two vertices " + vertices[i] + " and " + vertices[i + 1]
-					// + " in path are not connected.");
-				} else {
-
-					halfedges.add(he);
-				}
-			}
-			if (loop) {
-				he = getHalfedgeFromTo(getVertexWithIndex(vertices[vertices.length - 1]),
-						getVertexWithIndex(vertices[0]));
-				if (he == null) {
-					throw new IllegalArgumentException("Vertices " + vertices[vertices.length - 1] + " and "
-							+ vertices[0] + " in path are not connected: path is not a loop.");
-				}
-			}
-		}
-		final HE_Path path = new HE_Path(halfedges, loop);
-		return path;
 	}
 
 	public void createThreaded(final HEC_Creator creator) {
@@ -1125,15 +932,12 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *
 	 * @param f
 	 */
-
 	public void cutFace(final HE_Face f) {
 		HE_Halfedge he = f.getHalfedge();
 		do {
 			setHalfedge(he.getVertex(), he.getNextInVertex());
-
 			he = he.getNextInFace();
 		} while (he != f.getHalfedge());
-
 		do {
 			clearFace(he);
 			clearPair(he);
@@ -1144,26 +948,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	}
 
 	/**
-	 * Cycle halfedges.
-	 *
-	 * @param halfedges
-	 *            halfedges to cycle
-	 */
-	public void cycleHalfedges(final List<HE_Halfedge> halfedges) {
-		orderHalfedges(halfedges, true);
-	}
-
-	/**
-	 * Cycle halfedges.
-	 *
-	 * @param halfedges
-	 *            halfedges to cycle
-	 */
-	public void cycleHalfedgesReverse(final List<HE_Halfedge> halfedges) {
-		orderHalfedgesReverse(halfedges, true);
-	}
-
-	/**
 	 * Delete edge. Adjacent faces are fused.
 	 *
 	 * @param e
@@ -1171,7 +955,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return fused face (or null)
 	 */
 	public HE_Face deleteEdge(final HE_Halfedge e) {
-
 		HE_Face f = null;
 		final HE_Halfedge he1 = e.isEdge() ? e : e.getPair();
 		final HE_Halfedge he2 = he1.getPair();
@@ -1241,7 +1024,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 			remove(f);
 		}
 		cleanUnusedElementsByFace();
-		capHalfedges();
+		HE_MeshOp.capHalfedges(this);
 	}
 
 	/**
@@ -1261,17 +1044,18 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *
 	 */
 	public void fitInAABB(final WB_AABB AABB) {
-		final WB_AABB self = getAABB();
+		final WB_AABB self = HE_MeshOp.getAABB(this);
 		moveSelf(new WB_Vector(self.getMin(), AABB.getMin()));
-		scaleSelf(AABB.getWidth() / self.getWidth(), AABB.getHeight() / self.getHeight(),
+		scaleSelf(AABB.getWidth() / self.getWidth(),
+				AABB.getHeight() / self.getHeight(),
 				AABB.getDepth() / self.getDepth(), new WB_Point(AABB.getMin()));
 	}
 
 	public void fitInAABB(final WB_AABB from, final WB_AABB to) {
-
 		moveSelf(new WB_Vector(from.getMin(), to.getMin()));
-		scaleSelf(to.getWidth() / from.getWidth(), to.getHeight() / from.getHeight(), to.getDepth() / from.getDepth(),
-				new WB_Point(to.getMin()));
+		scaleSelf(to.getWidth() / from.getWidth(),
+				to.getHeight() / from.getHeight(),
+				to.getDepth() / from.getDepth(), new WB_Point(to.getMin()));
 	}
 
 	/**
@@ -1282,18 +1066,19 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return
 	 */
 	public double fitInAABBConstrained(final WB_AABB AABB) {
-		final WB_AABB self = getAABB();
+		final WB_AABB self = HE_MeshOp.getAABB(this);
 		moveSelf(new WB_Vector(self.getCenter(), AABB.getCenter()));
-		double f = Math.min(AABB.getWidth() / self.getWidth(), AABB.getHeight() / self.getHeight());
+		double f = Math.min(AABB.getWidth() / self.getWidth(),
+				AABB.getHeight() / self.getHeight());
 		f = Math.min(f, AABB.getDepth() / self.getDepth());
 		scaleSelf(f, new WB_Point(AABB.getCenter()));
 		return f;
 	}
 
 	public double fitInAABBConstrained(final WB_AABB from, final WB_AABB to) {
-
 		moveSelf(new WB_Vector(from.getCenter(), to.getCenter()));
-		double f = Math.min(to.getWidth() / from.getWidth(), to.getHeight() / from.getHeight());
+		double f = Math.min(to.getWidth() / from.getWidth(),
+				to.getHeight() / from.getHeight());
 		f = Math.min(f, to.getDepth() / from.getDepth());
 		scaleSelf(f, new WB_Point(to.getCenter()));
 		return f;
@@ -1318,11 +1103,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            mesh to add
 	 */
 	public void fuse(final HE_Mesh mesh) {
-
 		addVertices(mesh.getVerticesAsArray());
 		addFaces(mesh.getFacesAsArray());
 		addHalfedges(mesh.getHalfedgesAsArray());
-		setNoCopy(new HE_Mesh(new HEC_FromPolygons().setPolygons(this.getPolygonList())));
+		setNoCopy(new HE_Mesh(
+				new HEC_FromPolygons().setPolygons(this.getPolygonList())));
 	}
 
 	/**
@@ -1332,19 +1117,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 */
 	public HE_Mesh get() {
 		return new HE_Mesh(new HEC_Copy(this));
-	}
-
-	/**
-	 * Get axis-aligned bounding box surrounding mesh.
-	 *
-	 * @return WB_AABB axis-aligned bounding box
-	 */
-	@Override
-	public WB_AABB getAABB() {
-		final double[] result = getLimits();
-		final WB_Point min = gf.createPoint(result[0], result[1], result[2]);
-		final WB_Point max = gf.createPoint(result[3], result[4], result[5]);
-		return new WB_AABB(min, max);
 	}
 
 	/**
@@ -1383,164 +1155,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		return boundaryVertices;
 	}
 
-	public double getAngleDefect() {
-
-		return HET_MeshOp.getAngleDefect(this);
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public double getArea() {
-		final Iterator<HE_Face> fItr = fItr();
-		double A = 0.0;
-		while (fItr.hasNext()) {
-			A += fItr.next().getFaceArea();
-		}
-		return A;
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public List<HE_Boundary> getBoundaries() {
-		return new FastList<HE_Boundary>(boundaries.getObjects());
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	public HE_Boundary[] getBoundariesAsArray() {
-		final HE_Boundary[] boundaries = new HE_Boundary[getNumberOfBoundaries()];
-		final Iterator<HE_Boundary> bItr = this.boundaries.iterator();
-		int i = 0;
-		while (bItr.hasNext()) {
-			boundaries[i] = bItr.next();
-			i++;
-		}
-		return boundaries;
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public HE_Path[] getBoundaryAsPath() {
-		final HE_Path[] result = new HE_Path[getNumberOfBoundaries()];
-		for (int i = 0; i < getNumberOfBoundaries(); i++) {
-			result[i] = new HE_Path(getBoundaryWithIndex(i).getHalfedge());
-		}
-		return result;
-	}
-
-	/**
-	 * Get boundary with index. Indices of mesh elements are not fixed and will
-	 * change when the mesh is modified.
-	 *
-	 * @param i
-	 *            boundary index
-	 * @return
-	 */
-	public HE_Boundary getBoundaryWithIndex(final int i) {
-		if (i < 0 || i >= boundaries.size()) {
-			throw new IndexOutOfBoundsException("Requested boundary index " + i + "not in range.");
-		}
-		return boundaries.getWithIndex(i);
-	}
-
-	/**
-	 * Get boundary with key. The key of a mesh element is unique and never
-	 * changes.
-	 *
-	 * @param key
-	 *            boundary key
-	 * @return boundary
-	 */
-	public HE_Boundary getBoundaryWithKey(final long key) {
-		return boundaries.getWithKey(key);
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	@Override
-	public WB_Sphere getBoundingSphere() {
-
-		return WB_GeometryOp3D.getBoundingSphere(vertices);
-	}
-
-	/**
-	 * Get the center (average of all vertex positions).
-	 *
-	 * @return the center
-	 */
-
-	public WB_Point getCenter() {
-		final WB_Point c = new WB_Point(0, 0, 0);
-		final Iterator<HE_Vertex> vItr = vItr();
-		while (vItr.hasNext()) {
-			c.addSelf(vItr.next());
-		}
-		c.divSelf(getNumberOfVertices());
-		return c;
-	}
-
-	/**
-	 * Return the closest point on the mesh.
-	 *
-	 * @param p
-	 *            query point
-	 * @param vertexTree
-	 *            KD-tree from mesh (from vertexTree())
-	 * @return WB_Coordinate closest point
-	 */
-	public WB_Coord getClosestPoint(final WB_Coord p, final WB_KDTree<WB_Coord, Long> vertexTree) {
-		final WB_KDEntry<WB_Coord, Long>[] closestVertex = vertexTree.getNearestNeighbors(p, 1);
-		final HE_Vertex v = getVertexWithKey(closestVertex[0].value);
-		if (v == null) {
-			return null;
-		}
-		final List<HE_Face> faces = v.getFaceStar();
-		double d;
-		double dmin = Double.POSITIVE_INFINITY;
-		WB_Coord result = new WB_Point();
-		for (int i = 0; i < faces.size(); i++) {
-			final WB_Polygon poly = faces.get(i).toPolygon();
-			final WB_Coord tmp = WB_GeometryOp3D.getClosestPoint3D(p, poly);
-			d = WB_CoordOp3D.getSqDistance3D(tmp, p);
-			if (d < dmin) {
-				dmin = d;
-				result = tmp;
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * Return the closest vertex on the mesh.
-	 *
-	 * @param p
-	 *            query point
-	 * @param vertexTree
-	 *            KD-tree from mesh (from vertexTree())
-	 * @return HE_Vertex closest vertex
-	 */
-	public HE_Vertex getClosestVertex(final WB_Coord p, final WB_KDTree<WB_Coord, Long> vertexTree) {
-		final WB_KDEntry<WB_Coord, Long>[] closestVertex = vertexTree.getNearestNeighbors(p, 1);
-		if (closestVertex.length == 0) {
-			return null;
-		}
-		return getVertexWithKey(closestVertex[0].value);
-	}
-
 	/**
 	 * Return all edge centers.
 	 *
@@ -1553,7 +1167,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		final Iterator<HE_Halfedge> eItr = eItr();
 		while (eItr.hasNext()) {
 			e = eItr.next();
-			result[i] = e.getHalfedgeCenter();
+			result[i] = HE_MeshOp.getHalfedgeCenter(e);
 			i++;
 		}
 		return result;
@@ -1571,7 +1185,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		final Iterator<HE_Halfedge> eItr = eItr();
 		while (eItr.hasNext()) {
 			e = eItr.next();
-			result[i] = e.getEdgeNormal();
+			result[i] = HE_MeshOp.getEdgeNormal(e);
 			i++;
 		}
 		return result;
@@ -1610,7 +1224,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		final Iterator<HE_Vertex> vItr = vItr();
 		int i = 0;
 		while (vItr.hasNext()) {
-			vertexKeys.put(vItr.next().key(), i);
+			vertexKeys.put(vItr.next().getKey(), i);
 			i++;
 		}
 		final Iterator<HE_Halfedge> eItr = eItr();
@@ -1618,9 +1232,9 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		i = 0;
 		while (eItr.hasNext()) {
 			he = eItr.next();
-			result[i][0] = vertexKeys.get(he.getVertex().key());
+			result[i][0] = vertexKeys.get(he.getVertex().getKey());
 			he = he.getPair();
-			result[i][1] = vertexKeys.get(he.getVertex().key());
+			result[i][1] = vertexKeys.get(he.getVertex().getKey());
 			i++;
 		}
 		return result;
@@ -1637,7 +1251,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	@Override
 	public HE_Halfedge getEdgeWithIndex(final int i) {
 		if (i < 0 || i >= edges.size()) {
-			throw new IndexOutOfBoundsException("Requested edge index " + i + "not in range.");
+			throw new IndexOutOfBoundsException(
+					"Requested edge index " + i + "not in range.");
 		}
 		return edges.getWithIndex(i);
 	}
@@ -1649,7 +1264,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            halfedge key
 	 * @return halfedge
 	 */
-
 	@Override
 	public HE_Halfedge getEdgeWithKey(final long key) {
 		HE_Halfedge he = edges.getWithKey(key);
@@ -1673,7 +1287,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	}
 
 	public WB_Coord getFaceCenter(final int id) {
-		return getFaceWithIndex(id).getFaceCenter();
+		return HE_MeshOp.getFaceCenter(getFaceWithIndex(id));
 	}
 
 	/**
@@ -1688,7 +1302,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		final Iterator<HE_Face> fItr = fItr();
 		while (fItr.hasNext()) {
 			f = fItr.next();
-			result[i] = f.getFaceCenter();
+			result[i] = HE_MeshOp.getFaceCenter(f);
 			i++;
 		}
 		return result;
@@ -1721,7 +1335,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	}
 
 	public WB_Coord getFaceNormal(final int id) {
-		return getFaceWithIndex(id).getFaceNormal();
+		return HE_MeshOp.getFaceNormal(getFaceWithIndex(id));
 	}
 
 	/**
@@ -1736,12 +1350,12 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		final Iterator<HE_Face> fItr = fItr();
 		while (fItr.hasNext()) {
 			f = fItr.next();
-			result[i] = f.getFaceNormal();
+			result[i] = HE_MeshOp.getFaceNormal(f);
 			i++;
 		}
 		return result;
 	}
-	
+
 	public WB_Plane[] getFacePlanes() {
 		final WB_Plane[] result = new WB_Plane[getNumberOfFaces()];
 		int i = 0;
@@ -1749,7 +1363,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		final Iterator<HE_Face> fItr = fItr();
 		while (fItr.hasNext()) {
 			f = fItr.next();
-			result[i] = f.getPlane();
+			result[i] = HE_MeshOp.getPlane(f);
 			i++;
 		}
 		return result;
@@ -1788,10 +1402,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return 2D array of int. First index gives face. Second index gives
 	 *         vertices.
 	 */
-
 	public int[][] getFacesAsInt() {
 		final int[][] result = new int[getNumberOfFaces()][];
-
 		Map<Long, Integer> vertexKeys = getVertexKeyToIndexMap();
 		final Iterator<HE_Face> fItr = fItr();
 		HE_Halfedge he;
@@ -1803,7 +1415,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 			he = f.getHalfedge();
 			int j = 0;
 			do {
-				result[i][j] = vertexKeys.get(he.getVertex().key());
+				result[i][j] = vertexKeys.get(he.getVertex().getKey());
 				he = he.getNextInFace();
 				j++;
 			} while (he != f.getHalfedge());
@@ -1836,7 +1448,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		final Iterator<HE_Face> fItr = fItr();
 		while (fItr.hasNext()) {
 			f = fItr.next();
-			tree.add(f.getFaceCenter(), f.key());
+			tree.add(HE_MeshOp.getFaceCenter(f), f.getKey());
 		}
 		return tree;
 	}
@@ -1865,7 +1477,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 			i++;
 		}
 		return result;
-
 	}
 
 	/**
@@ -1879,7 +1490,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	@Override
 	public HE_Face getFaceWithIndex(final int i) {
 		if (i < 0 || i >= faces.size()) {
-			throw new IndexOutOfBoundsException("Requested face index " + i + "not in range.");
+			throw new IndexOutOfBoundsException(
+					"Requested face index " + i + "not in range.");
 		}
 		return faces.getWithIndex(i);
 	}
@@ -1891,19 +1503,9 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            face key
 	 * @return face
 	 */
-
 	@Override
 	public HE_Face getFaceWithKey(final long key) {
 		return faces.getWithKey(key);
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public int getGenus() {
-		return (2 - getEulerCharacteristic() - getNumberOfBoundaries()) / 2;
 	}
 
 	/**
@@ -1914,7 +1516,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param v1
 	 * @return
 	 */
-	public HE_Halfedge getHalfedgeFromTo(final HE_Vertex v0, final HE_Vertex v1) {
+	public HE_Halfedge getHalfedgeFromTo(final HE_Vertex v0,
+			final HE_Vertex v1) {
 		final List<HE_Halfedge> hes = v0.getHalfedgeStar();
 		for (final HE_Halfedge he : hes) {
 			if (he.getEndVertex() == v1) {
@@ -1952,7 +1555,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 			halfedges[i] = he;
 			i++;
 		}
-
 		return halfedges;
 	}
 
@@ -1966,11 +1568,14 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 */
 	@Override
 	public HE_Halfedge getHalfedgeWithIndex(final int i) {
-		if (i < 0 || i >= edges.size() + halfedges.size() + unpairedHalfedges.size()) {
-			throw new IndexOutOfBoundsException("Requested halfedge index " + i + "not in range.");
+		if (i < 0 || i >= edges.size() + halfedges.size()
+				+ unpairedHalfedges.size()) {
+			throw new IndexOutOfBoundsException(
+					"Requested halfedge index " + i + "not in range.");
 		}
 		if (i >= edges.size() + halfedges.size()) {
-			return unpairedHalfedges.getWithIndex(i - edges.size() - halfedges.size());
+			return unpairedHalfedges
+					.getWithIndex(i - edges.size() - halfedges.size());
 		} else if (i >= edges.size()) {
 			return halfedges.getWithIndex(i - edges.size());
 		}
@@ -1985,7 +1590,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            halfedge key
 	 * @return halfedge
 	 */
-
 	@Override
 	public HE_Halfedge getHalfedgeWithKey(final long key) {
 		HE_Halfedge he = edges.getWithKey(key);
@@ -1999,17 +1603,12 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		return unpairedHalfedges.getWithKey(key);
 	}
 
-	public int getIndex(final HE_Boundary b) {
-		return boundaries.indexOf(b);
-	}
-
 	/**
 	 *
 	 *
 	 * @param f
 	 * @return
 	 */
-
 	@Override
 	public int getIndex(final HE_Face f) {
 		return faces.indexOf(f);
@@ -2021,7 +1620,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param edge
 	 * @return
 	 */
-
 	@Override
 	public int getIndex(final HE_Halfedge edge) {
 		return edges.indexOf(edge);
@@ -2033,7 +1631,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param v
 	 * @return
 	 */
-
 	@Override
 	public int getIndex(final HE_Vertex v) {
 		return vertices.indexOf(v);
@@ -2050,7 +1647,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		final Iterator<HE_Halfedge> eItr = eItr();
 		while (eItr.hasNext()) {
 			e = eItr.next();
-			result.put(e.key(), e.getHalfedgeCenter());
+			result.put(e.getKey(), HE_MeshOp.getHalfedgeCenter(e));
 		}
 		return result;
 	}
@@ -2066,7 +1663,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		final Iterator<HE_Halfedge> eItr = eItr();
 		while (eItr.hasNext()) {
 			e = eItr.next();
-			result.put(e.key(), e.getEdgeNormal());
+			result.put(e.getKey(), HE_MeshOp.getEdgeNormal(e));
 		}
 		return result;
 	}
@@ -2082,7 +1679,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		final Iterator<HE_Face> fItr = fItr();
 		while (fItr.hasNext()) {
 			f = fItr.next();
-			result.put(f.key(), f.getFaceCenter());
+			result.put(f.getKey(), HE_MeshOp.getFaceCenter(f));
 		}
 		return result;
 	}
@@ -2098,7 +1695,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		final Iterator<HE_Face> fItr = fItr();
 		while (fItr.hasNext()) {
 			f = fItr.next();
-			result.put(f.key(), f.getFaceNormal());
+			result.put(f.getKey(), HE_MeshOp.getFaceNormal(f));
 		}
 		return result;
 	}
@@ -2115,34 +1712,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		final Iterator<HE_Vertex> vItr = vItr();
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			result.put(v.key(), v.getVertexNormal());
-		}
-		return result;
-	}
-
-	/**
-	 * Get range of vertex coordinates.
-	 *
-	 * @return array of limit values: min x, min y, min z, max x, max y, max z
-	 */
-	@Override
-	public double[] getLimits() {
-		final double[] result = new double[6];
-		for (int i = 0; i < 3; i++) {
-			result[i] = Double.POSITIVE_INFINITY;
-		}
-		for (int i = 3; i < 6; i++) {
-			result[i] = Double.NEGATIVE_INFINITY;
-		}
-		HE_Vertex v;
-		for (int i = 0; i < vertices.size(); i++) {
-			v = getVertexWithIndex(i);
-			result[0] = Math.min(result[0], v.xd());
-			result[1] = Math.min(result[1], v.yd());
-			result[2] = Math.min(result[2], v.zd());
-			result[3] = Math.max(result[3], v.xd());
-			result[4] = Math.max(result[4], v.yd());
-			result[5] = Math.max(result[5], v.zd());
+			result.put(v.getKey(), HE_MeshOp.getVertexNormal(v));
 		}
 		return result;
 	}
@@ -2151,9 +1721,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		double sum = 0;
 		HE_EdgeIterator eItr = this.eItr();
 		while (eItr.hasNext()) {
-			sum += eItr.next().getLength();
+			sum += HE_MeshOp.getLength(eItr.next());
 		}
-
 		return sum / this.getNumberOfEdges();
 	}
 
@@ -2188,18 +1757,10 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Halfedge e;
 		while (eItr.hasNext()) {
 			e = eItr.next();
-			frame.addConnection(map.get(e.getVertex().key()), map.get(e.getEndVertex().key()));
+			frame.addConnection(map.get(e.getVertex().getKey()),
+					map.get(e.getEndVertex().getKey()));
 		}
 		return frame;
-	}
-
-	/**
-	 * Number of boundaries.
-	 *
-	 * @return the number of boundaries
-	 */
-	public int getNumberOfBoundaries() {
-		return boundaries.size();
 	}
 
 	/**
@@ -2260,7 +1821,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Face f;
 		while (fItr.hasNext()) {
 			f = fItr.next();
-			result.add(f.toPolygon());
+			result.add(HE_MeshOp.getPolygon(f));
 		}
 		return result;
 	}
@@ -2278,7 +1839,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		int i = 0;
 		while (fItr.hasNext()) {
 			f = fItr.next();
-			result[i] = f.toPolygon();
+			result[i] = HE_MeshOp.getPolygon(f);
 			i++;
 		}
 		return result;
@@ -2311,8 +1872,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Selection sel = selections.get(name);
 		if (sel == null) {
 			tracker.setDuringStatus(this, "Selection " + name + " not found.");
+			return new HE_Selection(this);
 		}
-
 		return sel;
 	}
 
@@ -2321,9 +1882,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return
 	 */
 	public Set<String> getSelectionNames() {
-
 		return selections.keySet();
-
 	}
 
 	/**
@@ -2333,7 +1892,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param v2
 	 * @return
 	 */
-	public List<HE_Face> getSharedFaces(final HE_Vertex v1, final HE_Vertex v2) {
+	public List<HE_Face> getSharedFaces(final HE_Vertex v1,
+			final HE_Vertex v2) {
 		final List<HE_Face> result = v1.getFaceStar();
 		final List<HE_Face> compare = v2.getFaceStar();
 		final Iterator<HE_Face> it = result.iterator();
@@ -2418,14 +1978,14 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		int i = 0;
 		final Iterator<HE_Vertex> vItr = vItr();
 		while (vItr.hasNext()) {
-			map.put(vItr.next().key(), i);
+			map.put(vItr.next().getKey(), i);
 			i++;
 		}
 		return map;
 	}
 
 	public WB_Coord getVertexNormal(final int i) {
-		return getVertexWithIndex(i).getVertexNormal();
+		return HE_MeshOp.getVertexNormal(getVertexWithIndex(i));
 	}
 
 	/**
@@ -2440,7 +2000,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		final Iterator<HE_Vertex> vItr = vItr();
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			result[i] = v.getVertexNormal();
+			result[i] = HE_MeshOp.getVertexNormal(v);
 			i++;
 		}
 		return result;
@@ -2457,7 +2017,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		final Iterator<HE_Vertex> vItr = vItr();
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			tree.add(v, v.key());
+			tree.add(v, v.getKey());
 		}
 		return tree;
 	}
@@ -2486,7 +2046,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 			i++;
 		}
 		return result;
-
 	}
 
 	/**
@@ -2500,9 +2059,18 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	@Override
 	public HE_Vertex getVertexWithIndex(final int i) {
 		if (i < 0 || i >= vertices.size()) {
-			throw new IndexOutOfBoundsException("Requested vertex index " + i + "not in range.");
+			throw new IndexOutOfBoundsException(
+					"Requested vertex index " + i + "not in range.");
 		}
 		return vertices.getWithIndex(i);
+	}
+
+	public WB_Point getPositionWithIndex(final int i) {
+		if (i < 0 || i >= vertices.size()) {
+			throw new IndexOutOfBoundsException(
+					"Requested vertex index " + i + "not in range.");
+		}
+		return vertices.getWithIndex(i).getPosition();
 	}
 
 	/**
@@ -2513,7 +2081,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            vertex key
 	 * @return vertex
 	 */
-
 	@Override
 	public HE_Vertex getVertexWithKey(final long key) {
 		return vertices.getWithKey(key);
@@ -2613,13 +2180,12 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 */
 	@Override
 	public HE_HalfedgeIterator heItr() {
-
-		return HE_HalfedgeIterator.getIterator(edges, halfedges, unpairedHalfedges);
+		return HE_HalfedgeIterator.getIterator(edges, halfedges,
+				unpairedHalfedges);
 	}
 
 	public boolean isFinished() {
 		return finished;
-
 	}
 
 	/**
@@ -2629,7 +2195,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param partition2
 	 * @return
 	 */
-	boolean isNeighbor(final HE_RAS<HE_Face> partition1, final HE_RAS<HE_Face> partition2) {
+	boolean isNeighbor(final HE_RAS<HE_Face> partition1,
+			final HE_RAS<HE_Face> partition2) {
 		HE_Halfedge he1, he2;
 		HE_Vertex v1;
 		HE_FaceHalfedgeInnerCirculator heitr1, heitr2;
@@ -2643,7 +2210,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 						heitr2 = new HE_FaceHalfedgeInnerCirculator(f2);
 						while (heitr2.hasNext()) {
 							he2 = heitr2.next();
-							if (he2.getPair() == null && he2.getNextInFace().getVertex() == v1) {
+							if (he2.getPair() == null
+									&& he2.getNextInFace().getVertex() == v1) {
 								return true;
 							}
 						}
@@ -2672,7 +2240,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 			clearPrecomputed();
 		} else {
 			modifyThreaded(modifier);
-
 		}
 		return this;
 	}
@@ -2725,7 +2292,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return self
 	 */
 	public HE_Mesh moveSelf(final double x, final double y, final double z) {
-
 		final Iterator<HE_Vertex> vItr = vItr();
 		while (vItr.hasNext()) {
 			vItr.next().getPosition().addSelf(x, y, z);
@@ -2742,7 +2308,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return self
 	 */
 	public HE_Mesh moveSelf(final WB_Coord v) {
-
 		return moveSelf(v.xd(), v.yd(), v.zd());
 	}
 
@@ -2759,10 +2324,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 */
 	public HE_Mesh moveTo(final double x, final double y, final double z) {
 		HE_Mesh result = copy();
-		WB_Point center = result.getCenter();
+		WB_Point center = HE_MeshOp.getCenter(result);
 		final Iterator<HE_Vertex> vItr = result.vItr();
 		while (vItr.hasNext()) {
-			vItr.next().getPosition().addSelf(x - center.xd(), y - center.yd(), z - center.zd());
+			vItr.next().getPosition().addSelf(x - center.xd(), y - center.yd(),
+					z - center.zd());
 		}
 		result.clearPrecomputed();
 		return result;
@@ -2791,11 +2357,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return self
 	 */
 	public HE_Mesh moveToSelf(final double x, final double y, final double z) {
-
-		WB_Point center = getCenter();
+		WB_Point center = HE_MeshOp.getCenter(this);
 		final Iterator<HE_Vertex> vItr = vItr();
 		while (vItr.hasNext()) {
-			vItr.next().getPosition().addSelf(x - center.xd(), y - center.yd(), z - center.zd());
+			vItr.next().getPosition().addSelf(x - center.xd(), y - center.yd(),
+					z - center.zd());
 		}
 		clearPrecomputed();
 		return this;
@@ -2809,205 +2375,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return self
 	 */
 	public HE_Mesh moveToSelf(final WB_Coord v) {
-
 		return moveToSelf(v.xd(), v.yd(), v.zd());
-	}
-
-	public void orderHalfedges(final List<HE_Halfedge> halfedges, final boolean loop) {
-		HE_Halfedge he;
-		final int n = halfedges.size();
-		if (n > 0) {
-			for (int j = 0; j < n - 1; j++) {
-				he = halfedges.get(j);
-				setNext(he, halfedges.get(j + 1));
-			}
-			if (loop) {
-				he = halfedges.get(n - 1);
-				setNext(he, halfedges.get(0));
-			}
-		}
-	}
-
-	/**
-	 * Cycle halfedges.
-	 *
-	 * @param halfedges
-	 *            halfedges to cycle
-	 */
-	public void orderHalfedgesReverse(final List<HE_Halfedge> halfedges, final boolean loop) {
-		HE_Halfedge he;
-		final int n = halfedges.size();
-		if (n > 0) {
-			if (loop) {
-				he = halfedges.get(0);
-				setNext(he, halfedges.get(n - 1));
-			}
-			for (int j = 1; j < n; j++) {
-				he = halfedges.get(j);
-				setNext(he, halfedges.get(j - 1));
-
-			}
-		}
-	}
-
-	/**
-	 *
-	 */
-	public void pairHalfedges() {
-		pairHalfedgesOnePass();
-	}
-
-	/**
-	 * Pair halfedges.
-	 *
-	 * @param unpairedHalfedges
-	 */
-	public void pairHalfedges(final List<HE_Halfedge> unpairedHalfedges) {
-
-		class VertexInfo {
-			FastList<HE_Halfedge> in;
-			FastList<HE_Halfedge> out;
-
-			VertexInfo() {
-				out = new FastList<HE_Halfedge>();
-				in = new FastList<HE_Halfedge>();
-			}
-		}
-		final LongObjectHashMap<VertexInfo> vertexLists = new LongObjectHashMap<VertexInfo>();
-		HE_Vertex v;
-		VertexInfo vi;
-		for (final HE_Halfedge he : unpairedHalfedges) {
-			v = he.getVertex();
-			vi = vertexLists.get(v.key());
-			if (vi == null) {
-				vi = new VertexInfo();
-				vertexLists.put(v.key(), vi);
-			}
-			vi.out.add(he);
-			v = he.getNextInFace().getVertex();
-			vi = vertexLists.get(v.key());
-			if (vi == null) {
-				vi = new VertexInfo();
-				vertexLists.put(v.key(), vi);
-			}
-			vi.in.add(he);
-		}
-		HE_Halfedge he;
-		HE_Halfedge he2;
-		final Iterator<VertexInfo> vitr = vertexLists.iterator();
-		VertexInfo vInfo;
-		while (vitr.hasNext()) {
-
-			vInfo = vitr.next();
-			for (int i = 0; i < vInfo.out.size(); i++) {
-				he = vInfo.out.get(i);
-				if (he.getPair() == null) {
-					for (int j = 0; j < vInfo.in.size(); j++) {
-						he2 = vInfo.in.get(j);
-						if (he2.getPair() == null) {
-							if (he.getVertex() == he2.getNextInFace().getVertex()
-									&& he2.getVertex() == he.getNextInFace().getVertex()) {
-								setPair(he, he2);
-								break;
-							}
-						}
-					}
-					for (int j = 0; j < vInfo.out.size(); j++) {
-						he2 = vInfo.out.get(j);
-						if (he2 != he && he2.getPair() == null) {
-							if (he.getNextInFace().getVertex() == he2.getNextInFace().getVertex()) {
-								// Two identical halfedges found!
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Try to pair all unpaired halfedges.
-	 *
-	 * @return
-	 */
-	public List<HE_Halfedge> pairHalfedgesOnePass() {
-		tracker.setStartStatus(this, "Pairing halfedges.");
-		class VertexInfo {
-			FastList<HE_Halfedge> in;
-			FastList<HE_Halfedge> out;
-
-			VertexInfo() {
-				out = new FastList<HE_Halfedge>();
-				in = new FastList<HE_Halfedge>();
-			}
-		}
-		final LongObjectHashMap<VertexInfo> vertexLists = new LongObjectHashMap<VertexInfo>();
-		final List<HE_Halfedge> unpairedHalfedges = getUnpairedHalfedges();
-		HE_Vertex v;
-		VertexInfo vi;
-		WB_ProgressCounter counter = new WB_ProgressCounter(unpairedHalfedges.size(), 10);
-		tracker.setCounterStatus(this, "Classifying unpaired halfedges.", counter);
-		for (final HE_Halfedge he : unpairedHalfedges) {
-			v = he.getVertex();
-			vi = vertexLists.get(v.key());
-			if (vi == null) {
-				vi = new VertexInfo();
-				vertexLists.put(v.key(), vi);
-			}
-			vi.out.add(he);
-			v = he.getNextInFace().getVertex();
-			vi = vertexLists.get(v.key());
-			if (vi == null) {
-				vi = new VertexInfo();
-				vertexLists.put(v.key(), vi);
-			}
-			vi.in.add(he);
-			counter.increment();
-		}
-		HE_Halfedge he;
-		HE_Halfedge he2;
-		counter = new WB_ProgressCounter(vertexLists.size(), 10);
-		tracker.setCounterStatus(this, "Pairing unpaired halfedges per vertex.", counter);
-		final Iterator<VertexInfo> vitr = vertexLists.iterator();
-		VertexInfo vInfo;
-		final List<HE_Halfedge> mismatchedHalfedges = new FastList<HE_Halfedge>();
-		while (vitr.hasNext()) {
-
-			vInfo = vitr.next();
-			for (int i = 0; i < vInfo.out.size(); i++) {
-				he = vInfo.out.get(i);
-				if (he.getPair() == null) {
-					for (int j = 0; j < vInfo.in.size(); j++) {
-						he2 = vInfo.in.get(j);
-						if (he2.getPair() == null) {
-							if (he.getVertex() == he2.getNextInFace().getVertex()
-									&& he2.getVertex() == he.getNextInFace().getVertex()) {
-								setPair(he, he2);
-								break;
-							}
-						}
-					}
-					for (int j = 0; j < vInfo.out.size(); j++) {
-						he2 = vInfo.out.get(j);
-						if (he2 != he && he2.getPair() == null) {
-							if (he.getNextInFace().getVertex() == he2.getNextInFace().getVertex()) {
-								mismatchedHalfedges.add(he);
-								mismatchedHalfedges.add(he2);
-								break;
-							}
-						}
-					}
-				}
-			}
-			counter.increment();
-		}
-		tracker.setStopStatus(this, "Processed unpaired halfedges.");
-		return mismatchedHalfedges;
-	}
-
-	public void remove(final HE_Boundary b) {
-		boundaries.remove(b);
 	}
 
 	/**
@@ -3016,15 +2384,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param f
 	 *            face to remove
 	 */
-
 	@Override
 	public void remove(final HE_Face f) {
-
 		faces.remove(f);
 		for (HE_Selection sel : selections.values()) {
-
 			sel.remove(f);
-
 		}
 	}
 
@@ -3034,16 +2398,13 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param he
 	 *            halfedge to remove
 	 */
-
 	@Override
 	public void remove(final HE_Halfedge he) {
 		edges.remove(he);
 		halfedges.remove(he);
 		unpairedHalfedges.remove(he);
 		for (HE_Selection sel : selections.values()) {
-
 			sel.remove(he);
-
 		}
 	}
 
@@ -3053,26 +2414,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param v
 	 *            vertex to remove
 	 */
-
 	@Override
 	public void remove(final HE_Vertex v) {
 		vertices.remove(v);
 		for (HE_Selection sel : selections.values()) {
-
 			sel.remove(v);
-
-		}
-	}
-
-	public void removeBoundaries(final Collection<? extends HE_Boundary> boundaries) {
-		for (final HE_Boundary b : boundaries) {
-			remove(b);
-		}
-	}
-
-	public void removeBoundaries(final HE_Boundary[] boundaries) {
-		for (final HE_Boundary b : boundaries) {
-			remove(b);
 		}
 	}
 
@@ -3135,7 +2481,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            halfedges to remove as Collection<? extends HE_Halfedge>
 	 */
 	@Override
-	public void removeHalfedges(final Collection<? extends HE_Halfedge> halfedges) {
+	public void removeHalfedges(
+			final Collection<? extends HE_Halfedge> halfedges) {
 		for (final HE_Halfedge he : halfedges) {
 			remove(he);
 		}
@@ -3214,9 +2561,9 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 			return false;
 		}
 		replaceSelection(to, sel);
-		tracker.setDuringStatus(this, "Renamed selection " + from + " to " + to + ".");
+		tracker.setDuringStatus(this,
+				"Renamed selection " + from + " to " + to + ".");
 		return true;
-
 	}
 
 	/**
@@ -3239,29 +2586,27 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_HalfedgeIterator heItr = mesh.heItr();
 		while (heItr.hasNext()) {
 			add(heItr.next());
-
 		}
-
 	}
 
-	HE_Selection replaceSelection(final String name, final HE_Machine machine, final HE_Selection sel) {
-
-		if (sel.parent == this && sel != null) {
+	HE_Selection replaceSelection(final String name, final HE_Machine machine,
+			final HE_Selection sel) {
+		if (sel.getParent() == this && sel != null) {
 			sel.createdBy = machine.getName();
 			HE_Selection prevsel = selections.get(name);
 			if (prevsel == null) {
 				tracker.setDuringStatus(this, "Adding selection " + name + ".");
 				selections.put(name, sel);
 			} else {
-				tracker.setDuringStatus(this, "Replacing selection " + name + ".");
+				tracker.setDuringStatus(this,
+						"Replacing selection " + name + ".");
 				removeSelection(name);
 				selections.put(name, sel);
 			}
 			return prevsel;
-
 		} else {
-			tracker.setDuringStatus(this,
-					"Selection " + name + " not added: selection is null or parent mesh is not the same.");
+			tracker.setDuringStatus(this, "Selection " + name
+					+ " not added: selection is null or parent mesh is not the same.");
 		}
 		return null;
 	}
@@ -3272,22 +2617,23 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param sel
 	 * @return
 	 */
-	public HE_Selection replaceSelection(final String name, final HE_Selection sel) {
-		if (sel.parent == this && sel != null) {
+	public HE_Selection replaceSelection(final String name,
+			final HE_Selection sel) {
+		if (sel.getParent() == this && sel != null) {
 			HE_Selection prevsel = selections.get(name);
 			if (prevsel == null) {
 				tracker.setDuringStatus(this, "Adding selection " + name + ".");
 				selections.put(name, sel);
 			} else {
-				tracker.setDuringStatus(this, "Replacing selection " + name + ".");
+				tracker.setDuringStatus(this,
+						"Replacing selection " + name + ".");
 				removeSelection(name);
 				selections.put(name, sel);
 			}
 			return prevsel;
-
 		} else {
-			tracker.setDuringStatus(this,
-					"Selection " + name + " not added: selection is null or parent mesh is not the same.");
+			tracker.setDuringStatus(this, "Selection " + name
+					+ " not added: selection is null or parent mesh is not the same.");
 		}
 		return null;
 	}
@@ -3306,7 +2652,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * Reset all edge labels to -1.
 	 *
 	 */
-
 	protected void resetEdgeInternalLabels() {
 		final Iterator<HE_Halfedge> eItr = eItr();
 		while (eItr.hasNext()) {
@@ -3329,7 +2674,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *
 	 *
 	 */
-
 	protected void resetFaceInternalLabels() {
 		final Iterator<HE_Face> fItr = fItr();
 		while (fItr.hasNext()) {
@@ -3351,7 +2695,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * Reset all halfedge labels to -1.
 	 *
 	 */
-
 	protected void resetHalfedgeInternalLabels() {
 		final Iterator<HE_Halfedge> heItr = heItr();
 		while (heItr.hasNext()) {
@@ -3373,7 +2716,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * Reset all internal labels to -1.
 	 *
 	 */
-
 	protected void resetInternalLabels() {
 		resetVertexInternalLabels();
 		resetFaceInternalLabels();
@@ -3394,7 +2736,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *
 	 *
 	 */
-
 	protected void resetVertexInternalLabels() {
 		final Iterator<HE_Vertex> vItr = vItr();
 		while (vItr.hasNext()) {
@@ -3425,13 +2766,15 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param az
 	 * @return copy
 	 */
-	public HE_Mesh rotateAboutAxis(final double angle, final double px, final double py, final double pz,
-			final double ax, final double ay, final double az) {
+	public HE_Mesh rotateAboutAxis(final double angle, final double px,
+			final double py, final double pz, final double ax, final double ay,
+			final double az) {
 		HE_Mesh result = copy();
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = result.vItr();
 		final WB_Transform raa = new WB_Transform();
-		raa.addRotateAboutAxis(angle, new WB_Point(px, py, pz), new WB_Vector(ax, ay, az));
+		raa.addRotateAboutAxis(angle, new WB_Point(px, py, pz),
+				new WB_Vector(ax, ay, az));
 		while (vItr.hasNext()) {
 			v = vItr.next();
 			raa.applyAsPointSelf(v);
@@ -3452,7 +2795,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            axis
 	 * @return copy
 	 */
-	public HE_Mesh rotateAboutAxis(final double angle, final WB_Coord p, final WB_Coord a) {
+	public HE_Mesh rotateAboutAxis(final double angle, final WB_Coord p,
+			final WB_Coord a) {
 		HE_Mesh result = copy();
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = result.vItr();
@@ -3464,7 +2808,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		}
 		result.clearPrecomputed();
 		return result;
-
 	}
 
 	/**
@@ -3486,13 +2829,15 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            z-coordinate of second point on axis
 	 * @return copy
 	 */
-	public HE_Mesh rotateAboutAxis2P(final double angle, final double p1x, final double p1y, final double p1z,
-			final double p2x, final double p2y, final double p2z) {
+	public HE_Mesh rotateAboutAxis2P(final double angle, final double p1x,
+			final double p1y, final double p1z, final double p2x,
+			final double p2y, final double p2z) {
 		HE_Mesh result = copy();
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = result.vItr();
 		final WB_Transform raa = new WB_Transform();
-		raa.addRotateAboutAxis(angle, new WB_Point(p1x, p1y, p1z), new WB_Vector(p2x - p1x, p2y - p1y, p2z - p1z));
+		raa.addRotateAboutAxis(angle, new WB_Point(p1x, p1y, p1z),
+				new WB_Vector(p2x - p1x, p2y - p1y, p2z - p1z));
 		while (vItr.hasNext()) {
 			v = vItr.next();
 			raa.applyAsPointSelf(v);
@@ -3512,7 +2857,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            second point on axis
 	 * @return copy
 	 */
-	public HE_Mesh rotateAboutAxis2P(final double angle, final WB_Coord p1, final WB_Coord p2) {
+	public HE_Mesh rotateAboutAxis2P(final double angle, final WB_Coord p1,
+			final WB_Coord p2) {
 		HE_Mesh result = copy();
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = result.vItr();
@@ -3545,13 +2891,14 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            z-coordinate of second point on axis
 	 * @return self
 	 */
-	public HE_Mesh rotateAboutAxis2PSelf(final double angle, final double p1x, final double p1y, final double p1z,
-			final double p2x, final double p2y, final double p2z) {
-
+	public HE_Mesh rotateAboutAxis2PSelf(final double angle, final double p1x,
+			final double p1y, final double p1z, final double p2x,
+			final double p2y, final double p2z) {
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = vItr();
 		final WB_Transform raa = new WB_Transform();
-		raa.addRotateAboutAxis(angle, new WB_Point(p1x, p1y, p1z), new WB_Vector(p2x - p1x, p2y - p1y, p2z - p1z));
+		raa.addRotateAboutAxis(angle, new WB_Point(p1x, p1y, p1z),
+				new WB_Vector(p2x - p1x, p2y - p1y, p2z - p1z));
 		while (vItr.hasNext()) {
 			v = vItr.next();
 			raa.applyAsPointSelf(v);
@@ -3571,8 +2918,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            second point on axis
 	 * @return self
 	 */
-	public HE_Mesh rotateAboutAxis2PSelf(final double angle, final WB_Coord p1, final WB_Coord p2) {
-
+	public HE_Mesh rotateAboutAxis2PSelf(final double angle, final WB_Coord p1,
+			final WB_Coord p2) {
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = vItr();
 		final WB_Transform raa = new WB_Transform();
@@ -3598,13 +2945,14 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param az
 	 * @return self
 	 */
-	public HE_Mesh rotateAboutAxisSelf(final double angle, final double px, final double py, final double pz,
-			final double ax, final double ay, final double az) {
-
+	public HE_Mesh rotateAboutAxisSelf(final double angle, final double px,
+			final double py, final double pz, final double ax, final double ay,
+			final double az) {
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = vItr();
 		final WB_Transform raa = new WB_Transform();
-		raa.addRotateAboutAxis(angle, new WB_Point(px, py, pz), new WB_Vector(ax, ay, az));
+		raa.addRotateAboutAxis(angle, new WB_Point(px, py, pz),
+				new WB_Vector(ax, ay, az));
 		while (vItr.hasNext()) {
 			v = vItr.next();
 			raa.applyAsPointSelf(v);
@@ -3625,8 +2973,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            axis
 	 * @return self
 	 */
-	public HE_Mesh rotateAboutAxisSelf(final double angle, final WB_Coord p, final WB_Coord a) {
-
+	public HE_Mesh rotateAboutAxisSelf(final double angle, final WB_Coord p,
+			final WB_Coord a) {
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = vItr();
 		final WB_Transform raa = new WB_Transform();
@@ -3648,8 +2996,10 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param az
 	 * @return copy
 	 */
-	public HE_Mesh rotateAboutCenter(final double angle, final double ax, final double ay, final double az) {
-		return rotateAboutAxis(angle, getCenter(), new WB_Vector(ax, ay, az));
+	public HE_Mesh rotateAboutCenter(final double angle, final double ax,
+			final double ay, final double az) {
+		return rotateAboutAxis(angle, HE_MeshOp.getCenter(this),
+				new WB_Vector(ax, ay, az));
 	}
 
 	/**
@@ -3662,8 +3012,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return self
 	 */
 	public HE_Mesh rotateAboutCenter(final double angle, final WB_Coord a) {
-
-		return rotateAboutAxis(angle, getCenter(), a);
+		return rotateAboutAxis(angle, HE_MeshOp.getCenter(this), a);
 	}
 
 	/**
@@ -3675,9 +3024,10 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param az
 	 * @return
 	 */
-	public HE_Mesh rotateAboutCenterSelf(final double angle, final double ax, final double ay, final double az) {
-
-		return rotateAboutAxisSelf(angle, getCenter(), new WB_Vector(ax, ay, az));
+	public HE_Mesh rotateAboutCenterSelf(final double angle, final double ax,
+			final double ay, final double az) {
+		return rotateAboutAxisSelf(angle, HE_MeshOp.getCenter(this),
+				new WB_Vector(ax, ay, az));
 	}
 
 	/**
@@ -3690,8 +3040,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return self
 	 */
 	public HE_Mesh rotateAboutCenterSelf(final double angle, final WB_Coord a) {
-
-		return rotateAboutAxisSelf(angle, getCenter(), a);
+		return rotateAboutAxisSelf(angle, HE_MeshOp.getCenter(this), a);
 	}
 
 	/**
@@ -3704,7 +3053,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param az
 	 * @return copy
 	 */
-	public HE_Mesh rotateAboutOrigin(final double angle, final double ax, final double ay, final double az) {
+	public HE_Mesh rotateAboutOrigin(final double angle, final double ax,
+			final double ay, final double az) {
 		HE_Mesh result = copy();
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = result.vItr();
@@ -3751,8 +3101,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param az
 	 * @return
 	 */
-	public HE_Mesh rotateAboutOriginSelf(final double angle, final double ax, final double ay, final double az) {
-
+	public HE_Mesh rotateAboutOriginSelf(final double angle, final double ax,
+			final double ay, final double az) {
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = vItr();
 		final WB_Transform raa = new WB_Transform();
@@ -3775,7 +3125,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return self
 	 */
 	public HE_Mesh rotateAboutOriginSelf(final double angle, final WB_Coord a) {
-
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = vItr();
 		final WB_Transform raa = new WB_Transform();
@@ -3810,9 +3159,10 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            z-coordinate of scale factor
 	 * @return copy
 	 */
-	public HE_Mesh scale(final double scaleFactorx, final double scaleFactory, final double scaleFactorz) {
+	public HE_Mesh scale(final double scaleFactorx, final double scaleFactory,
+			final double scaleFactorz) {
 		HE_Mesh result = copy();
-		WB_Point center = result.getCenter();
+		WB_Point center = HE_MeshOp.getCenter(result);
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = result.vItr();
 		while (vItr.hasNext()) {
@@ -3838,14 +3188,15 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            center
 	 * @return copy
 	 */
-	public HE_Mesh scale(final double scaleFactorx, final double scaleFactory, final double scaleFactorz,
-			final WB_Coord c) {
+	public HE_Mesh scale(final double scaleFactorx, final double scaleFactory,
+			final double scaleFactorz, final WB_Coord c) {
 		HE_Mesh result = copy();
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = result.vItr();
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			v.set(c.xd() + scaleFactorx * (v.xd() - c.xd()), c.yd() + scaleFactory * (v.yd() - c.yd()),
+			v.set(c.xd() + scaleFactorx * (v.xd() - c.xd()),
+					c.yd() + scaleFactory * (v.yd() - c.yd()),
 					c.zd() + scaleFactorz * (v.zd() - c.zd()));
 		}
 		result.clearPrecomputed();
@@ -3873,7 +3224,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return self
 	 */
 	public HE_Mesh scaleSelf(final double scaleFactor) {
-
 		return scaleSelf(scaleFactor, scaleFactor, scaleFactor);
 	}
 
@@ -3888,9 +3238,9 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            z-coordinate of scale factor
 	 * @return self
 	 */
-	public HE_Mesh scaleSelf(final double scaleFactorx, final double scaleFactory, final double scaleFactorz) {
-
-		WB_Point center = getCenter();
+	public HE_Mesh scaleSelf(final double scaleFactorx,
+			final double scaleFactory, final double scaleFactorz) {
+		WB_Point center = HE_MeshOp.getCenter(this);
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = vItr();
 		while (vItr.hasNext()) {
@@ -3916,14 +3266,15 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            center
 	 * @return self
 	 */
-	public HE_Mesh scaleSelf(final double scaleFactorx, final double scaleFactory, final double scaleFactorz,
+	public HE_Mesh scaleSelf(final double scaleFactorx,
+			final double scaleFactory, final double scaleFactorz,
 			final WB_Coord c) {
-
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = vItr();
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			v.set(c.xd() + scaleFactorx * (v.xd() - c.xd()), c.yd() + scaleFactory * (v.yd() - c.yd()),
+			v.set(c.xd() + scaleFactorx * (v.xd() - c.xd()),
+					c.yd() + scaleFactory * (v.yd() - c.yd()),
 					c.zd() + scaleFactorz * (v.zd() - c.zd()));
 		}
 		clearPrecomputed();
@@ -3940,7 +3291,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return self
 	 */
 	public HE_Mesh scaleSelf(final double scaleFactor, final WB_Coord c) {
-
 		return scaleSelf(scaleFactor, scaleFactor, scaleFactor, c);
 	}
 
@@ -3955,7 +3305,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		sel.addFaces(this.faces);
 		sel.addHalfedges(this.halfedges);
 		sel.addVertices(this.vertices);
-
 		return sel;
 	}
 
@@ -3980,7 +3329,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	public HE_Selection selectAllEdges() {
 		HE_Selection sel = HE_Selection.getSelection(this);
 		sel.addEdges(this.edges);
-
 		return sel;
 	}
 
@@ -4002,7 +3350,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	public HE_Selection selectAllFaces() {
 		HE_Selection sel = HE_Selection.getSelection(this);
 		sel.addFaces(this.faces);
-
 		return sel;
 	}
 
@@ -4026,7 +3373,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		sel.addHalfedges(this.edges);
 		sel.addHalfedges(this.halfedges);
 		sel.addHalfedges(this.unpairedHalfedges);
-
 		return sel;
 	}
 
@@ -4057,7 +3403,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(he);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4093,7 +3438,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(he);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4122,7 +3466,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	public HE_Selection selectAllVertices() {
 		HE_Selection sel = HE_Selection.getSelection(this);
 		sel.addVertices(this.vertices);
-
 		return sel;
 	}
 
@@ -4148,7 +3491,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Halfedge e;
 		while (eitr.hasNext()) {
 			e = eitr.next();
-			if (HET_MeshOp.classifyEdgeToPlane3D(e, P) == WB_Classification.BACK) {
+			if (HE_MeshOp.classifyEdgeToPlane3D(e,
+					P) == WB_Classification.BACK) {
 				sel.add(e);
 			}
 		}
@@ -4167,11 +3511,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Halfedge e;
 		while (eitr.hasNext()) {
 			e = eitr.next();
-			if (HET_MeshOp.classifyEdgeToPlane3D(e, P) == WB_Classification.BACK) {
+			if (HE_MeshOp.classifyEdgeToPlane3D(e,
+					P) == WB_Classification.BACK) {
 				sel.add(e);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4186,7 +3530,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Face f;
 		while (fitr.hasNext()) {
 			f = fitr.next();
-			if (HET_MeshOp.classifyFaceToPlane3D(f, P) == WB_Classification.BACK) {
+			if (HE_MeshOp.classifyFaceToPlane3D(f,
+					P) == WB_Classification.BACK) {
 				sel.add(f);
 			}
 		}
@@ -4205,11 +3550,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Face f;
 		while (fitr.hasNext()) {
 			f = fitr.next();
-			if (HET_MeshOp.classifyFaceToPlane3D(f, P) == WB_Classification.BACK) {
+			if (HE_MeshOp.classifyFaceToPlane3D(f,
+					P) == WB_Classification.BACK) {
 				sel.add(f);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4218,13 +3563,15 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param P
 	 */
-	public HE_Selection selectBackVertices(final String name, final WB_Plane P) {
+	public HE_Selection selectBackVertices(final String name,
+			final WB_Plane P) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		final HE_VertexIterator vitr = this.vItr();
 		HE_Vertex v;
 		while (vitr.hasNext()) {
 			v = vitr.next();
-			if (WB_GeometryOp3D.classifyPointToPlane3D(v, P) == WB_Classification.BACK) {
+			if (WB_GeometryOp3D.classifyPointToPlane3D(v,
+					P) == WB_Classification.BACK) {
 				sel.add(v);
 			}
 		}
@@ -4243,11 +3590,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Vertex v;
 		while (vitr.hasNext()) {
 			v = vitr.next();
-			if (WB_GeometryOp3D.classifyPointToPlane3D(v, P) == WB_Classification.BACK) {
+			if (WB_GeometryOp3D.classifyPointToPlane3D(v,
+					P) == WB_Classification.BACK) {
 				sel.add(v);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4265,7 +3612,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(e);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4301,7 +3647,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(he.getPair().getFace());
 			}
 		}
-
 		return sel;
 	}
 
@@ -4337,7 +3682,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(he.getVertex());
 			}
 		}
-
 		return sel;
 	}
 
@@ -4364,13 +3708,15 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param P
 	 */
-	public HE_Selection selectCrossingEdges(final String name, final WB_Plane P) {
+	public HE_Selection selectCrossingEdges(final String name,
+			final WB_Plane P) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		final HE_EdgeIterator eitr = this.eItr();
 		HE_Halfedge e;
 		while (eitr.hasNext()) {
 			e = eitr.next();
-			if (HET_MeshOp.classifyEdgeToPlane3D(e, P) == WB_Classification.CROSSING) {
+			if (HE_MeshOp.classifyEdgeToPlane3D(e,
+					P) == WB_Classification.CROSSING) {
 				sel.add(e);
 			}
 		}
@@ -4389,11 +3735,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Halfedge e;
 		while (eitr.hasNext()) {
 			e = eitr.next();
-			if (HET_MeshOp.classifyEdgeToPlane3D(e, P) == WB_Classification.CROSSING) {
+			if (HE_MeshOp.classifyEdgeToPlane3D(e,
+					P) == WB_Classification.CROSSING) {
 				sel.add(e);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4402,13 +3748,15 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param P
 	 */
-	public HE_Selection selectCrossingFaces(final String name, final WB_Plane P) {
+	public HE_Selection selectCrossingFaces(final String name,
+			final WB_Plane P) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		final HE_FaceIterator fitr = this.fItr();
 		HE_Face f;
 		while (fitr.hasNext()) {
 			f = fitr.next();
-			if (HET_MeshOp.classifyFaceToPlane3D(f, P) == WB_Classification.CROSSING) {
+			if (HE_MeshOp.classifyFaceToPlane3D(f,
+					P) == WB_Classification.CROSSING) {
 				sel.add(f);
 			}
 		}
@@ -4427,11 +3775,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Face f;
 		while (fitr.hasNext()) {
 			f = fitr.next();
-			if (HET_MeshOp.classifyFaceToPlane3D(f, P) == WB_Classification.CROSSING) {
+			if (HE_MeshOp.classifyFaceToPlane3D(f,
+					P) == WB_Classification.CROSSING) {
 				sel.add(f);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4450,7 +3798,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(e);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4459,7 +3806,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param label
 	 */
-	public HE_Selection selectEdgesWithLabel(final String name, final int label) {
+	public HE_Selection selectEdgesWithLabel(final String name,
+			final int label) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		HE_Halfedge e;
 		final Iterator<HE_Halfedge> eItr = this.eItr();
@@ -4488,7 +3836,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(e);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4497,7 +3844,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param label
 	 */
-	public HE_Selection selectEdgesWithOtherInternalLabel(final String name, final int label) {
+	public HE_Selection selectEdgesWithOtherInternalLabel(final String name,
+			final int label) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		HE_Halfedge e;
 		final Iterator<HE_Halfedge> eItr = this.eItr();
@@ -4526,7 +3874,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(e);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4535,7 +3882,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param label
 	 */
-	public HE_Selection selectEdgesWithOtherLabel(final String name, final int label) {
+	public HE_Selection selectEdgesWithOtherLabel(final String name,
+			final int label) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		HE_Halfedge e;
 		final Iterator<HE_Halfedge> eItr = this.eItr();
@@ -4564,7 +3912,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(e);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4573,7 +3920,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param label
 	 */
-	public HE_Selection selectEdgeWithInternalLabel(final String name, final int label) {
+	public HE_Selection selectEdgeWithInternalLabel(final String name,
+			final int label) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		HE_Halfedge e;
 		final Iterator<HE_Halfedge> eItr = this.eItr();
@@ -4602,7 +3950,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(f);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4611,7 +3958,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param label
 	 */
-	public HE_Selection selectFacesWithInternalLabel(final String name, final int label) {
+	public HE_Selection selectFacesWithInternalLabel(final String name,
+			final int label) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		HE_Face f;
 		final Iterator<HE_Face> fItr = this.fItr();
@@ -4640,7 +3988,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(f);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4649,7 +3996,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param label
 	 */
-	public HE_Selection selectFacesWithLabel(final String name, final int label) {
+	public HE_Selection selectFacesWithLabel(final String name,
+			final int label) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		HE_Face f;
 		final Iterator<HE_Face> fItr = this.fItr();
@@ -4668,7 +4016,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param v
 	 */
-	public HE_Selection selectFacesWithNormal(final String name, final WB_Coord v) {
+	public HE_Selection selectFacesWithNormal(final String name,
+			final WB_Coord v) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		final WB_Vector w = new WB_Vector(v);
 		w.normalizeSelf();
@@ -4676,7 +4025,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		final Iterator<HE_Face> fItr = this.fItr();
 		while (fItr.hasNext()) {
 			f = fItr.next();
-			if (WB_Vector.dot(f.getFaceNormal(), v) > 1.0 - WB_Epsilon.EPSILON) {
+			if (WB_Vector.dot(HE_MeshOp.getFaceNormal(f), v) > 1.0
+					- WB_Epsilon.EPSILON) {
 				sel.add(f);
 			}
 		}
@@ -4690,16 +4040,17 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param n
 	 * @param ta
 	 */
-	public HE_Selection selectFacesWithNormal(final String name, final WB_Coord n, final double ta) {
+	public HE_Selection selectFacesWithNormal(final String name,
+			final WB_Coord n, final double ta) {
 		HE_Selection sel = HE_Selection.getSelection(this);
 		final WB_Vector nn = new WB_Vector(n);
 		nn.normalizeSelf();
 		final double cta = Math.cos(ta);
-		HE_FaceIterator fItr = sel.parent.fItr();
+		HE_FaceIterator fItr = sel.getParent().fItr();
 		HE_Face f;
 		while (fItr.hasNext()) {
 			f = fItr.next();
-			if (nn.dot(f.getFaceNormal()) > cta) {
+			if (nn.dot(HE_MeshOp.getFaceNormal(f)) > cta) {
 				sel.add(f);
 			}
 		}
@@ -4720,11 +4071,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		final Iterator<HE_Face> fItr = this.fItr();
 		while (fItr.hasNext()) {
 			f = fItr.next();
-			if (WB_Vector.dot(f.getFaceNormal(), v) > 1.0 - WB_Epsilon.EPSILON) {
+			if (WB_Vector.dot(HE_MeshOp.getFaceNormal(f), v) > 1.0
+					- WB_Epsilon.EPSILON) {
 				sel.add(f);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4734,20 +4085,20 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param n
 	 * @param ta
 	 */
-	public HE_Selection selectFacesWithNormal(final WB_Coord n, final double ta) {
+	public HE_Selection selectFacesWithNormal(final WB_Coord n,
+			final double ta) {
 		HE_Selection sel = HE_Selection.getSelection(this);
 		final WB_Vector nn = new WB_Vector(n);
 		nn.normalizeSelf();
 		final double cta = Math.cos(ta);
-		HE_FaceIterator fItr = sel.parent.fItr();
+		HE_FaceIterator fItr = sel.getParent().fItr();
 		HE_Face f;
 		while (fItr.hasNext()) {
 			f = fItr.next();
-			if (nn.dot(f.getFaceNormal()) > cta) {
+			if (nn.dot(HE_MeshOp.getFaceNormal(f)) > cta) {
 				sel.add(f);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4766,7 +4117,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(f);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4775,7 +4125,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param label
 	 */
-	public HE_Selection selectFacesWithOtherInternalLabel(final String name, final int label) {
+	public HE_Selection selectFacesWithOtherInternalLabel(final String name,
+			final int label) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		HE_Face f;
 		final Iterator<HE_Face> fItr = this.fItr();
@@ -4804,7 +4155,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(f);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4813,7 +4163,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param label
 	 */
-	public HE_Selection selectFacesWithOtherLabel(final String name, final int label) {
+	public HE_Selection selectFacesWithOtherLabel(final String name,
+			final int label) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		HE_Face f;
 		final Iterator<HE_Face> fItr = this.fItr();
@@ -4838,7 +4189,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Halfedge e;
 		while (eitr.hasNext()) {
 			e = eitr.next();
-			if (HET_MeshOp.classifyEdgeToPlane3D(e, P) == WB_Classification.FRONT) {
+			if (HE_MeshOp.classifyEdgeToPlane3D(e,
+					P) == WB_Classification.FRONT) {
 				sel.add(e);
 			}
 		}
@@ -4857,11 +4209,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Halfedge e;
 		while (eitr.hasNext()) {
 			e = eitr.next();
-			if (HET_MeshOp.classifyEdgeToPlane3D(e, P) == WB_Classification.FRONT) {
+			if (HE_MeshOp.classifyEdgeToPlane3D(e,
+					P) == WB_Classification.FRONT) {
 				sel.add(e);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4876,7 +4228,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Face f;
 		while (fitr.hasNext()) {
 			f = fitr.next();
-			if (HET_MeshOp.classifyFaceToPlane3D(f, P) == WB_Classification.FRONT) {
+			if (HE_MeshOp.classifyFaceToPlane3D(f,
+					P) == WB_Classification.FRONT) {
 				sel.add(f);
 			}
 		}
@@ -4895,11 +4248,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Face f;
 		while (fitr.hasNext()) {
 			f = fitr.next();
-			if (HET_MeshOp.classifyFaceToPlane3D(f, P) == WB_Classification.FRONT) {
+			if (HE_MeshOp.classifyFaceToPlane3D(f,
+					P) == WB_Classification.FRONT) {
 				sel.add(f);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4908,13 +4261,15 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param P
 	 */
-	public HE_Selection selectFrontVertices(final String name, final WB_Plane P) {
+	public HE_Selection selectFrontVertices(final String name,
+			final WB_Plane P) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		final HE_VertexIterator vitr = this.vItr();
 		HE_Vertex v;
 		while (vitr.hasNext()) {
 			v = vitr.next();
-			if (WB_GeometryOp3D.classifyPointToPlane3D(v, P) == WB_Classification.FRONT) {
+			if (WB_GeometryOp3D.classifyPointToPlane3D(v,
+					P) == WB_Classification.FRONT) {
 				sel.add(v);
 			}
 		}
@@ -4933,11 +4288,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Vertex v;
 		while (vitr.hasNext()) {
 			v = vitr.next();
-			if (WB_GeometryOp3D.classifyPointToPlane3D(v, P) == WB_Classification.FRONT) {
+			if (WB_GeometryOp3D.classifyPointToPlane3D(v,
+					P) == WB_Classification.FRONT) {
 				sel.add(v);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4956,7 +4311,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(he);
 			}
 		}
-
 		return sel;
 	}
 
@@ -4965,7 +4319,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param label
 	 */
-	public HE_Selection selectHalfedgesWithLabel(final String name, final int label) {
+	public HE_Selection selectHalfedgesWithLabel(final String name,
+			final int label) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		HE_Halfedge he;
 		final Iterator<HE_Halfedge> heItr = this.heItr();
@@ -4994,7 +4349,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(he);
 			}
 		}
-
 		return sel;
 	}
 
@@ -5003,7 +4357,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param label
 	 */
-	public HE_Selection selectHalfedgesWithOtherInternalLabel(final String name, final int label) {
+	public HE_Selection selectHalfedgesWithOtherInternalLabel(final String name,
+			final int label) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		HE_Halfedge he;
 		final Iterator<HE_Halfedge> heItr = this.heItr();
@@ -5032,7 +4387,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(he);
 			}
 		}
-
 		return sel;
 	}
 
@@ -5041,7 +4395,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param label
 	 */
-	public HE_Selection selectHalfedgesWithOtherLabel(final String name, final int label) {
+	public HE_Selection selectHalfedgesWithOtherLabel(final String name,
+			final int label) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		HE_Halfedge he;
 		final Iterator<HE_Halfedge> heItr = this.heItr();
@@ -5070,7 +4425,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(he);
 			}
 		}
-
 		return sel;
 	}
 
@@ -5079,7 +4433,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param label
 	 */
-	public HE_Selection selectHalfedgeWithInternalLabel(final String name, final int label) {
+	public HE_Selection selectHalfedgeWithInternalLabel(final String name,
+			final int label) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		HE_Halfedge he;
 		final Iterator<HE_Halfedge> heItr = this.heItr();
@@ -5104,7 +4459,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Vertex v;
 		while (vitr.hasNext()) {
 			v = vitr.next();
-			if (WB_GeometryOp3D.classifyPointToPlane3D(v, P) == WB_Classification.ON) {
+			if (WB_GeometryOp3D.classifyPointToPlane3D(v,
+					P) == WB_Classification.ON) {
 				sel.add(v);
 			}
 		}
@@ -5123,11 +4479,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		HE_Vertex v;
 		while (vitr.hasNext()) {
 			v = vitr.next();
-			if (WB_GeometryOp3D.classifyPointToPlane3D(v, P) == WB_Classification.ON) {
+			if (WB_GeometryOp3D.classifyPointToPlane3D(v,
+					P) == WB_Classification.ON) {
 				sel.add(v);
 			}
 		}
-
 		return sel;
 	}
 
@@ -5148,7 +4504,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				}
 			}
 		}
-
 		return sel;
 	}
 
@@ -5171,7 +4526,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				}
 			}
 		}
-
 		return sel;
 	}
 
@@ -5202,7 +4556,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param r
 	 * @param seed
 	 */
-	public HE_Selection selectRandomEdges(final String name, final double r, final long seed) {
+	public HE_Selection selectRandomEdges(final String name, final double r,
+			final long seed) {
 		final WB_MTRandom random = new WB_MTRandom(seed);
 		HE_Selection sel = HE_Selection.getSelection(this);
 		HE_EdgeIterator eItr = this.eItr();
@@ -5236,7 +4591,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				}
 			}
 		}
-
 		return sel;
 	}
 
@@ -5259,7 +4613,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				}
 			}
 		}
-
 		return sel;
 	}
 
@@ -5290,7 +4643,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param r
 	 * @param seed
 	 */
-	public HE_Selection selectRandomFaces(final String name, final double r, final long seed) {
+	public HE_Selection selectRandomFaces(final String name, final double r,
+			final long seed) {
 		final WB_MTRandom random = new WB_MTRandom(seed);
 		HE_Selection sel = HE_Selection.getSelection(this);
 		HE_FaceIterator fItr = this.fItr();
@@ -5324,7 +4678,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				}
 			}
 		}
-
 		return sel;
 	}
 
@@ -5334,7 +4687,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param r
 	 * @param seed
 	 */
-
 	public HE_Selection selectRandomVertices(final double r, final long seed) {
 		final WB_MTRandom random = new WB_MTRandom(seed);
 		HE_Selection sel = HE_Selection.getSelection(this);
@@ -5348,7 +4700,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				}
 			}
 		}
-
 		return sel;
 	}
 
@@ -5357,7 +4708,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param r
 	 */
-	public HE_Selection selectRandomVertices(final String name, final double r) {
+	public HE_Selection selectRandomVertices(final String name,
+			final double r) {
 		HE_Selection sel = HE_Selection.getSelection(this);
 		HE_VertexIterator vItr = this.vItr();
 		HE_Vertex v;
@@ -5379,8 +4731,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param r
 	 * @param seed
 	 */
-
-	public HE_Selection selectRandomVertices(final String name, final double r, final long seed) {
+	public HE_Selection selectRandomVertices(final String name, final double r,
+			final long seed) {
 		final WB_MTRandom random = new WB_MTRandom(seed);
 		HE_Selection sel = HE_Selection.getSelection(this);
 		HE_VertexIterator vItr = this.vItr();
@@ -5412,7 +4764,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(v);
 			}
 		}
-
 		return sel;
 	}
 
@@ -5421,7 +4772,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param label
 	 */
-	public HE_Selection selectVerticesWithInternalLabel(final String name, final int label) {
+	public HE_Selection selectVerticesWithInternalLabel(final String name,
+			final int label) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = this.vItr();
@@ -5450,7 +4802,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(v);
 			}
 		}
-
 		return sel;
 	}
 
@@ -5459,7 +4810,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param label
 	 */
-	public HE_Selection selectVerticesWithLabel(final String name, final int label) {
+	public HE_Selection selectVerticesWithLabel(final String name,
+			final int label) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = this.vItr();
@@ -5488,7 +4840,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 				sel.add(v);
 			}
 		}
-
 		return sel;
 	}
 
@@ -5497,7 +4848,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param label
 	 */
-	public HE_Selection selectVerticesWithOtherInternalLabel(final String name, final int label) {
+	public HE_Selection selectVerticesWithOtherInternalLabel(final String name,
+			final int label) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = this.vItr();
@@ -5534,7 +4886,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param name
 	 * @param label
 	 */
-	public HE_Selection selectVerticesWithOtherLabel(final String name, final int label) {
+	public HE_Selection selectVerticesWithOtherLabel(final String name,
+			final int label) {
 		final HE_Selection sel = HE_Selection.getSelection(this);
 		HE_Vertex v;
 		final Iterator<HE_Vertex> vItr = this.vItr();
@@ -5555,13 +4908,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *            HE_Mesh to be duplicated
 	 */
 	public void set(final HE_Mesh target) {
-
 		final HE_Mesh result = target.copy();
 		replaceVertices(result);
 		replaceFaces(result);
 		replaceHalfedges(result);
 		selections = target.selections;
-
 	}
 
 	/**
@@ -5596,11 +4947,10 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param f
 	 */
 	public void setFace(final HE_Halfedge he, final HE_Face f) {
-		he._setFace(f);
+		he.setFace(f);
 		if (he.getPair() != null) {
 			setPair(he, he.getPair());
 		}
-
 	}
 
 	/**
@@ -5638,7 +4988,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param color
 	 * @param i
 	 */
-	public void setFaceColorWithOtherInternalLabel(final int color, final int i) {
+	public void setFaceColorWithOtherInternalLabel(final int color,
+			final int i) {
 		final HE_FaceIterator fitr = fItr();
 		HE_Face f;
 		while (fitr.hasNext()) {
@@ -5688,7 +5039,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *
 	 * @param label
 	 */
-
 	protected void setFaceInternalLabels(final int label) {
 		final Iterator<HE_Face> fItr = fItr();
 		while (fItr.hasNext()) {
@@ -5709,24 +5059,13 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	}
 
 	/**
-	 *
-	 * @param b
-	 * @param he
-	 */
-	public void setHalfedge(final HE_Boundary b, final HE_Halfedge he) {
-		b._setHalfedge(he);
-
-	}
-
-	/**
 	 * Link halfedge to face
 	 *
 	 * @param f
 	 * @param he
 	 */
 	public void setHalfedge(final HE_Face f, final HE_Halfedge he) {
-		f._setHalfedge(he);
-
+		f.setHalfedge(he);
 	}
 
 	/**
@@ -5736,8 +5075,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param he
 	 */
 	public void setHalfedge(final HE_Vertex v, final HE_Halfedge he) {
-		v._setHalfedge(he);
-
+		v.setHalfedge(he);
 	}
 
 	/**
@@ -5758,7 +5096,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param color
 	 * @param i
 	 */
-	public void setHalfedgeColorWithInternalLabel(final int color, final int i) {
+	public void setHalfedgeColorWithInternalLabel(final int color,
+			final int i) {
 		final HE_HalfedgeIterator fitr = heItr();
 		HE_Halfedge f;
 		while (fitr.hasNext()) {
@@ -5775,9 +5114,9 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param color
 	 * @param i
 	 */
-	public void setHalfedgeColorWithOtherInternalLabel(final int color, final int i) {
+	public void setHalfedgeColorWithOtherInternalLabel(final int color,
+			final int i) {
 		final HE_HalfedgeIterator heitr = heItr();
-
 		HE_Halfedge f;
 		while (heitr.hasNext()) {
 			f = heitr.next();
@@ -5793,7 +5132,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param color
 	 * @param i
 	 */
-	public void setHalfedgeColorWithOtherUserLabel(final int color, final int i) {
+	public void setHalfedgeColorWithOtherUserLabel(final int color,
+			final int i) {
 		final HE_HalfedgeIterator heitr = heItr();
 		HE_Halfedge he;
 		while (heitr.hasNext()) {
@@ -5858,9 +5198,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param hen
 	 */
 	public void setNext(final HE_Halfedge he, final HE_Halfedge hen) {
-		he._setNext(hen);
-		hen._setPrev(he);
-
+		he.setNext(hen);
+		hen.setPrev(he);
 	}
 
 	/**
@@ -5874,29 +5213,31 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 			replaceVertices(target);
 			replaceFaces(target);
 			replaceHalfedges(target);
-			selections = target.selections;
-			for (String name : getSelectionNames()) {
-				getSelection(name).parent = this;
+			selections = new UnifiedMap<String, HE_Selection>();
+			for (String name : target.getSelectionNames()) {
+				HE_Selection sel = target.getSelection(name);
+				HE_Selection copy = new HE_Selection(this);
+				copy.add(sel);
+				addSelection(name, copy);
 			}
 		}
-
 	}
 
 	public void setPair(final HE_Halfedge he1, final HE_Halfedge he2) {
 		removeNoSelectionCheck(he1);
 		removeNoSelectionCheck(he2);
-		he1._setPair(he2);
-		he2._setPair(he1);
+		he1.setPair(he2);
+		he2.setPair(he1);
 		addDerivedElement(he1, he2);
 		addDerivedElement(he2, he1);
 	}
 
-	public void setPairNoSelectionCheck(final HE_Halfedge he1, final HE_Halfedge he2) {
+	public void setPairNoSelectionCheck(final HE_Halfedge he1,
+			final HE_Halfedge he2) {
 		removeNoSelectionCheck(he1);
 		removeNoSelectionCheck(he2);
-		he1._setPair(he2);
-		he2._setPair(he1);
-
+		he1.setPair(he2);
+		he2.setPair(he1);
 	}
 
 	/**
@@ -5906,15 +5247,15 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param v
 	 */
 	public void setVertex(final HE_Halfedge he, final HE_Vertex v) {
-		he._setVertex(v);
-
+		he.setVertex(v);
 	}
 
 	public void setVertex(final HE_Vertex v, final double x, final double y) {
 		v.set(x, y);
 	}
 
-	public void setVertex(final HE_Vertex v, final double x, final double y, final double z) {
+	public void setVertex(final HE_Vertex v, final double x, final double y,
+			final double z) {
 		v.set(x, y, z);
 	}
 
@@ -5957,7 +5298,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @param color
 	 * @param i
 	 */
-	public void setVertexColorWithOtherInternalLabel(final int color, final int i) {
+	public void setVertexColorWithOtherInternalLabel(final int color,
+			final int i) {
 		final HE_VertexIterator vitr = vItr();
 		HE_Vertex v;
 		while (vitr.hasNext()) {
@@ -6007,7 +5349,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 *
 	 * @param label
 	 */
-
 	protected void setVertexInternalLabels(final int label) {
 		final Iterator<HE_Vertex> vItr = vItr();
 		while (vItr.hasNext()) {
@@ -6027,7 +5368,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		}
 	}
 
-	public void setVertexWithIndex(final int index, final double x, final double y) {
+	public void setVertexWithIndex(final int index, final double x,
+			final double y) {
 		HE_Vertex v = getVertexWithIndex(index);
 		if (v == null) {
 			return;
@@ -6035,7 +5377,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		v.set(x, y);
 	}
 
-	public void setVertexWithIndex(final int index, final double x, final double y, final double z) {
+	public void setVertexWithIndex(final int index, final double x,
+			final double y, final double z) {
 		HE_Vertex v = getVertexWithIndex(index);
 		if (v == null) {
 			return;
@@ -6051,7 +5394,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		v.set(c);
 	}
 
-	public void setVertexWithKey(final long key, final double x, final double y) {
+	public void setVertexWithKey(final long key, final double x,
+			final double y) {
 		HE_Vertex v = getVertexWithKey(key);
 		if (v == null) {
 			return;
@@ -6059,7 +5403,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		v.set(x, y);
 	}
 
-	public void setVertexWithKey(final long key, final double x, final double y, final double z) {
+	public void setVertexWithKey(final long key, final double x, final double y,
+			final double z) {
 		HE_Vertex v = getVertexWithKey(key);
 		if (v == null) {
 			return;
@@ -6306,17 +5651,11 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * Sort all faces and vertices in lexographical order
 	 */
 	public void sort() {
-		HE_FaceIterator fItr = fItr();
-		while (fItr.hasNext()) {
-			fItr.next().sort();
-		}
-
 		List<HE_Face> sortedFaces = new FastList<HE_Face>();
 		sortedFaces.addAll(getFaces());
 		Collections.sort(sortedFaces);
 		clearFacesNoSelectionCheck();
 		addFaces(sortedFaces);
-
 		List<HE_Vertex> sortedVertices = new FastList<HE_Vertex>();
 		sortedVertices.addAll(getVertices());
 		Collections.sort(sortedVertices);
@@ -6324,18 +5663,13 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		addVertices(sortedVertices);
 	}
 
-	public void sort(final HE_FaceSort faceSort, final HE_VertexSort vertexSort) {
-		HE_FaceIterator fItr = fItr();
-		while (fItr.hasNext()) {
-			fItr.next().sort();
-		}
-
+	public void sort(final HE_FaceSort faceSort,
+			final HE_VertexSort vertexSort) {
 		List<HE_Face> sortedFaces = new FastList<HE_Face>();
 		sortedFaces.addAll(getFaces());
 		Collections.sort(sortedFaces);
 		clearFacesNoSelectionCheck();
 		addFaces(sortedFaces);
-
 		List<HE_Vertex> sortedVertices = new FastList<HE_Vertex>();
 		sortedVertices.addAll(getVertices());
 		Collections.sort(sortedVertices);
@@ -6390,7 +5724,8 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 		tasks.add(new SubdividorThread(subdividor, this));
 	}
 
-	public void subdivideThreaded(final HES_Subdividor subdividor, final int rep) {
+	public void subdivideThreaded(final HES_Subdividor subdividor,
+			final int rep) {
 		for (int i = 0; i < rep; i++) {
 			tasks.add(new SubdividorThread(subdividor, this));
 		}
@@ -6407,13 +5742,12 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.Point3D#toString()
 	 */
 	@Override
 	public String toString() {
-		String s = "HE_Mesh key: " + getKey() + ". (" + getNumberOfVertices() + ", " + getNumberOfFaces() + ")";
-
+		String s = "HE_Mesh key: " + getKey() + ". (" + getNumberOfVertices()
+				+ ", " + getNumberOfFaces() + ")";
 		return s;
 	}
 
@@ -6438,7 +5772,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return self
 	 */
 	public HE_Mesh transformSelf(final WB_Transform T) {
-
 		return modify(new HEM_Transform(T));
 	}
 
@@ -6448,7 +5781,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return
 	 */
 	public HE_Selection triangulate() {
-		return HET_MeshOp.triangulate(this);
+		return HE_MeshOp.triangulate(this);
 	}
 
 	/**
@@ -6458,7 +5791,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return
 	 */
 	public HE_Selection triangulate(final HE_Face face) {
-		return HET_MeshOp.triangulate(this, face);
+		return HE_MeshOp.triangulate(this, face);
 	}
 
 	/**
@@ -6469,7 +5802,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return
 	 */
 	public HE_Selection triangulate(final HE_Selection sel) {
-		return HET_MeshOp.triangulate(sel);
+		return HE_MeshOp.triangulate(sel);
 	}
 
 	/**
@@ -6491,7 +5824,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return
 	 */
 	public HE_Selection triangulateConcaveFace(final HE_Face face) {
-		return HET_MeshOp.triangulateConcaveFace(this, face);
+		return HE_MeshOp.triangulateConcaveFace(this, face);
 	}
 
 	/**
@@ -6502,7 +5835,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return
 	 */
 	public HE_Selection triangulateConcaveFace(final long key) {
-		return HET_MeshOp.triangulateConcaveFace(this, key);
+		return HE_MeshOp.triangulateConcaveFace(this, key);
 	}
 
 	/**
@@ -6511,7 +5844,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return
 	 */
 	public HE_Selection triangulateConcaveFaces() {
-		return HET_MeshOp.triangulateConcaveFaces(this);
+		return HE_MeshOp.triangulateConcaveFaces(this);
 	}
 
 	/**
@@ -6521,7 +5854,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return
 	 */
 	public HE_Selection triangulateConcaveFaces(final List<HE_Face> sel) {
-		return HET_MeshOp.triangulateConcaveFaces(this, sel);
+		return HE_MeshOp.triangulateConcaveFaces(this, sel);
 	}
 
 	/**
@@ -6531,7 +5864,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return
 	 */
 	public HE_Selection triangulateFaceStar(final HE_Vertex v) {
-		return HET_MeshOp.triangulateFaceStar(this, v);
+		return HE_MeshOp.triangulateFaceStar(this, v);
 	}
 
 	/**
@@ -6541,7 +5874,7 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 * @return
 	 */
 	public HE_Selection triangulateFaceStar(final long vertexkey) {
-		return HET_MeshOp.triangulateFaceStar(this, vertexkey);
+		return HE_MeshOp.triangulateFaceStar(this, vertexkey);
 	}
 
 	/**
@@ -6549,24 +5882,21 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 */
 	public void uncapBoundaryHalfedges() {
 		tracker.setStartStatus(this, "Uncapping boundary halfedges.");
-		WB_ProgressCounter counter = new WB_ProgressCounter(getNumberOfHalfedges(), 10);
+		WB_ProgressCounter counter = new WB_ProgressCounter(
+				getNumberOfHalfedges(), 10);
 		List<HE_Halfedge> halfedges = getHalfedges();
 		final HE_RAS<HE_Halfedge> remove = new HE_RAS<HE_Halfedge>();
 		for (HE_Halfedge he : halfedges) {
-
 			if (he.getFace() == null) {
 				setHalfedge(he.getVertex(), he.getNextInVertex());
 				clearPair(he);
 				remove.add(he);
 			} else {
-
 			}
 			counter.increment();
 		}
-
 		removeHalfedges(remove);
 		tracker.setStopStatus(this, "Removing outer boundary halfedges.");
-
 	}
 
 	public void update() {
@@ -6582,7 +5912,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 					executor.shutdown();
 				}
 				executor = null;
-
 			}
 		} else if (future.isDone()) {
 			try {
@@ -6600,34 +5929,6 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 			future = null;
 			finished = true;
 		}
-
-	}
-
-	/**
-	 *
-	 *
-	 * @return
-	 */
-	public void updateBoundaries() {
-		final List<HE_Halfedge> halfedges = getAllBoundaryHalfedges();
-		final List<HE_Halfedge> loop = new FastList<HE_Halfedge>();
-		boundaries.clear();
-		while (halfedges.size() > 0) {
-			loop.clear();
-			HE_Halfedge he = halfedges.get(0);
-			HE_Boundary boundary = new HE_Boundary();
-			boundaries.add(boundary);
-			setHalfedge(boundary, he);
-			do {
-				loop.add(he);
-				he = he.getNextInFace();
-				if (loop.contains(he)) {
-					break;
-				}
-			} while (he != halfedges.get(0));
-			halfedges.removeAll(loop);
-		}
-
 	}
 
 	/**
@@ -6646,8 +5947,17 @@ public class HE_Mesh extends HE_MeshElement implements WB_TriangleGenerator, HE_
 	 */
 	@Override
 	public HE_VertexIterator vItr() {
-
 		return new HE_VertexIterator(vertices);
 	}
 
+	@Override
+	public void stats() {
+		System.out.println("HE_Mesh: " + getKey());
+		System.out.println("Number of vertices: " + this.getNumberOfVertices());
+		System.out.println("Number of faces: " + this.getNumberOfFaces());
+		System.out.println("Number of halfedges: " + this.edges.size() + "/"
+				+ this.halfedges.size() + "/" + this.unpairedHalfedges.size());
+		System.out.println("Number of boundary halfedges: "
+				+ this.getAllBoundaryHalfedges().size());
+	}
 }

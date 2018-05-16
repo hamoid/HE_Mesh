@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import processing.core.PImage;
@@ -55,8 +52,9 @@ public class HET_Texture {
 		int color;
 		while (vitr.hasNext()) {
 			v = vitr.next();
-			n = v.getVertexNormal();
-			color = WB_Color.color((int) (128 * (n.xd() + 1)), (int) (128 * (n.yd() + 1)), (int) (128 * (n.zd() + 1)));
+			n = HE_MeshOp.getVertexNormal(v);
+			color = WB_Color.color((int) (128 * (n.xd() + 1)),
+					(int) (128 * (n.yd() + 1)), (int) (128 * (n.zd() + 1)));
 			v.setColor(color);
 		}
 	}
@@ -67,14 +65,16 @@ public class HET_Texture {
 	 * @param mesh
 	 * @param palette
 	 */
-	public static void setVertexColorFromPalette(final HE_Mesh mesh, final int[] palette) {
+	public static void setVertexColorFromPalette(final HE_Mesh mesh,
+			final int[] palette) {
 		final HE_VertexIterator vitr = mesh.vItr();
 		HE_Vertex v;
 		final int size = palette.length;
 		int color;
 		while (vitr.hasNext()) {
 			v = vitr.next();
-			final int choice = Math.max(0, Math.min(size - 1, v.getUserLabel()));
+			final int choice = Math.max(0,
+					Math.min(size - 1, v.getUserLabel()));
 			color = palette[choice];
 			v.setColor(color);
 		}
@@ -86,7 +86,8 @@ public class HET_Texture {
 	 * @param mesh
 	 * @param palette
 	 */
-	public static void setRandomVertexColorFromPalette(final HE_Mesh mesh, final int[] palette) {
+	public static void setRandomVertexColorFromPalette(final HE_Mesh mesh,
+			final int[] palette) {
 		final HE_VertexIterator vitr = mesh.vItr();
 		HE_Vertex v;
 		final int size = palette.length;
@@ -106,7 +107,8 @@ public class HET_Texture {
 	 * @param palette
 	 * @param seed
 	 */
-	public static void setRandomVertexColorFromPalette(final HE_Mesh mesh, final int[] palette, final long seed) {
+	public static void setRandomVertexColorFromPalette(final HE_Mesh mesh,
+			final int[] palette, final long seed) {
 		final HE_VertexIterator vitr = mesh.vItr();
 		HE_Vertex v;
 		final int size = palette.length;
@@ -114,7 +116,8 @@ public class HET_Texture {
 		final WB_MTRandom random = new WB_MTRandom(seed);
 		while (vitr.hasNext()) {
 			v = vitr.next();
-			final int choice = (int) Math.min(size - 1, random.nextDouble() * size);
+			final int choice = (int) Math.min(size - 1,
+					random.nextDouble() * size);
 			;
 			color = palette[choice];
 			v.setColor(color);
@@ -130,15 +133,16 @@ public class HET_Texture {
 	 * @param maxrange
 	 * @param palette
 	 */
-	public static void setVertexColorFromVertexUmbrella(final HE_Mesh mesh, final double minrange,
-			final double maxrange, final int[] palette) {
+	public static void setVertexColorFromVertexUmbrella(final HE_Mesh mesh,
+			final double minrange, final double maxrange, final int[] palette) {
 		final HE_VertexIterator vitr = mesh.vItr();
 		HE_Vertex v;
 		int color;
 		final double idenom = 0.5 * palette.length / Math.PI;
 		while (vitr.hasNext()) {
 			v = vitr.next();
-			color = (int) (idenom * (v.getUmbrellaAngle() - minrange) / (maxrange - minrange));
+			color = (int) (idenom * (HE_MeshOp.getUmbrellaAngle(v) - minrange)
+					/ (maxrange - minrange));
 			color = Math.max(0, Math.min(color, palette.length - 1));
 			v.setColor(palette[color]);
 		}
@@ -152,15 +156,16 @@ public class HET_Texture {
 	 * @param maxrange
 	 * @param palette
 	 */
-	public static void setVertexColorFromVertexCurvature(final HE_Mesh mesh, final double minrange,
-			final double maxrange, final int[] palette) {
+	public static void setVertexColorFromVertexCurvature(final HE_Mesh mesh,
+			final double minrange, final double maxrange, final int[] palette) {
 		final HE_VertexIterator vitr = mesh.vItr();
 		HE_Vertex v;
 		int color;
 		final double idenom = 0.5 * palette.length / Math.PI;
 		while (vitr.hasNext()) {
 			v = vitr.next();
-			color = (int) (idenom * (v.getGaussCurvature() - minrange) / (maxrange - minrange));
+			color = (int) (idenom * (HE_MeshOp.getGaussCurvature(v) - minrange)
+					/ (maxrange - minrange));
 			color = Math.max(0, Math.min(color, palette.length - 1));
 			v.setColor(palette[color]);
 		}
@@ -180,8 +185,9 @@ public class HET_Texture {
 		int color;
 		while (fitr.hasNext()) {
 			f = fitr.next();
-			n = f.getFaceNormal();
-			color = WB_Color.color((int) (128 * (n.xd() + 1)), (int) (128 * (n.yd() + 1)), (int) (128 * (n.zd() + 1)));
+			n = HE_MeshOp.getFaceNormal(f);
+			color = WB_Color.color((int) (128 * (n.xd() + 1)),
+					(int) (128 * (n.yd() + 1)), (int) (128 * (n.zd() + 1)));
 			f.setColor(color);
 		}
 	}
@@ -192,14 +198,16 @@ public class HET_Texture {
 	 * @param mesh
 	 * @param palette
 	 */
-	public static void setFaceColorFromPalette(final HE_Mesh mesh, final int[] palette) {
+	public static void setFaceColorFromPalette(final HE_Mesh mesh,
+			final int[] palette) {
 		final HE_FaceIterator fitr = mesh.fItr();
 		HE_Face f;
 		final int size = palette.length;
 		int color;
 		while (fitr.hasNext()) {
 			f = fitr.next();
-			final int choice = Math.max(0, Math.min(size - 1, f.getUserLabel()));
+			final int choice = Math.max(0,
+					Math.min(size - 1, f.getUserLabel()));
 			color = palette[choice];
 			f.setColor(color);
 		}
@@ -211,7 +219,8 @@ public class HET_Texture {
 	 * @param mesh
 	 * @param palette
 	 */
-	public static void setRandomFaceColorFromPalette(final HE_Mesh mesh, final int[] palette) {
+	public static void setRandomFaceColorFromPalette(final HE_Mesh mesh,
+			final int[] palette) {
 		final HE_FaceIterator fitr = mesh.fItr();
 		HE_Face f;
 		final int size = palette.length;
@@ -231,7 +240,8 @@ public class HET_Texture {
 	 * @param palette
 	 * @param seed
 	 */
-	public static void setRandomFaceColorFromPalette(final HE_Mesh mesh, final int[] palette, final long seed) {
+	public static void setRandomFaceColorFromPalette(final HE_Mesh mesh,
+			final int[] palette, final long seed) {
 		final HE_FaceIterator fitr = mesh.fItr();
 		HE_Face f;
 		final int size = palette.length;
@@ -239,7 +249,8 @@ public class HET_Texture {
 		final WB_MTRandom random = new WB_MTRandom(seed);
 		while (fitr.hasNext()) {
 			f = fitr.next();
-			final int choice = (int) Math.min(size - 1, random.nextDouble() * size);
+			final int choice = (int) Math.min(size - 1,
+					random.nextDouble() * size);
 			color = palette[choice];
 			f.setColor(color);
 		}
@@ -251,7 +262,8 @@ public class HET_Texture {
 	 * @param mesh
 	 * @param texture
 	 */
-	public static void setFaceColorFromTexture(final HE_Mesh mesh, final PImage texture) {
+	public static void setFaceColorFromTexture(final HE_Mesh mesh,
+			final PImage texture) {
 		final HE_FaceIterator fitr = mesh.fItr();
 		HE_Face f;
 		HE_Vertex v;
@@ -278,7 +290,8 @@ public class HET_Texture {
 	 * @param mesh
 	 * @param texture
 	 */
-	public static void setHalfedgeColorFromTexture(final HE_Mesh mesh, final PImage texture) {
+	public static void setHalfedgeColorFromTexture(final HE_Mesh mesh,
+			final PImage texture) {
 		final HE_FaceIterator fitr = mesh.fItr();
 		HE_Face f;
 		HE_Halfedge he;
@@ -289,7 +302,8 @@ public class HET_Texture {
 			while (fhec.hasNext()) {
 				he = fhec.next();
 				p = he.getVertex().getUVW(f);
-				he.setColor(WB_Render3D.getColorFromPImage(p.ud(), p.vd(), texture));
+				he.setColor(WB_Render3D.getColorFromPImage(p.ud(), p.vd(),
+						texture));
 			}
 		}
 	}
@@ -300,7 +314,8 @@ public class HET_Texture {
 	 * @param mesh
 	 * @param texture
 	 */
-	public static void setVertexColorFromTexture(final HE_Mesh mesh, final PImage texture) {
+	public static void setVertexColorFromTexture(final HE_Mesh mesh,
+			final PImage texture) {
 		final HE_VertexIterator vitr = mesh.vItr();
 		HE_Vertex v;
 		HE_TextureCoordinate p;
@@ -310,21 +325,16 @@ public class HET_Texture {
 			v.setColor(WB_Render3D.getColorFromPImage(p.ud(), p.vd(), texture));
 		}
 	}
-
 	/*
 	 * New matplotlib colormaps by Nathaniel J. Smith, Stefan van der Walt, and
 	 * (in the case of viridis) Eric Firing.
-	 *
 	 * This file and the colormaps in it are released under the CC0 license /
 	 * public domain dedication. We would appreciate credit if you use or
 	 * redistribute these colormaps, but do not impose any legal restrictions.
-	 *
 	 * To the extent possible under law, the persons who associated CC0 with
 	 * mpl-colormaps have waived all copyright and related or neighboring rights
 	 * to mpl-colormaps.
-	 *
 	 * You should have received a copy of the CC0 legalcode along with this
 	 * work. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 	 */
-
 }

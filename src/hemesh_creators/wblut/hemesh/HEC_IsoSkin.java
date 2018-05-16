@@ -24,10 +24,9 @@ import wblut.math.WB_Epsilon;
  *
  */
 public class HEC_IsoSkin extends HEC_Creator {
-
-	private Substrate substrate;
-	private double isolevel;
-	private double gamma;
+	private Substrate	substrate;
+	private double		isolevel;
+	private double		gamma;
 
 	public HEC_IsoSkin() {
 		override = true;
@@ -42,7 +41,8 @@ public class HEC_IsoSkin extends HEC_Creator {
 		isolevel = 0.5;
 	}
 
-	public HEC_IsoSkin(final HE_Mesh mesh, final int layers, final double offset, final double d) {
+	public HEC_IsoSkin(final HE_Mesh mesh, final int layers,
+			final double offset, final double d) {
 		this();
 		double[] l = new double[layers + 1];
 		for (int i = 0; i <= layers; i++) {
@@ -61,8 +61,8 @@ public class HEC_IsoSkin extends HEC_Creator {
 		return this;
 	}
 
-	public HEC_IsoSkin setSubstrate(final HE_Mesh mesh, final int layers, final double offset, final double d) {
-
+	public HEC_IsoSkin setSubstrate(final HE_Mesh mesh, final int layers,
+			final double offset, final double d) {
 		double[] l = new double[layers];
 		for (int i = 0; i < layers; i++) {
 			l[i] = offset + d * i;
@@ -86,7 +86,6 @@ public class HEC_IsoSkin extends HEC_Creator {
 			}
 		}
 		return true;
-
 	}
 
 	public HEC_IsoSkin setValues(final double[][] values) {
@@ -125,18 +124,15 @@ public class HEC_IsoSkin extends HEC_Creator {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HEC_Creator#createBase()
 	 */
 	@Override
 	protected HE_Mesh createBase() {
-
-		if (substrate == null || substrate.values == null || substrate.values.length != substrate.numberOfLayers + 1
+		if (substrate == null || substrate.values == null
+				|| substrate.values.length != substrate.numberOfLayers + 1
 				|| substrate.values[0].length != substrate.numberOfVertices) {
-
 			return new HE_Mesh();
 		}
-
 		return substrate.getSkin(isolevel, gamma);
 	}
 
@@ -156,74 +152,86 @@ public class HEC_IsoSkin extends HEC_Creator {
 
 	private static class Substrate {
 		private static class VertexRemap {
-			int i, layeri;
-			double closestd;
-			WB_Point p;
-			double originalvalue;
-			HE_Vertex snapvertex;
+			int			i, layeri;
+			double		closestd;
+			WB_Point	p;
+			double		originalvalue;
+			HE_Vertex	snapvertex;
 		}
 
-		final static int ONVERTEX = 0;
-		final static int ONEDGE = 1;
-		final static int EQUAL = 1;
-		final static int POSITIVE = 2;
-		private IntObjectHashMap<VertexRemap> vertexremaps;
-		private int numberOfLayers;
-		private double[][] values;
-		private Cell[][] cells3D;
-		private Cell[][] cells2D;
-		private WB_Coord[][] gridpositions;
-		private LongObjectHashMap<HE_Vertex> edges;
-		private HE_Mesh substrate;
-
-		private int numberOfVertices;
-		private int totalNumberOfVertices;
-
-		private int[] digits;
-		private LongIntHashMap keysToIndex;
-
-		final static int[][] isovertices2D = new int[][] { { ONVERTEX, 0 }, { ONVERTEX, 1 }, { ONVERTEX, 2 },
-				{ ONVERTEX, 3 }, { ONEDGE, 0 }, { ONEDGE, 1 }, { ONEDGE, 2 }, { ONEDGE, 3 } };
-
+		final static int						ONVERTEX		= 0;
+		final static int						ONEDGE			= 1;
+		final static int						EQUAL			= 1;
+		final static int						POSITIVE		= 2;
+		private IntObjectHashMap<VertexRemap>	vertexremaps;
+		private int								numberOfLayers;
+		private double[][]						values;
+		private Cell[][]						cells3D;
+		private Cell[][]						cells2D;
+		private WB_Coord[][]					gridpositions;
+		private LongObjectHashMap<HE_Vertex>	edges;
+		private HE_Mesh							substrate;
+		private int								numberOfVertices;
+		private int								totalNumberOfVertices;
+		private int[]							digits;
+		private LongIntHashMap					keysToIndex;
+		final static int[][]					isovertices2D	= new int[][] {
+				{ ONVERTEX, 0 }, { ONVERTEX, 1 }, { ONVERTEX, 2 },
+				{ ONVERTEX, 3 }, { ONEDGE, 0 }, { ONEDGE, 1 }, { ONEDGE, 2 },
+				{ ONEDGE, 3 } };
 		// ISOVERTICES3D: 20
 		// type=ONVERTEX iso vertex on vertex, index in vertex list
 		// type=ONEDGE iso vertex on edge, index in edge list
-
-		final static int[][] isovertices3D = new int[][] { { ONVERTEX, 0 }, { ONVERTEX, 1 }, { ONVERTEX, 2 },
-				{ ONVERTEX, 3 }, { ONVERTEX, 4 }, { ONVERTEX, 5 }, { ONVERTEX, 6 }, { ONVERTEX, 7 }, { ONEDGE, 0 },
-				{ ONEDGE, 1 }, { ONEDGE, 2 }, { ONEDGE, 3 }, { ONEDGE, 4 }, { ONEDGE, 5 }, { ONEDGE, 6 }, { ONEDGE, 7 },
-				{ ONEDGE, 8 }, { ONEDGE, 9 }, { ONEDGE, 10 }, { ONEDGE, 11 } };
-
-		final static int[][] entries2D = new int[][] { { 0 }, { 0 }, { 1, 3, 0, 4, 5 }, { 0 }, { 0 }, { 1, 3, 0, 1, 5 },
-				{ 1, 3, 1, 6, 4 }, { 1, 3, 1, 6, 0 }, { 1, 4, 0, 1, 6, 5 }, { 0 }, { 0 }, { 1, 3, 0, 4, 2 }, { 0 },
-				{ 1, 3, 0, 1, 2 }, { 1, 3, 0, 1, 2 }, { 2, 3, 1, 6, 2, 3, 1, 2, 4 }, { 2, 3, 0, 6, 2, 3, 6, 0, 1 },
-				{ 2, 3, 0, 6, 2, 3, 6, 0, 1 }, { 1, 3, 2, 5, 7 }, { 1, 3, 2, 0, 7 }, { 1, 4, 0, 4, 7, 2 },
-				{ 2, 3, 5, 1, 2, 3, 1, 7, 2 }, { 2, 3, 1, 7, 2, 3, 1, 2, 0 }, { 2, 3, 1, 7, 2, 3, 1, 2, 0 },
-				{ 4, 3, 5, 4, 1, 3, 5, 1, 2, 3, 6, 7, 2, 3, 6, 2, 1 }, { 3, 3, 0, 6, 7, 3, 6, 0, 1, 3, 0, 7, 2 },
-				{ 3, 3, 0, 6, 7, 3, 0, 7, 2, 3, 6, 0, 1 },
-
-				{ 0 }, { 0 }, { 2, 3, 0, 4, 3, 3, 0, 3, 5 }, { 0 }, { 1, 3, 3, 0, 1 }, { 2, 3, 1, 3, 5, 3, 1, 5, 0 },
-				{ 1, 3, 1, 3, 4 }, { 1, 3, 1, 3, 0 }, { 2, 3, 3, 5, 1, 3, 1, 5, 0 }, { 0 }, { 1, 3, 2, 0, 3 },
-				{ 2, 3, 4, 3, 2, 3, 4, 2, 0 }, { 1, 3, 2, 1, 3 }, { 1, 4, 0, 1, 3, 2 }, { 1, 4, 0, 1, 3, 2 },
-				{ 2, 3, 2, 4, 3, 3, 3, 4, 1 }, { 1, 4, 0, 1, 3, 2 }, { 1, 4, 0, 1, 3, 2 }, { 1, 3, 5, 3, 2 },
-				{ 1, 3, 0, 3, 2 }, { 2, 3, 4, 3, 0, 3, 0, 3, 2 }, { 2, 3, 5, 1, 3, 3, 5, 3, 2 }, { 1, 4, 0, 1, 3, 2 },
-				{ 1, 4, 0, 1, 3, 2 }, { 3, 3, 5, 4, 3, 3, 3, 4, 1, 3, 5, 3, 2 }, { 1, 4, 0, 1, 3, 2 },
-				{ 1, 4, 0, 1, 3, 2 },
-
-				{ 1, 3, 3, 7, 6 }, { 2, 3, 0, 6, 3, 3, 0, 3, 7 }, { 4, 3, 4, 6, 0, 3, 0, 6, 3, 3, 7, 5, 0, 3, 7, 0, 3 },
-				{ 1, 3, 3, 7, 1 }, { 2, 3, 1, 7, 0, 3, 7, 1, 3 }, { 3, 3, 7, 5, 1, 3, 1, 5, 0, 3, 7, 1, 3 },
-				{ 1, 4, 7, 4, 1, 3 }, { 2, 3, 7, 0, 1, 3, 7, 1, 3 }, { 3, 3, 7, 5, 1, 3, 1, 5, 0, 3, 7, 1, 3 },
-				{ 1, 3, 2, 6, 3 }, { 2, 3, 0, 6, 2, 3, 2, 6, 3 }, { 3, 3, 4, 6, 2, 3, 2, 6, 3, 3, 4, 2, 0 },
-				{ 1, 3, 2, 1, 3 }, { 1, 4, 0, 1, 3, 2 }, { 1, 4, 0, 1, 3, 2 }, { 2, 3, 2, 4, 3, 3, 3, 4, 1 },
-				{ 1, 4, 0, 1, 3, 2 }, { 1, 4, 0, 1, 3, 2 }, { 1, 4, 5, 6, 3, 2 }, { 2, 3, 0, 6, 2, 3, 2, 6, 3 },
-				{ 3, 3, 2, 4, 6, 3, 4, 2, 0, 3, 2, 6, 3 }, { 2, 3, 5, 1, 2, 3, 2, 1, 3 }, { 1, 4, 0, 1, 3, 2 },
-				{ 1, 4, 0, 1, 3, 2 }, { 3, 3, 3, 5, 4, 3, 5, 3, 2, 3, 3, 4, 1 }, { 1, 4, 0, 1, 3, 2 },
-				{ 1, 4, 0, 1, 3, 2 } };
-
-		int[][] entries3D;
-		private IntObjectHashMap<HE_Vertex> vertices;
-
-		private double gamma;
+		final static int[][]					isovertices3D	= new int[][] {
+				{ ONVERTEX, 0 }, { ONVERTEX, 1 }, { ONVERTEX, 2 },
+				{ ONVERTEX, 3 }, { ONVERTEX, 4 }, { ONVERTEX, 5 },
+				{ ONVERTEX, 6 }, { ONVERTEX, 7 }, { ONEDGE, 0 }, { ONEDGE, 1 },
+				{ ONEDGE, 2 }, { ONEDGE, 3 }, { ONEDGE, 4 }, { ONEDGE, 5 },
+				{ ONEDGE, 6 }, { ONEDGE, 7 }, { ONEDGE, 8 }, { ONEDGE, 9 },
+				{ ONEDGE, 10 }, { ONEDGE, 11 } };
+		final static int[][]					entries2D		= new int[][] {
+				{ 0 }, { 0 }, { 1, 3, 0, 4, 5 }, { 0 }, { 0 },
+				{ 1, 3, 0, 1, 5 }, { 1, 3, 1, 6, 4 }, { 1, 3, 1, 6, 0 },
+				{ 1, 4, 0, 1, 6, 5 }, { 0 }, { 0 }, { 1, 3, 0, 4, 2 }, { 0 },
+				{ 1, 3, 0, 1, 2 }, { 1, 3, 0, 1, 2 },
+				{ 2, 3, 1, 6, 2, 3, 1, 2, 4 }, { 2, 3, 0, 6, 2, 3, 6, 0, 1 },
+				{ 2, 3, 0, 6, 2, 3, 6, 0, 1 }, { 1, 3, 2, 5, 7 },
+				{ 1, 3, 2, 0, 7 }, { 1, 4, 0, 4, 7, 2 },
+				{ 2, 3, 5, 1, 2, 3, 1, 7, 2 }, { 2, 3, 1, 7, 2, 3, 1, 2, 0 },
+				{ 2, 3, 1, 7, 2, 3, 1, 2, 0 },
+				{ 4, 3, 5, 4, 1, 3, 5, 1, 2, 3, 6, 7, 2, 3, 6, 2, 1 },
+				{ 3, 3, 0, 6, 7, 3, 6, 0, 1, 3, 0, 7, 2 },
+				{ 3, 3, 0, 6, 7, 3, 0, 7, 2, 3, 6, 0, 1 }, { 0 }, { 0 },
+				{ 2, 3, 0, 4, 3, 3, 0, 3, 5 }, { 0 }, { 1, 3, 3, 0, 1 },
+				{ 2, 3, 1, 3, 5, 3, 1, 5, 0 }, { 1, 3, 1, 3, 4 },
+				{ 1, 3, 1, 3, 0 }, { 2, 3, 3, 5, 1, 3, 1, 5, 0 }, { 0 },
+				{ 1, 3, 2, 0, 3 }, { 2, 3, 4, 3, 2, 3, 4, 2, 0 },
+				{ 1, 3, 2, 1, 3 }, { 1, 4, 0, 1, 3, 2 }, { 1, 4, 0, 1, 3, 2 },
+				{ 2, 3, 2, 4, 3, 3, 3, 4, 1 }, { 1, 4, 0, 1, 3, 2 },
+				{ 1, 4, 0, 1, 3, 2 }, { 1, 3, 5, 3, 2 }, { 1, 3, 0, 3, 2 },
+				{ 2, 3, 4, 3, 0, 3, 0, 3, 2 }, { 2, 3, 5, 1, 3, 3, 5, 3, 2 },
+				{ 1, 4, 0, 1, 3, 2 }, { 1, 4, 0, 1, 3, 2 },
+				{ 3, 3, 5, 4, 3, 3, 3, 4, 1, 3, 5, 3, 2 }, { 1, 4, 0, 1, 3, 2 },
+				{ 1, 4, 0, 1, 3, 2 }, { 1, 3, 3, 7, 6 },
+				{ 2, 3, 0, 6, 3, 3, 0, 3, 7 },
+				{ 4, 3, 4, 6, 0, 3, 0, 6, 3, 3, 7, 5, 0, 3, 7, 0, 3 },
+				{ 1, 3, 3, 7, 1 }, { 2, 3, 1, 7, 0, 3, 7, 1, 3 },
+				{ 3, 3, 7, 5, 1, 3, 1, 5, 0, 3, 7, 1, 3 }, { 1, 4, 7, 4, 1, 3 },
+				{ 2, 3, 7, 0, 1, 3, 7, 1, 3 },
+				{ 3, 3, 7, 5, 1, 3, 1, 5, 0, 3, 7, 1, 3 }, { 1, 3, 2, 6, 3 },
+				{ 2, 3, 0, 6, 2, 3, 2, 6, 3 },
+				{ 3, 3, 4, 6, 2, 3, 2, 6, 3, 3, 4, 2, 0 }, { 1, 3, 2, 1, 3 },
+				{ 1, 4, 0, 1, 3, 2 }, { 1, 4, 0, 1, 3, 2 },
+				{ 2, 3, 2, 4, 3, 3, 3, 4, 1 }, { 1, 4, 0, 1, 3, 2 },
+				{ 1, 4, 0, 1, 3, 2 }, { 1, 4, 5, 6, 3, 2 },
+				{ 2, 3, 0, 6, 2, 3, 2, 6, 3 },
+				{ 3, 3, 2, 4, 6, 3, 4, 2, 0, 3, 2, 6, 3 },
+				{ 2, 3, 5, 1, 2, 3, 2, 1, 3 }, { 1, 4, 0, 1, 3, 2 },
+				{ 1, 4, 0, 1, 3, 2 }, { 3, 3, 3, 5, 4, 3, 5, 3, 2, 3, 3, 4, 1 },
+				{ 1, 4, 0, 1, 3, 2 }, { 1, 4, 0, 1, 3, 2 } };
+		int[][]									entries3D;
+		private IntObjectHashMap<HE_Vertex>		vertices;
+		private double							gamma;
 
 		Substrate(final HE_Mesh mesh, final double[] d) {
 			this.substrate = mesh;
@@ -232,17 +240,16 @@ public class HEC_IsoSkin extends HEC_Creator {
 			totalNumberOfVertices = numberOfVertices * (numberOfLayers + 1);
 			setGridPositions(d);
 			createGrid();
-
 			keysToIndex = null;
 			String line = "";
 			final String cvsSplitBy = " ";
-
 			BufferedReader br = null;
 			InputStream is = null;
 			InputStreamReader isr = null;
 			entries3D = new int[6561][];
 			try {
-				is = this.getClass().getClassLoader().getResourceAsStream("resources/isonepcube3D.txt");
+				is = this.getClass().getClassLoader()
+						.getResourceAsStream("resources/isonepcube3D.txt");
 				isr = new InputStreamReader(is);
 				br = new BufferedReader(isr);
 				int i = 0;
@@ -255,7 +262,6 @@ public class HEC_IsoSkin extends HEC_Creator {
 					entries3D[i] = indices;
 					i++;
 				}
-
 			} catch (final FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (final IOException e) {
@@ -284,7 +290,7 @@ public class HEC_IsoSkin extends HEC_Creator {
 			int j = 0;
 			while (vitr.hasNext()) {
 				v = vitr.next();
-				n = v.getVertexNormal();
+				n = HE_MeshOp.getVertexNormal(v);
 				keysToIndex.put(v.getKey(), j);
 				for (int i = 0; i < numberOfLayers + 1; i++) {
 					gridpositions[i][j] = v.getPosition().addMul(d[i], n);
@@ -321,7 +327,6 @@ public class HEC_IsoSkin extends HEC_Creator {
 				vitr.next();
 				for (int i = 1; i < numberOfLayers; i++) {
 					values[i][j] = 1;
-
 				}
 				j++;
 			}
@@ -365,9 +370,7 @@ public class HEC_IsoSkin extends HEC_Creator {
 				}
 				j++;
 			}
-
 			// Boundary caps
-
 			int nobe = 0;
 			Iterator<HE_Halfedge> heitr = substrate.heItr();
 			while (heitr.hasNext()) {
@@ -384,8 +387,8 @@ public class HEC_IsoSkin extends HEC_Creator {
 				if (he.isInnerBoundary()) {
 					cornerIndices = new int[2];
 					cornerIndices[0] = keysToIndex.get(he.getVertex().getKey());
-					cornerIndices[1] = keysToIndex.get(he.getEndVertex().getKey());
-
+					cornerIndices[1] = keysToIndex
+							.get(he.getEndVertex().getKey());
 					for (int i = 0; i < numberOfLayers; i++) {
 						cells2D[i][j] = new Cell();
 						cells2D[i][j].setCornerIndices(cornerIndices);
@@ -394,7 +397,6 @@ public class HEC_IsoSkin extends HEC_Creator {
 					j++;
 				}
 			}
-
 		}
 
 		HE_Mesh getSkin(final double isolevel, final double gamma) {
@@ -411,16 +413,14 @@ public class HEC_IsoSkin extends HEC_Creator {
 			patch.clean();
 			HET_Fixer.fixNonManifoldVertices(patch);
 			return patch;
-
 		}
 
 		int getNumberOfLayers() {
 			return numberOfLayers;
-
 		}
 
-		private void polygonise(final double isolevel, final boolean dummyrun, final HE_Mesh mesh) {
-
+		private void polygonise(final double isolevel, final boolean dummyrun,
+				final HE_Mesh mesh) {
 			for (int i = 0; i < numberOfLayers; i++) {
 				for (int j = 0; j < getCells3D()[0].length; j++) {
 					getPolygons3D(getCells3D()[i][j], isolevel, dummyrun, mesh);
@@ -428,25 +428,28 @@ public class HEC_IsoSkin extends HEC_Creator {
 				for (int j = 0; j < cells2D[0].length; j++) {
 					getPolygons2D(cells2D[i][j], isolevel, dummyrun, mesh);
 				}
-
 			}
-
 		}
 
-		private void getPolygons2D(final Cell cell, final double isolevel, final boolean dummyrun, final HE_Mesh mesh) {
+		private void getPolygons2D(final Cell cell, final double isolevel,
+				final boolean dummyrun, final HE_Mesh mesh) {
 			int squareindex = classifyCell2D(cell, isolevel);
 			final int[] indices = entries2D[squareindex];
 			final int numfaces = indices[0];
 			int currentindex = 1;
-
 			for (int t = 0; t < numfaces; t++) {
 				int n = indices[currentindex++];
 				final HE_Face f = new HE_Face();
-				final HE_Vertex v1 = getIsoVertex2D(indices[currentindex++], cell, isolevel, dummyrun, mesh);
-				final HE_Vertex v2 = getIsoVertex2D(indices[currentindex++], cell, isolevel, dummyrun, mesh);
-				final HE_Vertex v3 = getIsoVertex2D(indices[currentindex++], cell, isolevel, dummyrun, mesh);
-				HE_Vertex v4 = n == 4 ? getIsoVertex2D(indices[currentindex++], cell, isolevel, dummyrun, mesh) : null;
-
+				final HE_Vertex v1 = getIsoVertex2D(indices[currentindex++],
+						cell, isolevel, dummyrun, mesh);
+				final HE_Vertex v2 = getIsoVertex2D(indices[currentindex++],
+						cell, isolevel, dummyrun, mesh);
+				final HE_Vertex v3 = getIsoVertex2D(indices[currentindex++],
+						cell, isolevel, dummyrun, mesh);
+				HE_Vertex v4 = n == 4
+						? getIsoVertex2D(indices[currentindex++], cell,
+								isolevel, dummyrun, mesh)
+						: null;
 				if (!dummyrun) {
 					if (n == 3) {
 						final HE_Halfedge he1 = new HE_Halfedge();
@@ -466,7 +469,7 @@ public class HEC_IsoSkin extends HEC_Creator {
 						mesh.setHalfedge(v3, he3);
 						mesh.setHalfedge(f, he1);
 						mesh.setInternalLabel(squareindex);
-						if (f.getFaceArea() > 0) {
+						if (HE_MeshOp.getFaceArea(f) > 0) {
 							mesh.add(f);
 							mesh.add(he1);
 							mesh.add(he2);
@@ -495,7 +498,7 @@ public class HEC_IsoSkin extends HEC_Creator {
 						mesh.setHalfedge(v4, he4);
 						mesh.setHalfedge(f, he1);
 						f.setInternalLabel(squareindex);
-						if (f.getFaceArea() > 0) {
+						if (HE_MeshOp.getFaceArea(f) > 0) {
 							mesh.add(f);
 							mesh.add(he1);
 							mesh.add(he2);
@@ -507,20 +510,21 @@ public class HEC_IsoSkin extends HEC_Creator {
 			}
 		}
 
-		private void getPolygons3D(final Cell cell, final double isolevel, final boolean dummyrun, final HE_Mesh mesh) {
+		private void getPolygons3D(final Cell cell, final double isolevel,
+				final boolean dummyrun, final HE_Mesh mesh) {
 			int cubeindex = classifyCell3D(cell, isolevel);
 			final int[] indices = entries3D[cubeindex];
 			final int numtris = indices[0];
 			int currentindex = 1;
-
 			for (int t = 0; t < numtris; t++) {
-
 				final HE_Face f = new HE_Face();
-				final HE_Vertex v1 = getIsoVertex3D(indices[currentindex++], cell, isolevel, dummyrun, mesh);
-				final HE_Vertex v2 = getIsoVertex3D(indices[currentindex++], cell, isolevel, dummyrun, mesh);
-				final HE_Vertex v3 = getIsoVertex3D(indices[currentindex++], cell, isolevel, dummyrun, mesh);
+				final HE_Vertex v1 = getIsoVertex3D(indices[currentindex++],
+						cell, isolevel, dummyrun, mesh);
+				final HE_Vertex v2 = getIsoVertex3D(indices[currentindex++],
+						cell, isolevel, dummyrun, mesh);
+				final HE_Vertex v3 = getIsoVertex3D(indices[currentindex++],
+						cell, isolevel, dummyrun, mesh);
 				if (!dummyrun) {
-
 					final HE_Halfedge he1 = new HE_Halfedge();
 					final HE_Halfedge he2 = new HE_Halfedge();
 					final HE_Halfedge he3 = new HE_Halfedge();
@@ -537,14 +541,12 @@ public class HEC_IsoSkin extends HEC_Creator {
 					mesh.setVertex(he3, v3);
 					mesh.setHalfedge(v3, he3);
 					mesh.setHalfedge(f, he1);
-
-					if (f.getFaceArea() > 0) {
+					if (HE_MeshOp.getFaceArea(f) > 0) {
 						mesh.add(f);
 						mesh.add(he1);
 						mesh.add(he2);
 						mesh.add(he3);
 					}
-
 				}
 			}
 		}
@@ -553,41 +555,32 @@ public class HEC_IsoSkin extends HEC_Creator {
 			int layer = cell.layer;
 			int squareindex = 0;
 			int offset = 1;
-
 			if (values[layer][cell.getCornerIndices()[0]] > isolevel) {
 				squareindex += 2 * offset;
-
 			} else if (values[layer][cell.getCornerIndices()[0]] == isolevel) {
 				squareindex += offset;
-
 			}
 			offset *= 3;
 			if (values[layer][cell.getCornerIndices()[1]] > isolevel) {
 				squareindex += 2 * offset;
-
 			} else if (values[layer][cell.getCornerIndices()[1]] == isolevel) {
 				squareindex += offset;
-
 			}
 			offset *= 3;
 			if (values[layer + 1][cell.getCornerIndices()[0]] > isolevel) {
 				squareindex += 2 * offset;
-
-			} else if (values[layer + 1][cell.getCornerIndices()[0]] == isolevel) {
+			} else if (values[layer + 1][cell
+					.getCornerIndices()[0]] == isolevel) {
 				squareindex += offset;
-
 			}
 			offset *= 3;
 			if (values[layer + 1][cell.getCornerIndices()[1]] > isolevel) {
 				squareindex += 2 * offset;
-
-			} else if (values[layer + 1][cell.getCornerIndices()[1]] == isolevel) {
+			} else if (values[layer + 1][cell
+					.getCornerIndices()[1]] == isolevel) {
 				squareindex += offset;
-
 			}
-
 			return squareindex;
-
 		}
 
 		private int classifyCell3D(final Cell cell, final double isolevel) {
@@ -595,7 +588,6 @@ public class HEC_IsoSkin extends HEC_Creator {
 			int cubeindex = 0;
 			int offset = 1;
 			digits = new int[8];
-
 			if (values[layer][cell.getCornerIndices()[0]] > isolevel) {
 				cubeindex += 2 * offset;
 				digits[0] = POSITIVE;
@@ -631,7 +623,8 @@ public class HEC_IsoSkin extends HEC_Creator {
 			if (values[layer + 1][cell.getCornerIndices()[0]] > isolevel) {
 				cubeindex += 2 * offset;
 				digits[0] = POSITIVE;
-			} else if (values[layer + 1][cell.getCornerIndices()[0]] == isolevel) {
+			} else if (values[layer + 1][cell
+					.getCornerIndices()[0]] == isolevel) {
 				cubeindex += offset;
 				digits[0] = EQUAL;
 			}
@@ -639,7 +632,8 @@ public class HEC_IsoSkin extends HEC_Creator {
 			if (values[layer + 1][cell.getCornerIndices()[1]] > isolevel) {
 				cubeindex += 2 * offset;
 				digits[1] = POSITIVE;
-			} else if (values[layer + 1][cell.getCornerIndices()[1]] == isolevel) {
+			} else if (values[layer + 1][cell
+					.getCornerIndices()[1]] == isolevel) {
 				cubeindex += offset;
 				digits[1] = EQUAL;
 			}
@@ -647,7 +641,8 @@ public class HEC_IsoSkin extends HEC_Creator {
 			if (values[layer + 1][cell.getCornerIndices()[2]] > isolevel) {
 				cubeindex += 2 * offset;
 				digits[3] = POSITIVE;
-			} else if (values[layer + 1][cell.getCornerIndices()[2]] == isolevel) {
+			} else if (values[layer + 1][cell
+					.getCornerIndices()[2]] == isolevel) {
 				cubeindex += offset;
 				digits[3] = EQUAL;
 			}
@@ -655,124 +650,136 @@ public class HEC_IsoSkin extends HEC_Creator {
 			if (values[layer + 1][cell.getCornerIndices()[3]] > isolevel) {
 				cubeindex += 2 * offset;
 				digits[2] = POSITIVE;
-			} else if (values[layer + 1][cell.getCornerIndices()[3]] == isolevel) {
+			} else if (values[layer + 1][cell
+					.getCornerIndices()[3]] == isolevel) {
 				cubeindex += offset;
 				digits[2] = EQUAL;
 			}
-
 			return cubeindex;
-
 		}
 
-		private HE_Vertex getIsoVertex2D(final int isopointindex, final Cell cell, final double isolevel,
-				final boolean dummyrun, final HE_Mesh mesh) {
+		private HE_Vertex getIsoVertex2D(final int isopointindex,
+				final Cell cell, final double isolevel, final boolean dummyrun,
+				final HE_Mesh mesh) {
 			int layer = cell.layer;
 			int[] indices = cell.getCornerIndices();
 			if (isovertices2D[isopointindex][0] == ONVERTEX) {
 				switch (isovertices2D[isopointindex][1]) {
-				case 0:
-					return vertex(layer, indices[0], mesh);
-				case 1:
-					return vertex(layer, indices[1], mesh);
-				case 2:
-					return vertex(layer + 1, indices[0], mesh);
-				case 3:
-					return vertex(layer + 1, indices[1], mesh);
-
-				default:
-					return null;
+					case 0:
+						return vertex(layer, indices[0], mesh);
+					case 1:
+						return vertex(layer, indices[1], mesh);
+					case 2:
+						return vertex(layer + 1, indices[0], mesh);
+					case 3:
+						return vertex(layer + 1, indices[1], mesh);
+					default:
+						return null;
 				}
 			} else if (isovertices2D[isopointindex][0] == ONEDGE) {
 				switch (isovertices2D[isopointindex][1]) {
-
-				case 0:
-					return edge(isolevel, indices[0], layer, indices[1], layer, dummyrun, mesh);
-				case 1:
-					return edge(isolevel, indices[0], layer, indices[0], layer + 1, dummyrun, mesh);
-				case 2:
-					return edge(isolevel, indices[1], layer, indices[1], layer + 1, dummyrun, mesh);
-				case 3:
-					return edge(isolevel, indices[0], layer + 1, indices[1], layer + 1, dummyrun, mesh);
-				default:
-					return null;
+					case 0:
+						return edge(isolevel, indices[0], layer, indices[1],
+								layer, dummyrun, mesh);
+					case 1:
+						return edge(isolevel, indices[0], layer, indices[0],
+								layer + 1, dummyrun, mesh);
+					case 2:
+						return edge(isolevel, indices[1], layer, indices[1],
+								layer + 1, dummyrun, mesh);
+					case 3:
+						return edge(isolevel, indices[0], layer + 1, indices[1],
+								layer + 1, dummyrun, mesh);
+					default:
+						return null;
 				}
 			}
 			return null;
 		}
 
-		private HE_Vertex getIsoVertex3D(final int isopointindex, final Cell cell, final double isolevel,
-				final boolean dummyrun, final HE_Mesh mesh) {
+		private HE_Vertex getIsoVertex3D(final int isopointindex,
+				final Cell cell, final double isolevel, final boolean dummyrun,
+				final HE_Mesh mesh) {
 			int layer = cell.layer;
 			int[] indices = cell.getCornerIndices();
 			if (isovertices3D[isopointindex][0] == ONVERTEX) {
 				switch (isovertices3D[isopointindex][1]) {
-				case 0:
-					return vertex(layer, indices[0], mesh);
-				case 1:
-					return vertex(layer, indices[1], mesh);
-				case 2:
-					return vertex(layer, indices[2], mesh);
-				case 3:
-					return vertex(layer, indices[3], mesh);
-				case 4:
-					return vertex(layer + 1, indices[0], mesh);
-				case 5:
-					return vertex(layer + 1, indices[1], mesh);
-				case 6:
-					return vertex(layer + 1, indices[2], mesh);
-				case 7:
-					return vertex(layer + 1, indices[3], mesh);
-				default:
-					return null;
+					case 0:
+						return vertex(layer, indices[0], mesh);
+					case 1:
+						return vertex(layer, indices[1], mesh);
+					case 2:
+						return vertex(layer, indices[2], mesh);
+					case 3:
+						return vertex(layer, indices[3], mesh);
+					case 4:
+						return vertex(layer + 1, indices[0], mesh);
+					case 5:
+						return vertex(layer + 1, indices[1], mesh);
+					case 6:
+						return vertex(layer + 1, indices[2], mesh);
+					case 7:
+						return vertex(layer + 1, indices[3], mesh);
+					default:
+						return null;
 				}
 			} else if (isovertices3D[isopointindex][0] == ONEDGE) {
 				switch (isovertices3D[isopointindex][1]) {
-
-				case 0:
-					return edge(isolevel, indices[0], layer, indices[1], layer, dummyrun, mesh);
-				case 1:
-					return edge(isolevel, indices[0], layer, indices[2], layer, dummyrun, mesh);
-				case 2:
-					return edge(isolevel, indices[1], layer, indices[3], layer, dummyrun, mesh);
-				case 3:
-					return edge(isolevel, indices[2], layer, indices[3], layer, dummyrun, mesh);
-				case 4:
-					return edge(isolevel, indices[0], layer, indices[0], layer + 1, dummyrun, mesh);
-				case 5:
-					return edge(isolevel, indices[1], layer, indices[1], layer + 1, dummyrun, mesh);
-				case 6:
-					return edge(isolevel, indices[2], layer, indices[2], layer + 1, dummyrun, mesh);
-				case 7:
-					return edge(isolevel, indices[3], layer, indices[3], layer + 1, dummyrun, mesh);
-				case 8:
-					return edge(isolevel, indices[0], layer + 1, indices[1], layer + 1, dummyrun, mesh);
-				case 9:
-					return edge(isolevel, indices[0], layer + 1, indices[2], layer + 1, dummyrun, mesh);
-				case 10:
-					return edge(isolevel, indices[1], layer + 1, indices[3], layer + 1, dummyrun, mesh);
-				case 11:
-					return edge(isolevel, indices[2], layer + 1, indices[3], layer + 1, dummyrun, mesh);
-				default:
-					return null;
+					case 0:
+						return edge(isolevel, indices[0], layer, indices[1],
+								layer, dummyrun, mesh);
+					case 1:
+						return edge(isolevel, indices[0], layer, indices[2],
+								layer, dummyrun, mesh);
+					case 2:
+						return edge(isolevel, indices[1], layer, indices[3],
+								layer, dummyrun, mesh);
+					case 3:
+						return edge(isolevel, indices[2], layer, indices[3],
+								layer, dummyrun, mesh);
+					case 4:
+						return edge(isolevel, indices[0], layer, indices[0],
+								layer + 1, dummyrun, mesh);
+					case 5:
+						return edge(isolevel, indices[1], layer, indices[1],
+								layer + 1, dummyrun, mesh);
+					case 6:
+						return edge(isolevel, indices[2], layer, indices[2],
+								layer + 1, dummyrun, mesh);
+					case 7:
+						return edge(isolevel, indices[3], layer, indices[3],
+								layer + 1, dummyrun, mesh);
+					case 8:
+						return edge(isolevel, indices[0], layer + 1, indices[1],
+								layer + 1, dummyrun, mesh);
+					case 9:
+						return edge(isolevel, indices[0], layer + 1, indices[2],
+								layer + 1, dummyrun, mesh);
+					case 10:
+						return edge(isolevel, indices[1], layer + 1, indices[3],
+								layer + 1, dummyrun, mesh);
+					case 11:
+						return edge(isolevel, indices[2], layer + 1, indices[3],
+								layer + 1, dummyrun, mesh);
+					default:
+						return null;
 				}
 			}
 			return null;
 		}
 
-		private HE_Vertex edge(final double isolevel, final int i, final int layeri, final int j, final int layerj,
+		private HE_Vertex edge(final double isolevel, final int i,
+				final int layeri, final int j, final int layerj,
 				final boolean dummyrun, final HE_Mesh mesh) {
 			long index = edgeindex(layeri, i, layerj, j);
-
 			HE_Vertex edge = edges.get(index);
 			if (edge != null) {
 				return edge;
 			}
-
 			final WB_Coord pi = gridpositions[layeri][i];
 			final WB_Coord pj = gridpositions[layerj][j];
 			final double vali = values[layeri][i];
 			final double valj = values[layerj][j];
-
 			double mu;
 			if (dummyrun) {
 				mu = (isolevel - vali) / (valj - vali);
@@ -783,7 +790,6 @@ public class HEC_IsoSkin extends HEC_Creator {
 						vr.closestd = mu * WB_CoordOp3D.getDistance3D(pi, pj);
 						vr.i = i;
 						vr.layeri = layeri;
-
 						vr.originalvalue = vali;
 						vr.p = interp(isolevel, pi, pj, vali, valj);
 						vr.snapvertex = vertex(layeri, i, mesh);
@@ -794,7 +800,6 @@ public class HEC_IsoSkin extends HEC_Creator {
 							vr.closestd = d;
 							vr.i = i;
 							vr.layeri = layeri;
-
 							vr.originalvalue = vali;
 							vr.p = interp(isolevel, pi, pj, vali, valj);
 							vr.snapvertex = vertex(layeri, i, mesh);
@@ -804,16 +809,17 @@ public class HEC_IsoSkin extends HEC_Creator {
 					VertexRemap vr = vertexremaps.get(vertexindex(layerj, j));
 					if (vr == null) {
 						vr = new VertexRemap();
-						vr.closestd = (1 - mu) * WB_CoordOp3D.getDistance3D(pi, pj);
+						vr.closestd = (1 - mu)
+								* WB_CoordOp3D.getDistance3D(pi, pj);
 						vr.i = j;
 						vr.layeri = layerj;
-
 						vr.originalvalue = valj;
 						vr.p = interp(isolevel, pi, pj, vali, valj);
 						vr.snapvertex = vertex(layerj, j, mesh);
 						vertexremaps.put(vertexindex(layerj, j), vr);
 					} else {
-						double d = (1 - mu) * WB_CoordOp3D.getDistance3D(pi, pj);
+						double d = (1 - mu)
+								* WB_CoordOp3D.getDistance3D(pi, pj);
 						if (vr.closestd > d) {
 							vr.closestd = d;
 							vr.layeri = layerj;
@@ -826,14 +832,14 @@ public class HEC_IsoSkin extends HEC_Creator {
 				}
 				return null;
 			}
-
 			edge = new HE_Vertex(interp(isolevel, pi, pj, vali, valj));
 			mesh.add(edge);
 			edges.put(index, edge);
 			return edge;
 		}
 
-		private HE_Vertex vertex(final int layer, final int i, final HE_Mesh mesh) {
+		private HE_Vertex vertex(final int layer, final int i,
+				final HE_Mesh mesh) {
 			HE_Vertex vertex = vertices.get(vertexindex(layer, i));
 			if (vertex != null) {
 				return vertex;
@@ -844,11 +850,9 @@ public class HEC_IsoSkin extends HEC_Creator {
 			return vertex;
 		}
 
-		private WB_Point interp(final double isolevel, final WB_Coord p1, final WB_Coord p2, final double valp1,
-				final double valp2) {
-
+		private WB_Point interp(final double isolevel, final WB_Coord p1,
+				final WB_Coord p2, final double valp1, final double valp2) {
 			double mu;
-
 			if (WB_Epsilon.isEqualAbs(isolevel, valp1)) {
 				return new WB_Point(p1);
 			}
@@ -859,13 +863,15 @@ public class HEC_IsoSkin extends HEC_Creator {
 				return new WB_Point(p1);
 			}
 			mu = (isolevel - valp1) / (valp2 - valp1);
-
-			return new WB_Point(p1.xd() + mu * (p2.xd() - p1.xd()), p1.yd() + mu * (p2.yd() - p1.yd()),
+			return new WB_Point(p1.xd() + mu * (p2.xd() - p1.xd()),
+					p1.yd() + mu * (p2.yd() - p1.yd()),
 					p1.zd() + mu * (p2.zd() - p1.zd()));
 		}
 
-		private long edgeindex(final int layeri, final int i, final int layerj, final int j) {
-			return (long) (layeri * numberOfVertices + i) * totalNumberOfVertices + layerj * numberOfVertices + j;
+		private long edgeindex(final int layeri, final int i, final int layerj,
+				final int j) {
+			return (long) (layeri * numberOfVertices + i)
+					* totalNumberOfVertices + layerj * numberOfVertices + j;
 		}
 
 		private int vertexindex(final int layeri, final int i) {
@@ -876,34 +882,27 @@ public class HEC_IsoSkin extends HEC_Creator {
 		}
 
 		private void setvalues(final double isolevel) {
-
 			VertexRemap vr;
 			for (final Object o : vertexremaps.values()) {
 				vr = (VertexRemap) o;
 				vr.snapvertex.set(vr.p);
 				values[vr.layeri][vr.i] = isolevel;
-
 			}
 		}
 
 		private void snapvertices() {
-
 			VertexRemap vr;
 			for (final Object o : vertexremaps.values()) {
 				vr = (VertexRemap) o;
 				vr.snapvertex.set(vr.p);
-
 			}
 		}
 
 		private void resetvalues() {
-
 			VertexRemap vr;
 			for (final Object o : vertexremaps.values()) {
 				vr = (VertexRemap) o;
-
 				values[vr.layeri][vr.i] = vr.originalvalue;
-
 			}
 		}
 
@@ -928,7 +927,6 @@ public class HEC_IsoSkin extends HEC_Creator {
 		WB_Coord[][] getGridpositions() {
 			return gridpositions;
 		}
-
 	}
 
 	public static class Cell {
@@ -966,5 +964,4 @@ public class HEC_IsoSkin extends HEC_Creator {
 			this.cornerIndices = cornerIndices;
 		}
 	}
-
 }

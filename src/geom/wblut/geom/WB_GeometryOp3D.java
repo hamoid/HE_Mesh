@@ -3055,20 +3055,6 @@ public class WB_GeometryOp3D extends WB_GeometryOp2D {
 	/**
 	 *
 	 *
-	 * @param p
-	 * @param P
-	 * @return
-	 */
-	public static WB_Point projectOnPlane(final WB_Coord p, final WB_Plane P) {
-		final WB_Point projection = new WB_Point(p);
-		final WB_Vector po = new WB_Vector(P.getOrigin(), p);
-		final WB_Vector n = P.getNormal();
-		return projection.subSelf(n.mulSelf(n.dot(po)));
-	}
-
-	/**
-	 *
-	 *
 	 * @param S
 	 * @param T
 	 * @return
@@ -3247,6 +3233,20 @@ public class WB_GeometryOp3D extends WB_GeometryOp2D {
 	 */
 	public static double getDistanceToSegment3D(final WB_Coord p, final WB_Coord a, final WB_Coord b) {
 		return Math.sqrt(getSqDistanceToSegment3D(p, a, b));
+	}
+
+	/**
+	 *
+	 *
+	 * @param p
+	 * @param P
+	 * @return
+	 */
+	public static WB_Point projectOnPlane(final WB_Coord p, final WB_Plane P) {
+		final WB_Point projection = new WB_Point(p);
+		final WB_Vector po = new WB_Vector(P.getOrigin(), p);
+		final WB_Vector n = P.getNormal();
+		return projection.subSelf(n.mulSelf(n.dot(po)));
 	}
 
 	/**

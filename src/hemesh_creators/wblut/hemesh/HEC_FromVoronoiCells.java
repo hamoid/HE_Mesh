@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.Collection;
@@ -30,20 +27,19 @@ public class HEC_FromVoronoiCells extends HEC_Creator {
 	/**
 	 *
 	 */
-	private HE_MeshCollection cells;
+	private HE_MeshCollection	cells;
 	/**
 	 *
 	 */
-	private boolean[] on;
-
+	private boolean[]			on;
 	/**
 	 *
 	 */
-	private boolean capBoundaries;
+	private boolean				capBoundaries;
 	/**
 	 *
 	 */
-	private boolean membrane;
+	private boolean				membrane;
 
 	/**
 	 *
@@ -143,7 +139,6 @@ public class HEC_FromVoronoiCells extends HEC_Creator {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.creators.HEC_Creator#createBase()
 	 */
 	@Override
@@ -160,7 +155,6 @@ public class HEC_FromVoronoiCells extends HEC_Creator {
 		final int n = on.length;
 		final FastList<HE_Face> tmpfaces = new FastList<HE_Face>();
 		int nv = 0;
-
 		for (int i = 0; i < n; i++) {
 			final HE_Mesh m = cells.getMesh(i);
 			if (on[i]) {
@@ -197,7 +191,8 @@ public class HEC_FromVoronoiCells extends HEC_Creator {
 				cid++;
 			}
 		}
-		final HEC_FromFacelist ffl = new HEC_FromFacelist().setVertices(vertices).setFaces(faces).setDuplicate(true);
+		final HEC_FromFacelist ffl = new HEC_FromFacelist()
+				.setVertices(vertices).setFaces(faces).setDuplicate(true);
 		final HE_Mesh result = ffl.createBase();
 		final Iterator<HE_Face> fItr = result.fItr();
 		int i = 0;
@@ -217,11 +212,11 @@ public class HEC_FromVoronoiCells extends HEC_Creator {
 				result.deleteFace(fitr.next());
 			}
 			result.cleanUnusedElementsByFace();
-			result.capHalfedges();
+			HE_MeshOp.capHalfedges(result);
 		} else {
 			result.uncapBoundaryHalfedges();
 			result.modify(new HEM_CapHoles());
-			result.capHalfedges();
+			HE_MeshOp.capHalfedges(result);
 		}
 		return result;
 	}

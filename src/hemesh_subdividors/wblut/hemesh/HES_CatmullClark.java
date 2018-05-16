@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.ArrayList;
@@ -36,16 +33,16 @@ public class HES_CatmullClark extends HES_Subdividor {
 	/**
 	 *
 	 */
-	private static WB_GeometryFactory gf = new WB_GeometryFactory();
+	private static WB_GeometryFactory	gf				= new WB_GeometryFactory();
 	/** Keep edges?. */
-	private boolean keepEdges;
+	private boolean						keepEdges;
 	/** Keep boundary?. */
-	private boolean keepBoundary = false;
+	private boolean						keepBoundary	= false;
 	/** The blend factor. */
-	private WB_ScalarParameter blendFactor;
+	private WB_ScalarParameter			blendFactor;
 
 	/**
-
+	
 	 */
 	public HES_CatmullClark() {
 		super();
@@ -102,7 +99,6 @@ public class HES_CatmullClark extends HES_Subdividor {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Subdividor#subdivide(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
@@ -114,8 +110,10 @@ public class HES_CatmullClark extends HES_Subdividor {
 		Iterator<HE_Vertex> vItr = mesh.vItr();
 		HE_Halfedge he;
 		WB_Point p;
-		WB_ProgressCounter counter = new WB_ProgressCounter(mesh.getNumberOfVertices(), 10);
-		tracker.setCounterStatus(this, "Creating averaged face center points.", counter);
+		WB_ProgressCounter counter = new WB_ProgressCounter(
+				mesh.getNumberOfVertices(), 10);
+		tracker.setCounterStatus(this, "Creating averaged face center points.",
+				counter);
 		while (vItr.hasNext()) {
 			v = vItr.next();
 			he = v.getHalfedge();
@@ -123,42 +121,43 @@ public class HES_CatmullClark extends HES_Subdividor {
 			int c = 0;
 			do {
 				if (he.getFace() != null) {
-					afc.addSelf(he.getFace().getFaceCenter());
+					afc.addSelf(HE_MeshOp.getFaceCenter(he.getFace()));
 					c++;
 				}
 				he = he.getNextInVertex();
 			} while (he != v.getHalfedge());
 			afc.divSelf(c);
-			avgFC.put(v.key(), afc);
+			avgFC.put(v.getKey(), afc);
 			counter.increment();
 		}
 		HES_QuadSplit qs = new HES_QuadSplit();
 		qs.applySelf(mesh);
-
 		final UnifiedMap<Long, WB_Coord> newPositions = new UnifiedMap<Long, WB_Coord>();
 		final HE_Selection all = mesh.selectAllFaces();
 		final List<HE_Vertex> boundary = all.getOuterVertices();
 		final List<HE_Vertex> inner = all.getInnerVertices();
 		counter = new WB_ProgressCounter(inner.size(), 10);
-		tracker.setCounterStatus(this, "Creating new positions for inner vertices.", counter);
+		tracker.setCounterStatus(this,
+				"Creating new positions for inner vertices.", counter);
 		HE_Vertex n;
 		List<HE_Vertex> neighbors;
 		vItr = inner.iterator();
 		while (vItr.hasNext()) {
 			v = vItr.next();
 			if (v.getInternalLabel() == -1) {
-				p = avgFC.get(v.key());
+				p = avgFC.get(v.getKey());
 				neighbors = v.getNeighborVertices();
 				final int order = neighbors.size();
 				final double io = 1.0 / order;
 				for (int i = 0; i < order; i++) {
 					n = neighbors.get(i);
-					p.addSelf(2.0 * io * n.xd(), 2.0 * io * n.yd(), 2.0 * io * n.zd());
+					p.addSelf(2.0 * io * n.xd(), 2.0 * io * n.yd(),
+							2.0 * io * n.zd());
 				}
 				p.addMulSelf(order - 3, v);
 				p.divSelf(order);
-				newPositions.put(v.key(),
-						gf.createInterpolatedPoint(v, p, blendFactor.evaluate(v.xd(), v.yd(), v.zd())));
+				newPositions.put(v.getKey(), gf.createInterpolatedPoint(v, p,
+						blendFactor.evaluate(v.xd(), v.yd(), v.zd())));
 			} else {
 				p = new WB_Point();
 				neighbors = v.getNeighborVertices();
@@ -173,21 +172,22 @@ public class HES_CatmullClark extends HES_Subdividor {
 				}
 				p.divSelf(order);
 				if (edgePoint) {
-					newPositions.put(v.key(),
-							gf.createInterpolatedPoint(v, p, blendFactor.evaluate(v.xd(), v.yd(), v.zd())));
+					newPositions.put(v.getKey(), gf.createInterpolatedPoint(v,
+							p, blendFactor.evaluate(v.xd(), v.yd(), v.zd())));
 				} else {
-					newPositions.put(v.key(), v);
+					newPositions.put(v.getKey(), v);
 				}
 			}
 			counter.increment();
 		}
 		counter = new WB_ProgressCounter(boundary.size(), 10);
-		tracker.setCounterStatus(this, "Creating new positions for boundary vertices.", counter);
+		tracker.setCounterStatus(this,
+				"Creating new positions for boundary vertices.", counter);
 		vItr = boundary.iterator();
 		while (vItr.hasNext()) {
 			v = vItr.next();
 			if (keepBoundary) {
-				newPositions.put(v.key(), v);
+				newPositions.put(v.getKey(), v);
 			} else {
 				p = new WB_Point(v);
 				neighbors = v.getNeighborVertices();
@@ -201,8 +201,10 @@ public class HES_CatmullClark extends HES_Subdividor {
 						c++;
 					}
 				}
-				newPositions.put(v.key(), nc > 1 ? gf.createInterpolatedPoint(v, p.scaleSelf(1.0 / c),
-						blendFactor.evaluate(v.xd(), v.yd(), v.zd())) : v);
+				newPositions.put(v.getKey(), nc > 1
+						? gf.createInterpolatedPoint(v, p.scaleSelf(1.0 / c),
+								blendFactor.evaluate(v.xd(), v.yd(), v.zd()))
+						: v);
 			}
 			counter.increment();
 		}
@@ -210,12 +212,12 @@ public class HES_CatmullClark extends HES_Subdividor {
 		vItr = inner.iterator();
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			v.set(newPositions.get(v.key()));
+			v.set(newPositions.get(v.getKey()));
 		}
 		vItr = boundary.iterator();
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			v.set(newPositions.get(v.key()));
+			v.set(newPositions.get(v.getKey()));
 		}
 		tracker.setStopStatus(this, "Exiting HEM_CatmullClark.");
 		return mesh;
@@ -223,17 +225,16 @@ public class HES_CatmullClark extends HES_Subdividor {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.hemesh.subdividors.HEB_Subdividor#subdivideSelected(wblut.hemesh
 	 * .HE_Mesh, wblut.hemesh.HE_Selection)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
-		selection.parent.resetVertexInternalLabels();
+		selection.getParent().resetVertexInternalLabels();
 		final HashMap<Long, WB_Point> avgFC = new HashMap<Long, WB_Point>();
 		HE_Vertex v;
-		Iterator<HE_Vertex> vItr = selection.parent.vItr();
+		Iterator<HE_Vertex> vItr = selection.getParent().vItr();
 		HE_Halfedge he;
 		WB_Point p;
 		while (vItr.hasNext()) {
@@ -244,18 +245,17 @@ public class HES_CatmullClark extends HES_Subdividor {
 			do {
 				if (he.getFace() != null) {
 					if (selection.contains(he.getFace())) {
-						afc.addSelf(he.getFace().getFaceCenter());
+						afc.addSelf(HE_MeshOp.getFaceCenter(he.getFace()));
 						c++;
 					}
 				}
 				he = he.getNextInVertex();
 			} while (he != v.getHalfedge());
 			afc.divSelf(c);
-			avgFC.put(v.key(), afc);
+			avgFC.put(v.getKey(), afc);
 		}
 		HES_QuadSplit qs = new HES_QuadSplit();
 		qs.applySelf(selection);
-
 		final UnifiedMap<Long, WB_Coord> newPositions = new UnifiedMap<Long, WB_Coord>();
 		selection.collectVertices();
 		final List<HE_Vertex> boundary = selection.getAllBoundaryVertices();
@@ -275,18 +275,19 @@ public class HES_CatmullClark extends HES_Subdividor {
 		while (vItr.hasNext()) {
 			v = vItr.next();
 			if (v.getInternalLabel() == -1) {
-				p = avgFC.get(v.key());
+				p = avgFC.get(v.getKey());
 				neighbors = v.getNeighborVertices();
 				final int order = neighbors.size();
 				final double io = 1.0 / order;
 				for (int i = 0; i < order; i++) {
 					n = neighbors.get(i);
-					p.addSelf(2.0 * io * n.xd(), 2.0 * io * n.yd(), 2.0 * io * n.zd());
+					p.addSelf(2.0 * io * n.xd(), 2.0 * io * n.yd(),
+							2.0 * io * n.zd());
 				}
 				p.addMulSelf(order - 3, v);
 				p.divSelf(order);
-				newPositions.put(v.key(),
-						gf.createInterpolatedPoint(v, p, blendFactor.evaluate(v.xd(), v.yd(), v.zd())));
+				newPositions.put(v.getKey(), gf.createInterpolatedPoint(v, p,
+						blendFactor.evaluate(v.xd(), v.yd(), v.zd())));
 			} else {
 				p = new WB_Point();
 				neighbors = v.getNeighborVertices();
@@ -301,10 +302,10 @@ public class HES_CatmullClark extends HES_Subdividor {
 				}
 				p.divSelf(order);
 				if (edgePoint) {
-					newPositions.put(v.key(),
-							gf.createInterpolatedPoint(v, p, blendFactor.evaluate(v.xd(), v.yd(), v.zd())));
+					newPositions.put(v.getKey(), gf.createInterpolatedPoint(v,
+							p, blendFactor.evaluate(v.xd(), v.yd(), v.zd())));
 				} else {
-					newPositions.put(v.key(), v);
+					newPositions.put(v.getKey(), v);
 				}
 			}
 		}
@@ -312,7 +313,7 @@ public class HES_CatmullClark extends HES_Subdividor {
 		while (vItr.hasNext()) {
 			v = vItr.next();
 			if (keepBoundary) {
-				newPositions.put(v.key(), v);
+				newPositions.put(v.getKey(), v);
 			} else {
 				p = new WB_Point(v);
 				neighbors = v.getNeighborVertices();
@@ -326,8 +327,10 @@ public class HES_CatmullClark extends HES_Subdividor {
 						c++;
 					}
 				}
-				newPositions.put(v.key(), nc > 1 ? gf.createInterpolatedPoint(v, p.scaleSelf(1.0 / c),
-						blendFactor.evaluate(v.xd(), v.yd(), v.zd())) : v);
+				newPositions.put(v.getKey(), nc > 1
+						? gf.createInterpolatedPoint(v, p.scaleSelf(1.0 / c),
+								blendFactor.evaluate(v.xd(), v.yd(), v.zd()))
+						: v);
 			}
 		}
 		List<WB_Plane> planes;
@@ -339,13 +342,13 @@ public class HES_CatmullClark extends HES_Subdividor {
 			v = vItr.next();
 			planes = new ArrayList<WB_Plane>();
 			if (keepEdges) {
-				newPositions.put(v.key(), v);
+				newPositions.put(v.getKey(), v);
 			} else {
 				faceStar = v.getFaceStar();
 				for (int i = 0; i < faceStar.size(); i++) {
 					f = faceStar.get(i);
 					if (!selection.contains(f)) {
-						P = f.getPlane();
+						P = HE_MeshOp.getPlane(f);
 						boolean unique = true;
 						for (int j = 0; j < planes.size(); j++) {
 							if (WB_GeometryOp3D.isEqual(planes.get(j), P)) {
@@ -365,7 +368,7 @@ public class HES_CatmullClark extends HES_Subdividor {
 				for (int i = 0; i < neighbors.size(); i++) {
 					n = neighbors.get(i);
 					if (outer.contains(n)) {
-						sharedFaces = selection.parent.getSharedFaces(v, n);
+						sharedFaces = selection.getParent().getSharedFaces(v, n);
 						boolean singleFaceGap = true;
 						for (int j = 0; j < sharedFaces.size(); j++) {
 							if (selection.contains(sharedFaces.get(j))) {
@@ -396,36 +399,35 @@ public class HES_CatmullClark extends HES_Subdividor {
 				} else {
 					p.set(v);
 				}
-				newPositions.put(v.key(),
-						gf.createInterpolatedPoint(v, p, blendFactor.evaluate(v.xd(), v.yd(), v.zd())));
+				newPositions.put(v.getKey(), gf.createInterpolatedPoint(v, p,
+						blendFactor.evaluate(v.xd(), v.yd(), v.zd())));
 			}
 		}
 		vItr = inner.iterator();
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			v.set(newPositions.get(v.key()));
+			v.set(newPositions.get(v.getKey()));
 		}
 		vItr = boundary.iterator();
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			v.set(newPositions.get(v.key()));
+			v.set(newPositions.get(v.getKey()));
 		}
 		vItr = outer.iterator();
 		while (vItr.hasNext()) {
 			v = vItr.next();
-			v.set(newPositions.get(v.key()));
+			v.set(newPositions.get(v.getKey()));
 		}
-		return selection.parent;
+		return selection.getParent();
 	}
 
 	public static void main(final String[] args) {
 		HEC_Cylinder creator = new HEC_Cylinder();
-		creator.setFacets(9).setSteps(4).setRadius(150).setHeight(400).setCap(false, true).setCenter(0, 0, 0);
+		creator.setFacets(9).setSteps(4).setRadius(150).setHeight(400)
+				.setCap(false, true).setCenter(0, 0, 0);
 		HE_Mesh mesh = new HE_Mesh(creator);
 		mesh.modify(new HEM_Noise().setDistance(50));
-
 		mesh.smooth(2);
 		mesh.validate();
 	}
-
 }

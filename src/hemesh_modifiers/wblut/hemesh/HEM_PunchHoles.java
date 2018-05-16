@@ -175,12 +175,12 @@ public class HEM_PunchHoles extends HEM_Modifier {
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
 		if (sew == WB_ScalarParameter.ZERO) {
-			return selection.parent;
+			return selection.getParent();
 		}
 		final HEM_Extrude extm = new HEM_Extrude().setDistance(0).setRelative(relative).setChamfer(sew).setFuse(fuse)
 				.setHardEdgeChamfer(hew).setFuseAngle(fuseAngle).setThresholdAngle(thresholdAngle);
 		selection.modify(extm);
-		selection.parent.deleteFaces(selection.parent.getSelection("extruded"));
-		return selection.parent;
+		selection.getParent().deleteFaces(selection.getParent().getSelection("extruded"));
+		return selection.getParent();
 	}
 }

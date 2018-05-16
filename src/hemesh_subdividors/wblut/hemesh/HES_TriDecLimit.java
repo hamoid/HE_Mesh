@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.Iterator;
@@ -28,27 +25,27 @@ public class HES_TriDecLimit extends HES_Simplifier {
 	/**
 	 *
 	 */
-	private double _lambda;
+	private double		_lambda;
 	/**
 	 *
 	 */
-	private HE_Mesh _mesh;
+	private HE_Mesh		_mesh;
 	/**
 	 *
 	 */
-	private Heap heap;
+	private Heap		heap;
 	/**
 	 *
 	 */
-	private int counter;
+	private int			counter;
 	/**
 	 *
 	 */
-	LongDoubleHashMap vertexCost;
+	LongDoubleHashMap	vertexCost;
 	/**
 	 *
 	 */
-	private double limit;
+	private double		limit;
 
 	/**
 	 *
@@ -116,7 +113,6 @@ public class HES_TriDecLimit extends HES_Simplifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.hemesh.simplifiers.HES_Simplifier#apply(wblut.hemesh.core.HE_Mesh)
 	 */
@@ -125,7 +121,8 @@ public class HES_TriDecLimit extends HES_Simplifier {
 		tracker.setStartStatus(this, "Starting HES_TriDec.");
 		_mesh = mesh;
 		if (_mesh.getNumberOfVertices() <= 4) {
-			tracker.setStopStatus(this, "Mesh has  4 or less vertices. Exiting HES_TriDec.");
+			tracker.setStopStatus(this,
+					"Mesh has  4 or less vertices. Exiting HES_TriDec.");
 			return _mesh;
 		}
 		_mesh.triangulate();
@@ -134,23 +131,26 @@ public class HES_TriDecLimit extends HES_Simplifier {
 		HE_Vertex v;
 		Entry entry;
 		List<HE_Vertex> vertices;
-		WB_ProgressCounter pcounter = new WB_ProgressCounter(mesh.getNumberOfVertices(), 10);
+		WB_ProgressCounter pcounter = new WB_ProgressCounter(
+				mesh.getNumberOfVertices(), 10);
 		tracker.setCounterStatus(this, "Removing vertices.", pcounter);
 		double lastcost = 0;
-		while (lastcost <= limit && heap.size() > 0 && _mesh.getNumberOfVertices() > 4) {
+		while (lastcost <= limit && heap.size() > 0
+				&& _mesh.getNumberOfVertices() > 4) {
 			boolean valid = false;
 			do {
 				entry = heap.pop();
 				v = entry.v;
-				valid = mesh.contains(v) && entry.version == v.getInternalLabel();
+				valid = mesh.contains(v)
+						&& entry.version == v.getInternalLabel();
 			} while (heap.size() > 0 && !valid);
 			if (valid) {
 				vertices = v.getNeighborVertices();
 				// vertices.addAll(v.getNextNeighborVertices());
-				if (HET_MeshOp.collapseHalfedge(_mesh, v.getHalfedge())) {
-					lastcost = vertexCost.get(v.key());
+				if (HE_MeshOp.collapseHalfedge(_mesh, v.getHalfedge())) {
+					lastcost = vertexCost.get(v.getKey());
 					if (lastcost <= limit) {
-						vertexCost.remove(v.key());
+						vertexCost.remove(v.getKey());
 						counter++;
 						updateHeap(vertices, null);
 					}
@@ -164,7 +164,6 @@ public class HES_TriDecLimit extends HES_Simplifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.simplifiers.HES_Simplifier#apply(wblut.hemesh.core.
 	 * HE_Selection )
 	 */
@@ -172,10 +171,11 @@ public class HES_TriDecLimit extends HES_Simplifier {
 	protected HE_Mesh applySelf(final HE_Selection selection) {
 		tracker.setStartStatus(this, "Starting HES_TriDec.");
 		selection.collectVertices();
-		_mesh = selection.parent;
+		_mesh = selection.getParent();
 		counter = 0;
 		if (_mesh.getNumberOfVertices() <= 4) {
-			tracker.setStopStatus(this, "Mesh has  4 or less vertices. Exiting HES_TriDec.");
+			tracker.setStopStatus(this,
+					"Mesh has  4 or less vertices. Exiting HES_TriDec.");
 			return _mesh;
 		}
 		_mesh.triangulate();
@@ -184,24 +184,27 @@ public class HES_TriDecLimit extends HES_Simplifier {
 		HE_Vertex v;
 		Entry entry;
 		List<HE_Vertex> vertices;
-		WB_ProgressCounter pcounter = new WB_ProgressCounter(selection.getNumberOfVertices(), 10);
+		WB_ProgressCounter pcounter = new WB_ProgressCounter(
+				selection.getNumberOfVertices(), 10);
 		tracker.setCounterStatus(this, "Removing vertices.", pcounter);
 		double lastcost = 0;
-		while (lastcost <= limit && heap.size() > 0 && _mesh.getNumberOfVertices() > 4) {
+		while (lastcost <= limit && heap.size() > 0
+				&& _mesh.getNumberOfVertices() > 4) {
 			boolean valid = false;
 			do {
 				entry = heap.pop();
 				v = entry.v;
-				valid = selection.contains(v) && _mesh.contains(v) && entry.version == v.getInternalLabel();
+				valid = selection.contains(v) && _mesh.contains(v)
+						&& entry.version == v.getInternalLabel();
 			} while (heap.size() > 0 && !valid);
 			if (valid) {
 				vertices = v.getNeighborVertices();
 				// vertices.addAll(v.getNextNeighborVertices());
-				if (HET_MeshOp.collapseHalfedge(_mesh, v.getHalfedge())) {
-					lastcost = vertexCost.get(v.key());
+				if (HE_MeshOp.collapseHalfedge(_mesh, v.getHalfedge())) {
+					lastcost = vertexCost.get(v.getKey());
 					if (lastcost <= limit) {
-						vertexCost.remove(v.key());
-						vertexCost.remove(v.key());
+						vertexCost.remove(v.getKey());
+						vertexCost.remove(v.getKey());
 						selection.remove(v);
 						counter++;
 						updateHeap(vertices, _mesh);
@@ -221,8 +224,10 @@ public class HES_TriDecLimit extends HES_Simplifier {
 	 * @param sel
 	 */
 	private void buildHeap(final HE_Mesh sel) {
-		WB_ProgressCounter pcounter = new WB_ProgressCounter(sel.getNumberOfVertices(), 10);
-		tracker.setCounterStatus(this, "Building vertex removal heap.", pcounter);
+		WB_ProgressCounter pcounter = new WB_ProgressCounter(
+				sel.getNumberOfVertices(), 10);
+		tracker.setCounterStatus(this, "Building vertex removal heap.",
+				pcounter);
 		counter = 0;
 		heap = new Heap();
 		vertexCost = new LongDoubleHashMap();
@@ -264,7 +269,7 @@ public class HES_TriDecLimit extends HES_Simplifier {
 					}
 				}
 				if (min < Double.POSITIVE_INFINITY) {
-					vertexCost.put(v.key(), min * vvi);
+					vertexCost.put(v.getKey(), min * vvi);
 					sel.setHalfedge(v, minhe);
 					heap.push(min * vvi, v);
 				}
@@ -279,7 +284,8 @@ public class HES_TriDecLimit extends HES_Simplifier {
 	 * @param vertices
 	 * @param selection
 	 */
-	private void updateHeap(final List<HE_Vertex> vertices, final HE_Mesh selection) {
+	private void updateHeap(final List<HE_Vertex> vertices,
+			final HE_Mesh selection) {
 		double min;
 		double c;
 		HE_Halfedge minhe;
@@ -289,7 +295,7 @@ public class HES_TriDecLimit extends HES_Simplifier {
 			if (selection == null || selection.contains(v)) {
 				vvi = visualImportance(v);
 				v.setInternalLabel(counter);
-				vertexCost.remove(v.key());
+				vertexCost.remove(v.getKey());
 				vstar = v.getHalfedgeStar();
 				minhe = vstar.get(0);
 				min = Double.POSITIVE_INFINITY;
@@ -316,7 +322,7 @@ public class HES_TriDecLimit extends HES_Simplifier {
 					}
 				}
 				if (min < Double.POSITIVE_INFINITY) {
-					vertexCost.put(v.key(), min * vvi);
+					vertexCost.put(v.getKey(), min * vvi);
 					selection.setHalfedge(v, minhe);
 					heap.push(min * vvi, v);
 				}
@@ -336,8 +342,8 @@ public class HES_TriDecLimit extends HES_Simplifier {
 		double denom = 0.0;
 		double A;
 		for (final HE_Face f : faces) {
-			A = f.getFaceArea();
-			nom.addMulSelf(A, f.getFaceNormal());
+			A = HE_MeshOp.getFaceArea(f);
+			nom.addMulSelf(A, HE_MeshOp.getFaceNormal(f));
 			denom += A;
 		}
 		if (WB_Epsilon.isZero(denom)) {
@@ -362,8 +368,10 @@ public class HES_TriDecLimit extends HES_Simplifier {
 	private double halfedgeCollapseCost(final HE_Halfedge he) {
 		final HE_Face f = he.getFace();
 		final HE_Face fp = he.getPair().getFace();
-		final List<HE_Vertex> vineighbors = he.getVertex().getNeighborVertices();
-		final List<HE_Vertex> vfneighbors = he.getEndVertex().getNeighborVertices();
+		final List<HE_Vertex> vineighbors = he.getVertex()
+				.getNeighborVertices();
+		final List<HE_Vertex> vfneighbors = he.getEndVertex()
+				.getNeighborVertices();
 		int shared = 0;
 		final int max = f == null || fp == null ? 1 : 2;
 		for (final HE_Vertex vi : vineighbors) {
@@ -386,27 +394,35 @@ public class HES_TriDecLimit extends HES_Simplifier {
 		WB_Plane P;
 		if (f == null || fp == null) {
 			boundary = he.getNextInVertex();
-			while (boundary.getFace() != null && boundary.getPair().getFace() != null) {
+			while (boundary.getFace() != null
+					&& boundary.getPair().getFace() != null) {
 				boundary = boundary.getNextInVertex();
 			}
 			v1 = WB_Vector.subToVector3D(he.getEndVertex(), he.getVertex());
 			v1.normalizeSelf();
-			v2 = WB_Vector.subToVector3D(boundary.getEndVertex(), boundary.getVertex());
+			v2 = WB_Vector.subToVector3D(boundary.getEndVertex(),
+					boundary.getVertex());
 			v2.normalizeSelf();
-			cost += he.getEdge().getLength() * (1.0 - v1.dot(v2)) * _lambda;
+			cost += HE_MeshOp.getLength(he) * (1.0 - v1.dot(v2)) * _lambda;
 		} else {
 			do {
 				final HE_Face fl = helooper.getFace();
 				if (fl != null) {
 					if (fl != f && fl != fp) {
-						T = new WB_Triangle(he.getEndVertex(), helooper.getNextInFace().getVertex(),
-								helooper.getNextInFace().getNextInFace().getVertex());
+						T = new WB_Triangle(he.getEndVertex(),
+								helooper.getNextInFace().getVertex(),
+								helooper.getNextInFace().getNextInFace()
+										.getVertex());
 						P = T.getPlane();
 						if (P == null) {
-							cost += 0.5 * (T.getArea() + fl.getFaceArea());
+							cost += 0.5
+									* (T.getArea() + HE_MeshOp.getFaceArea(fl));
 						} else {
-							cost += 0.5 * (T.getArea() + fl.getFaceArea())
-									* (1.0 - WB_Vector.dot(fl.getFaceNormal(), T.getPlane().getNormal()));
+							cost += 0.5
+									* (T.getArea() + HE_MeshOp.getFaceArea(fl))
+									* (1.0 - WB_Vector.dot(
+											HE_MeshOp.getFaceNormal(fl),
+											T.getPlane().getNormal()));
 						}
 					}
 				} else {
@@ -425,11 +441,11 @@ public class HES_TriDecLimit extends HES_Simplifier {
 		/**
 		 *
 		 */
-		private final List<Entry> heap;
+		private final List<Entry>	heap;
 		/**
 		 *
 		 */
-		private final List<Double> keys;
+		private final List<Double>	keys;
 
 		/**
 		 *
@@ -596,7 +612,6 @@ public class HES_TriDecLimit extends HES_Simplifier {
 
 		/*
 		 * (non-Javadoc)
-		 *
 		 * @see java.lang.Object#toString()
 		 */
 		@Override
@@ -624,11 +639,11 @@ public class HES_TriDecLimit extends HES_Simplifier {
 		/**
 		 *
 		 */
-		HE_Vertex v;
+		HE_Vertex	v;
 		/**
 		 *
 		 */
-		int version;
+		int			version;
 
 		/**
 		 *

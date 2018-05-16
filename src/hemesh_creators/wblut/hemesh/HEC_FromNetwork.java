@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.ArrayList;
@@ -31,79 +28,79 @@ public class HEC_FromNetwork extends HEC_Creator {
 	/**
 	 *
 	 */
-	private static WB_GeometryFactory gf = new WB_GeometryFactory();
+	private static WB_GeometryFactory	gf	= new WB_GeometryFactory();
 	/**
 	 *
 	 */
-	private WB_Network network;
+	private WB_Network					network;
 	/**
 	 *
 	 */
-	private int numberOfNodes, numberOfConnections;
+	private int							numberOfNodes, numberOfConnections;
 	/**
 	 *
 	 */
-	private NodeType[] nodeTypes;
+	private NodeType[]					nodeTypes;
 	/**
 	 *
 	 */
-	private NodeConnection[] connectionNodeConnections;
+	private NodeConnection[]			connectionNodeConnections;
 	/**
 	 *
 	 */
-	private WB_ScalarParameter connectionRadius;
+	private WB_ScalarParameter			connectionRadius;
 	/**
 	 *
 	 */
-	private int connectionFacets;
+	private int							connectionFacets;
 	/**
 	 *
 	 */
-	private double fidget;
+	private double						fidget;
 	/**
 	 *
 	 */
-	private double fillfactor;
+	private double						fillfactor;
 	/**
 	 *
 	 */
-	private HE_Mesh mesh;
+	private HE_Mesh						mesh;
 	/**
 	 *
 	 */
-	private double maximumConnectionLength;
+	private double						maximumConnectionLength;
 	/**
 	 *
 	 */
-	private double minimumBalljointAngle;
+	private double						minimumBalljointAngle;
 	/**
 	 *
 	 */
-	private WB_ScalarParameter maximumConnectionOffset;
+	private WB_ScalarParameter			maximumConnectionOffset;
 	/**
 	 *
 	 */
-	private boolean taper;
+	private boolean						taper;
 	/**
 	 *
 	 */
-	private boolean cap;
+	private boolean						cap;
 	/**
 	 *
 	 */
-	private boolean useNodeValues;
+	private boolean						useNodeValues;
 	/**
 	 *
 	 */
-	private boolean createIsolatedNodes;
+	private boolean						createIsolatedNodes;
 	/**
 	 *
 	 */
-	private WB_ScalarParameter angleFactor;
+	private WB_ScalarParameter			angleFactor;
 	/**
 	 *
 	 */
-	private boolean suppressBalljoint;
+	private boolean						suppressBalljoint;
 
 	/**
 	 *
@@ -142,31 +139,31 @@ public class HEC_FromNetwork extends HEC_Creator {
 		/**
 		 *
 		 */
-		double maxoffset;
+		double			maxoffset;
 		/**
 		 *
 		 */
-		double offset;
+		double			offset;
 		/**
 		 *
 		 */
-		double radius;
+		double			radius;
 		/**
 		 *
 		 */
-		List<HE_Vertex> vertices;
+		List<HE_Vertex>	vertices;
 		/**
 		 *
 		 */
-		WB_Vector dir;
+		WB_Vector		dir;
 		/**
 		 *
 		 */
-		Node node;
+		Node			node;
 		/**
 		 *
 		 */
-		Connection connection;
+		Connection		connection;
 
 		/**
 		 *
@@ -177,7 +174,8 @@ public class HEC_FromNetwork extends HEC_Creator {
 		 * @param o
 		 * @param r
 		 */
-		NodeConnection(final Node node, final Connection connection, final double mo, final double o, final double r) {
+		NodeConnection(final Node node, final Connection connection,
+				final double mo, final double o, final double r) {
 			maxoffset = mo;
 			offset = o;
 			radius = r;
@@ -198,7 +196,8 @@ public class HEC_FromNetwork extends HEC_Creator {
 		fidget = 1.0001;
 		fillfactor = 0.99;
 		minimumBalljointAngle = 0.55 * Math.PI;
-		maximumConnectionOffset = new WB_ConstantScalarParameter(Double.MAX_VALUE);
+		maximumConnectionOffset = new WB_ConstantScalarParameter(
+				Double.MAX_VALUE);
 		angleFactor = new WB_ConstantScalarParameter(0.0);
 		cap = true;
 		useNodeValues = true;
@@ -232,7 +231,8 @@ public class HEC_FromNetwork extends HEC_Creator {
 	 * @param o
 	 * @return
 	 */
-	public HEC_FromNetwork setMaximumConnectionOffset(final WB_ScalarParameter o) {
+	public HEC_FromNetwork setMaximumConnectionOffset(
+			final WB_ScalarParameter o) {
 		maximumConnectionOffset = o;
 		return this;
 	}
@@ -414,25 +414,30 @@ public class HEC_FromNetwork extends HEC_Creator {
 		int i = 0;
 		for (final Node node : network.getNodes()) {
 			if (nodeTypes[i] == NodeType.ENDPOINT) {
-				double r = connectionRadius.evaluate(node.xd(), node.yd(), node.zd());
+				double r = connectionRadius.evaluate(node.xd(), node.yd(),
+						node.zd());
 				if (useNodeValues) {
 					r *= node.getValue();
 				}
 				createNodeConnection(node, 0, 0.0, 0.0, r);
 			} else if (nodeTypes[i] == NodeType.STRAIGHT) {
-				double r = connectionRadius.evaluate(node.xd(), node.yd(), node.zd());
+				double r = connectionRadius.evaluate(node.xd(), node.yd(),
+						node.zd());
 				if (useNodeValues) {
 					r *= node.getValue();
 				}
-				double o = connectionRadius.evaluate(node.xd(), node.yd(), node.zd());
+				double o = connectionRadius.evaluate(node.xd(), node.yd(),
+						node.zd());
 				if (useNodeValues) {
 					o *= node.getValue();
 				}
 				createNodeConnection(node, 0, o, o, r);
 				createNodeConnection(node, 1, o, o, r);
-			} else if (nodeTypes[i] == NodeType.TURN || nodeTypes[i] == NodeType.BEND) {
+			} else if (nodeTypes[i] == NodeType.TURN
+					|| nodeTypes[i] == NodeType.BEND) {
 				final double minSpan = node.findSmallestSpan();
-				double r = connectionRadius.evaluate(node.xd(), node.yd(), node.zd());
+				double r = connectionRadius.evaluate(node.xd(), node.yd(),
+						node.zd());
 				double o = fidget * r / Math.min(1.0, Math.tan(0.5 * minSpan));
 				if (useNodeValues) {
 					r *= node.getValue();
@@ -444,7 +449,8 @@ public class HEC_FromNetwork extends HEC_Creator {
 				createNodeConnection(node, 1, o, o, r);
 			} else if (nodeTypes[i] == NodeType.STAR) {
 				final double minSpan = node.findSmallestSpan();
-				double r = connectionRadius.evaluate(node.xd(), node.yd(), node.zd());
+				double r = connectionRadius.evaluate(node.xd(), node.yd(),
+						node.zd());
 				double mo = fidget * r / Math.min(1.0, Math.tan(0.5 * minSpan));
 				if (useNodeValues) {
 					r *= node.getValue();
@@ -453,18 +459,21 @@ public class HEC_FromNetwork extends HEC_Creator {
 					mo *= node.getValue();
 				}
 				for (int j = 0; j < node.getOrder(); j++) {
-					final double minLocSpan = node.findSmallestSpanAroundConnection(j);
-					double o = fidget * r / Math.min(1.0, Math.tan(0.5 * minLocSpan));
+					final double minLocSpan = node
+							.findSmallestSpanAroundConnection(j);
+					double o = fidget * r
+							/ Math.min(1.0, Math.tan(0.5 * minLocSpan));
 					if (useNodeValues) {
 						o *= node.getValue();
 					}
-					double mso = maximumConnectionOffset.evaluate(node.xd(), node.yd(), node.zd());
+					double mso = maximumConnectionOffset.evaluate(node.xd(),
+							node.yd(), node.zd());
 					if (useNodeValues) {
 						mso *= node.getValue();
 					}
 					if (o > mso) {
-						createNodeConnection(node, j, mo, mso,
-								mso / fidget * Math.min(1.0, Math.tan(0.5 * minLocSpan)));
+						createNodeConnection(node, j, mo, mso, mso / fidget
+								* Math.min(1.0, Math.tan(0.5 * minLocSpan)));
 					} else {
 						createNodeConnection(node, j, mo, o, r);
 					}
@@ -474,7 +483,8 @@ public class HEC_FromNetwork extends HEC_Creator {
 		}
 		if (!taper) {
 			for (i = 0; i < network.getNumberOfConnections(); i++) {
-				final double r = Math.min(connectionNodeConnections[2 * i].radius,
+				final double r = Math.min(
+						connectionNodeConnections[2 * i].radius,
 						connectionNodeConnections[2 * i + 1].radius);
 				connectionNodeConnections[2 * i].radius = r;
 				connectionNodeConnections[2 * i + 1].radius = r;
@@ -491,11 +501,12 @@ public class HEC_FromNetwork extends HEC_Creator {
 	 * @param off
 	 * @param rad
 	 */
-	private void createNodeConnection(final Node node, final int i, final double maxoff, final double off,
-			final double rad) {
+	private void createNodeConnection(final Node node, final int i,
+			final double maxoff, final double off, final double rad) {
 		final Connection connection = node.getConnection(i);
 		final int id = getConnectionIndex(node, connection);
-		connectionNodeConnections[id] = new NodeConnection(node, connection, maxoff, off, rad);
+		connectionNodeConnections[id] = new NodeConnection(node, connection,
+				maxoff, off, rad);
 	}
 
 	/**
@@ -505,30 +516,36 @@ public class HEC_FromNetwork extends HEC_Creator {
 		final double da = 2 * Math.PI / connectionFacets;
 		for (int id = 0; id < network.getNumberOfConnections() * 2; id++) {
 			final double sr = connectionNodeConnections[id].radius;
-			final double sgn = connectionNodeConnections[id].node == connectionNodeConnections[id].connection.start()
-					? 1 : -1;
+			final double sgn = connectionNodeConnections[id].node == connectionNodeConnections[id].connection
+					.start() ? 1 : -1;
 			final double so = connectionNodeConnections[id].maxoffset;
-			final WB_Vector v = connectionNodeConnections[id].connection.toVector();
+			final WB_Vector v = connectionNodeConnections[id].connection
+					.toVector();
 			v.normalizeSelf();
 			v.mulSelf(sgn);
 			connectionNodeConnections[id].dir = v.copy();
-			final WB_Plane P = connectionNodeConnections[id].connection.toPlane();
+			final WB_Plane P = connectionNodeConnections[id].connection
+					.toPlane();
 			final WB_Vector u = P.getU();
 			for (int j = 0; j < connectionFacets; j++) {
-				final WB_Point p = new WB_Point(connectionNodeConnections[id].node);
-				final double af = angleFactor.evaluate(connectionNodeConnections[id].node.xd(),
-						connectionNodeConnections[id].node.yd(), connectionNodeConnections[id].node.zd());
+				final WB_Point p = new WB_Point(
+						connectionNodeConnections[id].node);
+				final double af = angleFactor.evaluate(
+						connectionNodeConnections[id].node.xd(),
+						connectionNodeConnections[id].node.yd(),
+						connectionNodeConnections[id].node.zd());
 				p.addMulSelf(so, v);
 				final WB_Vector localu = u.mul(sr);
-				localu.rotateAboutAxisSelf((j + af) * da, new WB_Point(), P.getNormal());
+				localu.rotateAboutAxisSelf((j + af) * da, new WB_Point(),
+						P.getNormal());
 				p.addSelf(localu);
 				final HE_Vertex vrtx = new HE_Vertex(p);
-				vrtx.setInternalLabel(connectionNodeConnections[id].node.getIndex());
+				vrtx.setInternalLabel(
+						connectionNodeConnections[id].node.getIndex());
 				connectionNodeConnections[id].vertices.add(vrtx);
 				mesh.add(vrtx);
 			}
 		}
-
 	}
 
 	/**
@@ -538,7 +555,8 @@ public class HEC_FromNetwork extends HEC_Creator {
 	 * @param connection
 	 * @return
 	 */
-	private int getConnectionIndex(final Node node, final Connection connection) {
+	private int getConnectionIndex(final Node node,
+			final Connection connection) {
 		if (node == connection.start()) {
 			return 2 * connection.getIndex();
 		} else {
@@ -558,24 +576,34 @@ public class HEC_FromNetwork extends HEC_Creator {
 			 */
 			final int offsets = i * 2;
 			final int offsete = i * 2 + 1;
-			int ns = (int) Math.round(connection.getLength() / maximumConnectionLength);
+			int ns = (int) Math
+					.round(connection.getLength() / maximumConnectionLength);
 			ns = Math.max(ns, 1);
 			final ArrayList<HE_Halfedge> hes = new ArrayList<HE_Halfedge>();
-			final HE_Vertex[][] extraVertices = new HE_Vertex[connectionFacets][ns - 1];
+			final HE_Vertex[][] extraVertices = new HE_Vertex[connectionFacets][ns
+					- 1];
 			for (int j = 0; j < connectionFacets; j++) {
 				for (int k = 0; k < ns - 1; k++) {
 					extraVertices[j][k] = new HE_Vertex(
-							gf.createInterpolatedPoint(connectionNodeConnections[offsets].vertices.get(j),
-									connectionNodeConnections[offsete].vertices.get(j), (k + 1) / (double) ns));
+							gf.createInterpolatedPoint(
+									connectionNodeConnections[offsets].vertices
+											.get(j),
+									connectionNodeConnections[offsete].vertices
+											.get(j),
+									(k + 1) / (double) ns));
 					mesh.add(extraVertices[j][k]);
 				}
 			}
 			for (int j = 0; j < connectionFacets; j++) {
 				final int jp = (j + 1) % connectionFacets;
-				final HE_Vertex s0 = connectionNodeConnections[offsets].vertices.get(j);
-				final HE_Vertex s1 = connectionNodeConnections[offsets].vertices.get(jp);
-				final HE_Vertex e2 = connectionNodeConnections[offsete].vertices.get(jp);
-				final HE_Vertex e3 = connectionNodeConnections[offsete].vertices.get(j);
+				final HE_Vertex s0 = connectionNodeConnections[offsets].vertices
+						.get(j);
+				final HE_Vertex s1 = connectionNodeConnections[offsets].vertices
+						.get(jp);
+				final HE_Vertex e2 = connectionNodeConnections[offsete].vertices
+						.get(jp);
+				final HE_Vertex e3 = connectionNodeConnections[offsete].vertices
+						.get(j);
 				for (int k = 0; k < ns; k++) {
 					final HE_Face f = new HE_Face();
 					final HE_Halfedge he0 = new HE_Halfedge();
@@ -584,7 +612,8 @@ public class HEC_FromNetwork extends HEC_Creator {
 					final HE_Halfedge he3 = new HE_Halfedge();
 					mesh.setVertex(he0, k == 0 ? s0 : extraVertices[j][k - 1]);
 					mesh.setVertex(he1, k == 0 ? s1 : extraVertices[jp][k - 1]);
-					mesh.setVertex(he2, k == ns - 1 ? e2 : extraVertices[jp][k]);
+					mesh.setVertex(he2,
+							k == ns - 1 ? e2 : extraVertices[jp][k]);
 					mesh.setVertex(he3, k == ns - 1 ? e3 : extraVertices[j][k]);
 					mesh.setNext(he0, he1);
 					mesh.setNext(he1, he2);
@@ -638,12 +667,15 @@ public class HEC_FromNetwork extends HEC_Creator {
 					} else {
 						offset = connections.get(0).getIndex() * 2 + 1;
 					}
-					final ArrayList<HE_Halfedge> hes = new ArrayList<HE_Halfedge>(connectionFacets);
+					final ArrayList<HE_Halfedge> hes = new ArrayList<HE_Halfedge>(
+							connectionFacets);
 					final HE_Face f = new HE_Face();
 					mesh.add(f);
 					for (int k = 0; k < connectionFacets; k++) {
 						final HE_Halfedge he = new HE_Halfedge();
-						mesh.setVertex(he, connectionNodeConnections[offset].vertices.get(k));
+						mesh.setVertex(he,
+								connectionNodeConnections[offset].vertices
+										.get(k));
 						mesh.setFace(he, f);
 						hes.add(he);
 						mesh.add(he);
@@ -651,18 +683,21 @@ public class HEC_FromNetwork extends HEC_Creator {
 					mesh.setHalfedge(f, hes.get(0));
 					f.setInternalLabel(3);
 					if (node == connections.get(0).start()) {
-						for (int k = 0, j = connectionFacets - 1; k < connectionFacets; j = k, k++) {
+						for (int k = 0, j = connectionFacets
+								- 1; k < connectionFacets; j = k, k++) {
 							mesh.setNext(hes.get(k), hes.get(j));
 						}
 					} else {
-						for (int k = 0, j = connectionFacets - 1; k < connectionFacets; j = k, k++) {
+						for (int k = 0, j = connectionFacets
+								- 1; k < connectionFacets; j = k, k++) {
 							mesh.setNext(hes.get(j), hes.get(k));
 						}
 					}
 				}
 			} else {
 				if (nodeTypes[i] != NodeType.ISOLATED || createIsolatedNodes) {
-					double br = connectionRadius.evaluate(node.xd(), node.yd(), node.zd());
+					double br = connectionRadius.evaluate(node.xd(), node.yd(),
+							node.zd());
 					for (int j = 0; j < connections.size(); j++) {
 						int offset;
 						if (node == connections.get(j).start()) {
@@ -671,19 +706,26 @@ public class HEC_FromNetwork extends HEC_Creator {
 							offset = connections.get(j).getIndex() * 2 + 1;
 						}
 						for (int k = 0; k < connectionFacets; k++) {
-							hullPoints.add(connectionNodeConnections[offset].vertices.get(k));
-							br = Math.min(br, connectionNodeConnections[offset].radius);
+							hullPoints.add(
+									connectionNodeConnections[offset].vertices
+											.get(k));
+							br = Math.min(br,
+									connectionNodeConnections[offset].radius);
 						}
 					}
 					br *= fillfactor;
 					final int n = hullPoints.size();
-					if (nodeTypes[i] != NodeType.STRAIGHT && nodeTypes[i] != NodeType.BEND && !suppressBalljoint) {
-						final HE_Mesh ball = new HE_Mesh(new HEC_Sphere().setRadius(br).setUFacets(connectionFacets)
+					if (nodeTypes[i] != NodeType.STRAIGHT
+							&& nodeTypes[i] != NodeType.BEND
+							&& !suppressBalljoint) {
+						final HE_Mesh ball = new HE_Mesh(new HEC_Sphere()
+								.setRadius(br).setUFacets(connectionFacets)
 								.setVFacets(connectionFacets).setCenter(node));
 						hullPoints.addAll(ball.getVertices());
 						mesh.addVertices(ball);
 					}
-					final HEC_ConvexHull ch = new HEC_ConvexHull().setPointsFromVertices(hullPoints);
+					final HEC_ConvexHull ch = new HEC_ConvexHull()
+							.setPointsFromVertices(hullPoints);
 					try {
 						final HE_Mesh tmp = new HE_Mesh(ch);
 						final Map<Long, Integer> vertexToPointIndex = ch.vertexToPointIndex;
@@ -695,12 +737,15 @@ public class HEC_FromNetwork extends HEC_Creator {
 							f = tmpfItr.next();
 							f.setInternalLabel(2);
 							tmphe = f.getHalfedge();
-							int initid = vertexToPointIndex.get(tmphe.getVertex().key());
+							int initid = vertexToPointIndex
+									.get(tmphe.getVertex().getKey());
 							boolean endface = initid < n;
 							initid = initid / connectionFacets;
 							do {
-								final int id = vertexToPointIndex.get(tmphe.getVertex().key());
-								endface = id / connectionFacets == initid && id < n;
+								final int id = vertexToPointIndex
+										.get(tmphe.getVertex().getKey());
+								endface = id / connectionFacets == initid
+										&& id < n;
 								if (!endface) {
 									break;
 								}
@@ -726,7 +771,8 @@ public class HEC_FromNetwork extends HEC_Creator {
 							v.mulSelf(connectionNodeConnections[offset].offset
 									- connectionNodeConnections[offset].maxoffset);
 							for (int k = 0; k < connectionFacets; k++) {
-								connectionNodeConnections[offset].vertices.get(k).getPosition().addSelf(v);
+								connectionNodeConnections[offset].vertices
+										.get(k).getPosition().addSelf(v);
 							}
 						}
 						final Iterator<HE_Halfedge> tmpheItr = tmp.heItr();
@@ -734,7 +780,7 @@ public class HEC_FromNetwork extends HEC_Creator {
 						while (tmpheItr.hasNext()) {
 							tmphe = tmpheItr.next();
 							tmpv = tmphe.getVertex();
-							final int j = vertexToPointIndex.get(tmpv.key());
+							final int j = vertexToPointIndex.get(tmpv.getKey());
 							mesh.setVertex(tmphe, hullPoints.get(j));
 							if (j >= n) {
 								mesh.setHalfedge(hullPoints.get(j), tmphe);
@@ -752,7 +798,6 @@ public class HEC_FromNetwork extends HEC_Creator {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HEC_Creator#createBase()
 	 */
 	@Override
@@ -769,9 +814,9 @@ public class HEC_FromNetwork extends HEC_Creator {
 		createVertices();
 		createNodes();
 		createConnections();
-		mesh.pairHalfedges();
+		HE_MeshOp.pairHalfedges(mesh);
 		if (!cap) {
-			mesh.capHalfedges();
+			HE_MeshOp.capHalfedges(mesh);
 		}
 		return mesh;
 	}
@@ -783,7 +828,6 @@ public class HEC_FromNetwork extends HEC_Creator {
 	 * @return
 	 */
 	public HEC_FromNetwork setNetwork(final WB_Network network) {
-
 		this.network = network;
 		return this;
 	}

@@ -1,27 +1,18 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
-
-import wblut.core.WB_ProgressReporter.WB_ProgressTracker;
-import wblut.geom.WB_GeometryFactory;
 
 /**
  *
  */
 public abstract class HE_MeshElement extends HE_Element {
-
-	protected volatile boolean visited;
-	protected final static WB_GeometryFactory gf = new WB_GeometryFactory();
-	protected final static WB_ProgressTracker tracker = WB_ProgressTracker.instance();
-	protected boolean visible;
-	protected int color;
+	private volatile boolean	visited;
+	private boolean				visible;
+	private int					color;
 
 	/**
 	 *
@@ -66,6 +57,20 @@ public abstract class HE_MeshElement extends HE_Element {
 	/**
 	 *
 	 */
+	public void clearVisible() {
+		visible = false;
+	}
+
+	/**
+	 *
+	 */
+	public void setVisible() {
+		visible = true;
+	}
+
+	/**
+	 *
+	 */
 	public void setVisible(final boolean b) {
 		visible = b;
 	}
@@ -79,17 +84,6 @@ public abstract class HE_MeshElement extends HE_Element {
 
 	/*
 	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return (int) (key ^ key >>> 32);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -103,7 +97,7 @@ public abstract class HE_MeshElement extends HE_Element {
 		if (!(other instanceof HE_MeshElement)) {
 			return false;
 		}
-		return ((HE_MeshElement) other).getKey() == key;
+		return ((HE_MeshElement) other).getKey() == getKey();
 	}
 
 	/**
@@ -125,12 +119,4 @@ public abstract class HE_MeshElement extends HE_Element {
 	public void setColor(final int color) {
 		this.color = color;
 	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see wblut.hemesh.HE_Element#clear()
-	 */
-	@Override
-	protected abstract void clear();
 }

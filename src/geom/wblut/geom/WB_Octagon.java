@@ -1,26 +1,25 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
 package wblut.geom;
 
-public class WB_Octagon {
-	private WB_GeometryFactory geometryfactory = new WB_GeometryFactory();
-	public WB_Point p1;
-	public WB_Point p2;
-	public WB_Point p3;
-	public WB_Point p4;
-	public WB_Point p5;
-	public WB_Point p6;
-	public WB_Point p7;
-	public WB_Point p8;
+public class WB_Octagon implements WB_Geometry3D {
+	private WB_GeometryFactory	geometryfactory	= new WB_GeometryFactory();
+	public WB_Point				p1;
+	public WB_Point				p2;
+	public WB_Point				p3;
+	public WB_Point				p4;
+	public WB_Point				p5;
+	public WB_Point				p6;
+	public WB_Point				p7;
+	public WB_Point				p8;
 
-	public WB_Octagon(final WB_Coord p1, final WB_Coord p2, final WB_Coord p3, final WB_Coord p4, final WB_Coord p5,
-			final WB_Coord p6, final WB_Coord p7, final WB_Coord p8) {
+	public WB_Octagon(final WB_Coord p1, final WB_Coord p2, final WB_Coord p3,
+			final WB_Coord p4, final WB_Coord p5, final WB_Coord p6,
+			final WB_Coord p7, final WB_Coord p8) {
 		this.p1 = geometryfactory.createPoint(p1);
 		this.p2 = geometryfactory.createPoint(p2);
 		this.p3 = geometryfactory.createPoint(p3);
@@ -55,4 +54,43 @@ public class WB_Octagon {
 		}
 	}
 
+	@Override
+	public WB_Octagon apply2D(WB_Transform2D T) {
+		return new WB_Octagon(p1.apply2D(T), p2.apply2D(T), p3.apply2D(T),
+				p4.apply2D(T), p5.apply2D(T), p6.apply2D(T), p7.apply2D(T),
+				p8.apply2D(T));
+	}
+
+	@Override
+	public WB_Octagon apply2DSelf(WB_Transform2D T) {
+		p1.apply2DSelf(T);
+		p2.apply2DSelf(T);
+		p3.apply2DSelf(T);
+		p4.apply2DSelf(T);
+		p5.apply2DSelf(T);
+		p6.apply2DSelf(T);
+		p7.apply2DSelf(T);
+		p8.apply2DSelf(T);
+		return this;
+	}
+
+	@Override
+	public WB_Octagon apply(WB_Transform T) {
+		return new WB_Octagon(p1.apply(T), p2.apply(T), p3.apply(T),
+				p4.apply(T), p5.apply(T), p6.apply(T), p7.apply(T),
+				p8.apply(T));
+	}
+
+	@Override
+	public WB_Octagon applySelf(WB_Transform T) {
+		p1.applySelf(T);
+		p2.applySelf(T);
+		p3.applySelf(T);
+		p4.applySelf(T);
+		p5.applySelf(T);
+		p6.applySelf(T);
+		p7.applySelf(T);
+		p8.applySelf(T);
+		return this;
+	}
 }

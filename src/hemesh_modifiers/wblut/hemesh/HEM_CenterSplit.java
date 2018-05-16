@@ -93,8 +93,8 @@ public class HEM_CenterSplit extends HEM_Modifier {
 		selection.modify(ext);
 
 		tracker.setStopStatus(this, "Exiting HEC_CenterSplit.");
-		selection.parent.renameSelection("extruded", "center");
-		return selection.parent;
+		selection.getParent().renameSelection("extruded", "center");
+		return selection.getParent();
 	}
 
 }

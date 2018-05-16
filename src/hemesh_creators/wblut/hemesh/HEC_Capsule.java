@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import wblut.geom.WB_Coord;
@@ -23,21 +20,17 @@ import wblut.geom.WB_Vector;
  */
 public class HEC_Capsule extends HEC_Creator {
 	/** radius. */
-	private double R;
-
+	private double	R;
 	/** Height. */
-	private double H;
+	private double	H;
 	/** Facets. */
-	private int facets;
-	private int topcapfacets, bottomcapfacets;
+	private int		facets;
+	private int		topcapsteps, bottomcapsteps;
 	/** Height steps. */
-	private int steps;
-
-	private boolean topcap;
-
-	private boolean bottomcap;
-
-	private double phase;
+	private int		steps;
+	private boolean	topcap;
+	private boolean	bottomcap;
+	private double	phase;
 
 	/**
 	 * Instantiates a new Capsule.
@@ -52,8 +45,8 @@ public class HEC_Capsule extends HEC_Creator {
 		Z = new WB_Vector(WB_Vector.Y());
 		topcap = true;
 		bottomcap = true;
-		topcapfacets = 3;
-		bottomcapfacets = 3;
+		topcapsteps = 3;
+		bottomcapsteps = 3;
 	}
 
 	/**
@@ -64,14 +57,15 @@ public class HEC_Capsule extends HEC_Creator {
 	 * @param steps
 	 * @param capfacets
 	 */
-	public HEC_Capsule(final double R, final double H, final int facets, final int steps, final int capfacets) {
+	public HEC_Capsule(final double R, final double H, final int facets,
+			final int steps, final int capfacets) {
 		this();
 		this.R = R;
 		this.H = H;
 		this.facets = facets;
 		this.steps = steps;
-		this.topcapfacets = capfacets;
-		this.bottomcapfacets = capfacets;
+		this.topcapsteps = capfacets;
+		this.bottomcapsteps = capfacets;
 	}
 
 	/**
@@ -122,15 +116,15 @@ public class HEC_Capsule extends HEC_Creator {
 		return this;
 	}
 
-	public HEC_Capsule setCapFacets(final int facets) {
-		this.topcapfacets = facets;
-		this.bottomcapfacets = facets;
+	public HEC_Capsule setCapSteps(final int steps) {
+		this.topcapsteps = steps;
+		this.bottomcapsteps = steps;
 		return this;
 	}
 
-	public HEC_Capsule setCapFacets(final int topfacets, final int bottomfacets) {
-		this.topcapfacets = topfacets;
-		this.bottomcapfacets = bottomfacets;
+	public HEC_Capsule setCapSteps(final int topsteps, final int bottomsteps) {
+		this.topcapsteps = topsteps;
+		this.bottomcapsteps = bottomsteps;
 		return this;
 	}
 
@@ -194,24 +188,27 @@ public class HEC_Capsule extends HEC_Creator {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Creator#create()
 	 */
 	@Override
 	protected HE_Mesh createBase() {
-		int bcf = bottomcap ? Math.max(bottomcapfacets, 1) * facets : 0;
-		int tcf = topcap ? Math.max(topcapfacets, 1) * facets : 0;
-		final double[][] vertices = new double[(steps + 1) * (facets + 1) + (bottomcap ? bcf * facets : 0)
+		int bcf = bottomcap ? Math.max(bottomcapsteps, 1) * facets : 0;
+		int tcf = topcap ? Math.max(topcapsteps, 1) * facets : 0;
+		final double[][] vertices = new double[(steps + 1) * (facets + 1)
+				+ (bottomcap ? bcf * facets : 0)
 				+ (topcap ? tcf * facets : 0)][3];
-		final double[][] uvw = new double[(steps + 1) * (facets + 1) + (bottomcap ? bcf * facets : 0)
+		final double[][] uvw = new double[(steps + 1) * (facets + 1)
+				+ (bottomcap ? bcf * facets : 0)
 				+ (topcap ? tcf * facets : 0)][3];
 		final double invs = 1.0 / steps;
 		int id = 0;
 		for (int i = 0; i < steps + 1; i++) {
 			final double Hj = i * H * invs;
 			for (int j = 0; j < facets + 1; j++) {
-				vertices[id][0] = R * Math.cos(2 * Math.PI / facets * j + phase);
-				vertices[id][2] = R * Math.sin(2 * Math.PI / facets * j + phase);
+				vertices[id][0] = R
+						* Math.cos(2 * Math.PI / facets * j + phase);
+				vertices[id][2] = R
+						* Math.sin(2 * Math.PI / facets * j + phase);
 				vertices[id][1] = Hj;
 				uvw[id][0] = j * 1.0 / facets;
 				uvw[id][1] = i * 1.0 / steps;
@@ -223,7 +220,7 @@ public class HEC_Capsule extends HEC_Creator {
 		int tv = 0;
 		if (bottomcap) {
 			bv = id;
-			if (bottomcapfacets == 0) {
+			if (bottomcapsteps == 0) {
 				for (int j = 0; j < facets; j++) {
 					vertices[id][0] = 0;
 					vertices[id][2] = 0;
@@ -233,7 +230,7 @@ public class HEC_Capsule extends HEC_Creator {
 					uvw[id][2] = 1.0;
 					id++;
 				}
-			} else if (bottomcapfacets == 1) {
+			} else if (bottomcapsteps == 1) {
 				for (int j = 0; j < facets; j++) {
 					vertices[id][0] = 0;
 					vertices[id][2] = 0;
@@ -244,12 +241,16 @@ public class HEC_Capsule extends HEC_Creator {
 					id++;
 				}
 			} else {
-				for (int i = 0; i < bottomcapfacets; i++) {
-					double offset = i == bottomcapfacets - 1 ? -R : -R * Math.sin(i * 0.5 * Math.PI / bottomcapfacets);
-					double r = i == bottomcapfacets - 1 ? 0 : R * Math.cos(i * 0.5 * Math.PI / bottomcapfacets);
+				for (int i = 0; i < bottomcapsteps; i++) {
+					double offset = i == bottomcapsteps - 1 ? -R
+							: -R * Math.sin(i * 0.5 * Math.PI / bottomcapsteps);
+					double r = i == bottomcapsteps - 1 ? 0
+							: R * Math.cos(i * 0.5 * Math.PI / bottomcapsteps);
 					for (int j = 0; j < facets; j++) {
-						vertices[id][0] = r * Math.cos(2 * Math.PI / facets * j + phase);
-						vertices[id][2] = r * Math.sin(2 * Math.PI / facets * j + phase);
+						vertices[id][0] = r
+								* Math.cos(2 * Math.PI / facets * j + phase);
+						vertices[id][2] = r
+								* Math.sin(2 * Math.PI / facets * j + phase);
 						vertices[id][1] = offset;
 						uvw[id][0] = 0.5;// (j + 0.5) / facets;
 						uvw[id][1] = 1;
@@ -261,7 +262,7 @@ public class HEC_Capsule extends HEC_Creator {
 		}
 		if (topcap) {
 			tv = id;
-			if (topcapfacets == 0) {
+			if (topcapsteps == 0) {
 				for (int j = 0; j < facets; j++) {
 					vertices[id][0] = 0;
 					vertices[id][2] = 0;
@@ -271,7 +272,7 @@ public class HEC_Capsule extends HEC_Creator {
 					uvw[id][2] = 1.0;
 					id++;
 				}
-			} else if (topcapfacets == 1) {
+			} else if (topcapsteps == 1) {
 				for (int j = 0; j < facets; j++) {
 					vertices[id][0] = 0;
 					vertices[id][2] = 0;
@@ -282,12 +283,16 @@ public class HEC_Capsule extends HEC_Creator {
 					id++;
 				}
 			} else {
-				for (int i = 0; i < topcapfacets; i++) {
-					double offset = i == topcapfacets - 1 ? R : R * Math.sin(i * 0.5 * Math.PI / topcapfacets);
-					double r = i == topcapfacets - 1 ? 0 : R * Math.cos(i * 0.5 * Math.PI / topcapfacets);
+				for (int i = 0; i < topcapsteps; i++) {
+					double offset = i == topcapsteps - 1 ? R
+							: R * Math.sin(i * 0.5 * Math.PI / topcapsteps);
+					double r = i == topcapsteps - 1 ? 0
+							: R * Math.cos(i * 0.5 * Math.PI / topcapsteps);
 					for (int j = 0; j < facets; j++) {
-						vertices[id][0] = r * Math.cos(2 * Math.PI / facets * j + phase);
-						vertices[id][2] = r * Math.sin(2 * Math.PI / facets * j + phase);
+						vertices[id][0] = r
+								* Math.cos(2 * Math.PI / facets * j + phase);
+						vertices[id][2] = r
+								* Math.sin(2 * Math.PI / facets * j + phase);
 						vertices[id][1] = H + offset;
 						uvw[id][0] = 0.5;// (j + 0.5) / facets;
 						uvw[id][1] = 0;
@@ -315,13 +320,14 @@ public class HEC_Capsule extends HEC_Creator {
 				faces[j + i * facets] = new int[4];
 				faces[j + i * facets][0] = j + i * (facets + 1);
 				faces[j + i * facets][1] = j + i * (facets + 1) + facets + 1;
-				faces[j + i * facets][2] = j + 1 + facets + 1 + i * (facets + 1);
+				faces[j + i * facets][2] = j + 1 + facets + 1
+						+ i * (facets + 1);
 				faces[j + i * facets][3] = j + 1 + i * (facets + 1);
 				faceTextureIds[j + i * facets] = 0;
 			}
 		}
 		if (bottomcap) {
-			if (bottomcapfacets <= 1) {
+			if (bottomcapsteps <= 1) {
 				for (int i = 0; i < facets; i++) {
 					faces[bc + i] = new int[3];
 					faces[bc + i][0] = i;
@@ -330,11 +336,10 @@ public class HEC_Capsule extends HEC_Creator {
 					faceTextureIds[bc + i] = 1;
 				}
 			} else {
-
 			}
 		}
 		if (topcap) {
-			if (topcapfacets <= 1) {
+			if (topcapsteps <= 1) {
 				for (int i = 0; i < facets; i++) {
 					faces[tc + i] = new int[3];
 					faces[tc + i][1] = steps * (facets + 1) + i;
@@ -343,11 +348,11 @@ public class HEC_Capsule extends HEC_Creator {
 					faceTextureIds[tc + i] = 2;
 				}
 			} else {
-
 			}
 		}
 		final HEC_FromFacelist fl = new HEC_FromFacelist();
-		fl.setVertices(vertices).setFaces(faces).setVertexUVW(uvw).setFaceTextureIds(faceTextureIds);
+		fl.setVertices(vertices).setFaces(faces).setVertexUVW(uvw)
+				.setFaceTextureIds(faceTextureIds);
 		return fl.createBase();
 	}
 }

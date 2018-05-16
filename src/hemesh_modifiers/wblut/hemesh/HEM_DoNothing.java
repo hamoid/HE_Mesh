@@ -38,6 +38,6 @@ public class HEM_DoNothing extends HEM_Modifier {
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
-		return selection.parent;
+		return selection.getParent();
 	}
 }

@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.Iterator;
@@ -28,22 +25,22 @@ import wblut.math.WB_Math;
  */
 public abstract class HEC_Creator extends HE_Machine {
 	/** Calling applet. */
-	public PApplet home;
+	public PApplet		home;
 	/** Center. */
-	protected WB_Point center;
+	protected WB_Point	center;
 	/** Rotation angle about Z-axis. */
-	protected double zangle;
+	protected double	zangle;
 	/** Z-axis. */
-	protected WB_Vector zaxis;
+	protected WB_Vector	zaxis;
 	/** Override. */
-	protected boolean override;
-	protected boolean override2D;
+	protected boolean	override;
+	protected boolean	override2D;
 	/** Use applet model coordinates. */
-	protected boolean toModelview;
+	protected boolean	toModelview;
 	/** Base Z-axis. */
-	protected WB_Vector Z;
-	protected boolean manifoldCheck;
-	protected double scale;
+	protected WB_Vector	Z;
+	protected boolean	manifoldCheck;
+	protected double	scale;
 
 	/**
 	 * Constructor.
@@ -68,7 +65,8 @@ public abstract class HEC_Creator extends HE_Machine {
 	 *            z-coordinate of center
 	 * @return self
 	 */
-	public HEC_Creator setCenter(final double x, final double y, final double z) {
+	public HEC_Creator setCenter(final double x, final double y,
+			final double z) {
 		center.set(x, y, z);
 		return this;
 	}
@@ -119,7 +117,8 @@ public abstract class HEC_Creator extends HE_Machine {
 	 *            z-coordinate of axis vector
 	 * @return self
 	 */
-	public HEC_Creator setZAxis(final double x, final double y, final double z) {
+	public HEC_Creator setZAxis(final double x, final double y,
+			final double z) {
 		zaxis.set(x, y, z);
 		zaxis.normalizeSelf();
 		return this;
@@ -142,8 +141,9 @@ public abstract class HEC_Creator extends HE_Machine {
 	 *            z-coordinate of second point on axis
 	 * @return self
 	 */
-	public HEC_Creator setZAxis(final double p0x, final double p0y, final double p0z, final double p1x,
-			final double p1y, final double p1z) {
+	public HEC_Creator setZAxis(final double p0x, final double p0y,
+			final double p0z, final double p1x, final double p1y,
+			final double p1z) {
 		zaxis.set(p1x - p0x, p1y - p0y, p1z - p0z);
 		zaxis.normalizeSelf();
 		return this;
@@ -240,16 +240,19 @@ public abstract class HEC_Creator extends HE_Machine {
 		final HE_Mesh base = createBase();
 		tracker.setStopStatus(this, "Base mesh created.");
 		tracker.setStartStatus(this, "Transforming base mesh.");
-		WB_Coord ctr = base.getCenter();
+		WB_Coord ctr = HE_MeshOp.getCenter(base);
 		if (!override) {
 			base.scaleSelf(scale);
 			if (zangle != 0) {
-				base.rotateAboutAxis2PSelf(zangle, ctr.xd(), ctr.yd(), ctr.zd(), ctr.xd(), ctr.yd(), ctr.zd() + 1);
+				base.rotateAboutAxis2PSelf(zangle, ctr.xd(), ctr.yd(), ctr.zd(),
+						ctr.xd(), ctr.yd(), ctr.zd() + 1);
 			}
 			final WB_Vector tmp = zaxis.cross(Z);
 			if (!WB_Epsilon.isZeroSq(tmp.getSqLength())) {
-				base.rotateAboutAxis2PSelf(-Math.acos(WB_Math.clamp(zaxis.dot(Z), -1, 1)), ctr.xd(), ctr.yd(), ctr.zd(),
-						ctr.xd() + tmp.xd(), ctr.yd() + tmp.yd(), ctr.zd() + tmp.zd());
+				base.rotateAboutAxis2PSelf(
+						-Math.acos(WB_Math.clamp(zaxis.dot(Z), -1, 1)),
+						ctr.xd(), ctr.yd(), ctr.zd(), ctr.xd() + tmp.xd(),
+						ctr.yd() + tmp.yd(), ctr.zd() + tmp.zd());
 			} else if (zaxis.dot(Z) < -1 + WB_Epsilon.EPSILON) {
 				base.scaleSelf(1, 1, -1);
 			}
@@ -265,11 +268,11 @@ public abstract class HEC_Creator extends HE_Machine {
 					cx = v.xf();
 					cy = v.yf();
 					cz = v.zf();
-					v.set(home.modelX(cx, cy, cz), home.modelY(cx, cy, cz), home.modelZ(cx, cy, cz));
+					v.set(home.modelX(cx, cy, cz), home.modelY(cx, cy, cz),
+							home.modelZ(cx, cy, cz));
 				}
 			}
 		}
-
 		if (manifoldCheck) {
 			tracker.setStartStatus(this, "Checking and fixing manifold.");
 			HET_Fixer.fixNonManifoldVertices(base);
@@ -281,7 +284,6 @@ public abstract class HEC_Creator extends HE_Machine {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Machine#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
@@ -292,7 +294,6 @@ public abstract class HEC_Creator extends HE_Machine {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Machine#apply(wblut.hemesh.HE_Selection)
 	 */
 	@Override

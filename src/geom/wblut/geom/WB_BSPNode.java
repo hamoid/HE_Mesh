@@ -6,26 +6,26 @@ package wblut.geom;
 import org.eclipse.collections.impl.list.mutable.FastList;
 
 /**
- * The Class WB_BSPNode.
+ * WB_BSPNode.
  *
  * @author Frederik Vanhoutte, W:Blut
  */
 public class WB_BSPNode {
 	
-	/** The partition. */
+	/** 3D partition. */
 	protected WB_Plane				partition;
 	
-	/** The polygons. */
+	/** Polygons on the partition */
 	protected FastList<WB_Polygon>	polygons;
 	
-	/** The pos. */
+	/** Positive child node */
 	protected WB_BSPNode			pos	= null;
 	
-	/** The neg. */
+	/** Negative child node */
 	protected WB_BSPNode			neg	= null;
 
 	/**
-	 * Instantiates a new w b_ bsp node.
+	 * Instantiates a new node.
 	 */
 	public WB_BSPNode() {
 		polygons = new FastList<WB_Polygon>();

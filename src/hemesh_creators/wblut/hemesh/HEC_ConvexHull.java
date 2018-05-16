@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.Collection;
@@ -27,11 +24,11 @@ import wblut.geom.WB_Point;
  */
 public class HEC_ConvexHull extends HEC_Creator {
 	/** Points. */
-	private WB_Coord[] points;
+	private WB_Coord[]			points;
 	/** Number of points. */
-	private int numberOfPoints;
+	private int					numberOfPoints;
 	/** The vertex to point index. */
-	public Map<Long, Integer> vertexToPointIndex;
+	public Map<Long, Integer>	vertexToPointIndex;
 
 	/**
 	 * Instantiates a new HEC_ConvexHull.
@@ -64,7 +61,8 @@ public class HEC_ConvexHull extends HEC_Creator {
 	 *            any Collection of vertex positions
 	 * @return self
 	 */
-	public HEC_ConvexHull setPoints(final Collection<? extends WB_Coord> points) {
+	public HEC_ConvexHull setPoints(
+			final Collection<? extends WB_Coord> points) {
 		this.points = new WB_Coord[points.size()];
 		final Iterator<? extends WB_Coord> itr = points.iterator();
 		int i = 0;
@@ -82,7 +80,8 @@ public class HEC_ConvexHull extends HEC_Creator {
 	 *            any Collection of vertex positions
 	 * @return self
 	 */
-	public HEC_ConvexHull setPointsFromVertices(final Collection<? extends WB_Coord> points) {
+	public HEC_ConvexHull setPointsFromVertices(
+			final Collection<? extends WB_Coord> points) {
 		this.points = new WB_Point[points.size()];
 		final Iterator<? extends WB_Coord> itr = points.iterator();
 		int i = 0;
@@ -104,7 +103,8 @@ public class HEC_ConvexHull extends HEC_Creator {
 		final int n = points.length;
 		this.points = new WB_Point[n];
 		for (int i = 0; i < n; i++) {
-			this.points[i] = new WB_Point(points[i][0], points[i][1], points[i][2]);
+			this.points[i] = new WB_Point(points[i][0], points[i][1],
+					points[i][2]);
 		}
 		return this;
 	}
@@ -120,7 +120,8 @@ public class HEC_ConvexHull extends HEC_Creator {
 		final int n = points.length;
 		this.points = new WB_Point[n];
 		for (int i = 0; i < n; i++) {
-			this.points[i] = new WB_Point(points[i][0], points[i][1], points[i][2]);
+			this.points[i] = new WB_Point(points[i][0], points[i][1],
+					points[i][2]);
 		}
 		return this;
 	}
@@ -136,7 +137,8 @@ public class HEC_ConvexHull extends HEC_Creator {
 		final int n = points.length;
 		this.points = new WB_Point[n];
 		for (int i = 0; i < n; i++) {
-			this.points[i] = new WB_Point(points[i][0], points[i][1], points[i][2]);
+			this.points[i] = new WB_Point(points[i][0], points[i][1],
+					points[i][2]);
 		}
 		return this;
 	}
@@ -155,7 +157,6 @@ public class HEC_ConvexHull extends HEC_Creator {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Creator#create()
 	 */
 	@Override
@@ -178,17 +179,19 @@ public class HEC_ConvexHull extends HEC_Creator {
 		final WB_QuickHull3D hull = new WB_QuickHull3D(points);
 		final int[][] faceIndices = hull.getFaces();
 		final int[] originalindices = hull.getVertexPointIndices();
-		final HEC_FromFacelist ffl = new HEC_FromFacelist().setVertices(hull.getVertices()).setFaces(faceIndices)
-				.setDuplicate(false).setCheckNormals(false).setCleanUnused(false);
+		final HEC_FromFacelist ffl = new HEC_FromFacelist()
+				.setVertices(hull.getVertices()).setFaces(faceIndices)
+				.setDuplicate(false).setCheckNormals(false)
+				.setCleanUnused(false);
 		final HE_Mesh result = ffl.createBase();
 		vertexToPointIndex = new UnifiedMap<Long, Integer>();
 		final Iterator<HE_Vertex> vItr = result.vItr();
 		int i = 0;
 		while (vItr.hasNext()) {
-			vertexToPointIndex.put(vItr.next().key(), originalindices[i++]);
+			vertexToPointIndex.put(vItr.next().getKey(), originalindices[i++]);
 		}
 		result.cleanUnusedElementsByFace();
-		result.capHalfedges();
+		HE_MeshOp.capHalfedges(result);
 		return result;
 	}
 }

@@ -92,9 +92,9 @@ public class HEM_CenterSplitHole extends HEM_Modifier {
 	protected HE_Mesh applySelf(final HE_Selection selection) {
 		final HEM_Extrude ext = new HEM_Extrude().setChamfer(c).setDistance(d).setRelative(relative);
 		selection.modify(ext);
-		selection.parent.deleteFaces(selection.parent.getSelection("extruded"));
-		selection.parent.removeSelection("extruded");
-		return selection.parent;
+		selection.getParent().deleteFaces(selection.getParent().getSelection("extruded"));
+		selection.getParent().removeSelection("extruded");
+		return selection.getParent();
 	}
 
 	/**

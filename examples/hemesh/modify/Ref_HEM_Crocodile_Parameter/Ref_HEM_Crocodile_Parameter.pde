@@ -15,7 +15,7 @@ void setup() {
   createMesh();
   mesh.modify(new HEM_Crocodile().setDistance(new Distance()).setChamfer(new XGradient()));
  
-  
+  mesh.smooth(2);
 }
 
 void draw() {
@@ -49,6 +49,6 @@ class XGradient implements WB_ScalarParameter {
 
 class Distance implements WB_ScalarParameter {
   public double evaluate(double...x ) {
-    return map((float)x[1], -200.0, 200.0, -150.0, 200.0);
+    return map((float)x[1], -200.0, 200.0, -150.0, 300.0);
   }
 }

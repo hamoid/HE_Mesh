@@ -142,6 +142,6 @@ public class HEC_Antiprism extends HEC_Creator {
 		}
 		final HEC_FromFacelist fl = new HEC_FromFacelist();
 		fl.setVertices(points).setFaces(faces).setDuplicate(false);
-		return HET_MeshOp.flipFaces(fl.createBase());
+		return HE_MeshOp.flipFaces(fl.createBase());
 	}
 }

@@ -1,21 +1,18 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.collections.impl.list.mutable.FastList;
 import org.eclipse.collections.impl.map.mutable.primitive.LongObjectHashMap;
 
-import org.eclipse.collections.impl.list.mutable.FastList;
 import wblut.geom.WB_Coord;
 import wblut.geom.WB_KDTreeInteger;
 import wblut.geom.WB_KDTreeInteger.WB_KDEntryInteger;
@@ -34,18 +31,19 @@ public class HEC_FromWBMesh extends HEC_Creator {
 	/**
 	 * Facelist source mesh.
 	 */
-	private final WB_Mesh source;
+	private final WB_Mesh	source;
 	/**
 	 * Duplicate vertices?.
 	 */
-	private boolean duplicate;
+	private boolean			duplicate;
 	/**
 	 * Check face normal consistency?.
 	 */
-	private boolean normalcheck;
+	private boolean			normalcheck;
+	private boolean			uniform;
 
 	/**
-	 * Instantiates a new HEC_Facelist �.
+	 * 
 	 *
 	 * @param source
 	 */
@@ -53,8 +51,9 @@ public class HEC_FromWBMesh extends HEC_Creator {
 		super();
 		this.source = source;
 		duplicate = true;
-		normalcheck = false;
+		normalcheck = true;
 		override = true;
+		uniform = true;
 	}
 
 	/**
@@ -66,8 +65,9 @@ public class HEC_FromWBMesh extends HEC_Creator {
 		super();
 		this.source = source.create();
 		duplicate = true;
-		normalcheck = false;
+		normalcheck = true;
 		override = true;
+		uniform = true;
 	}
 
 	/**
@@ -89,14 +89,18 @@ public class HEC_FromWBMesh extends HEC_Creator {
 	 *            true/false
 	 * @return self
 	 */
-	public HEC_FromWBMesh setCheckNormals(final boolean b) {
+	public HEC_FromWBMesh setNormalsCheck(final boolean b) {
 		normalcheck = b;
+		return this;
+	}
+
+	public HEC_FromWBMesh setUniformityCheck(final boolean b) {
+		uniform = b;
 		return this;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Creator#create()
 	 */
 	@Override
@@ -125,12 +129,15 @@ public class HEC_FromWBMesh extends HEC_Creator {
 			int li = 0;
 			locface[li++] = face[0];
 			for (int i = 1; i < fl - 1; i++) {
-				if (uniqueVertices.get(face[i]) != uniqueVertices.get(face[i - 1])) {
+				if (uniqueVertices.get(face[i]) != uniqueVertices
+						.get(face[i - 1])) {
 					locface[li++] = face[i];
 				}
 			}
-			if (uniqueVertices.get(face[fl - 1]) != uniqueVertices.get(face[fl - 2])
-					&& uniqueVertices.get(face[fl - 1]) != uniqueVertices.get(face[0])) {
+			if (uniqueVertices.get(face[fl - 1]) != uniqueVertices
+					.get(face[fl - 2])
+					&& uniqueVertices.get(face[fl - 1]) != uniqueVertices
+							.get(face[0])) {
 				locface[li++] = face[fl - 1];
 			}
 			if (li > 2) {
@@ -145,12 +152,15 @@ public class HEC_FromWBMesh extends HEC_Creator {
 					mesh.setHalfedge(he.getVertex(), he);
 				}
 				mesh.add(hef);
-				mesh.cycleHalfedges(faceEdges);
+				HE_MeshOp.cycleHalfedges(mesh, faceEdges);
 				mesh.addHalfedges(faceEdges);
 			}
 		}
-		mesh.pairHalfedges();
-		mesh.capHalfedges();
+		HE_MeshOp.pairHalfedges(mesh);
+		HE_MeshOp.capHalfedges(mesh);
+		if (uniform) {
+			HET_Fixer.unifyNormals(mesh);
+		}
 		return mesh;
 	}
 
@@ -188,12 +198,15 @@ public class HEC_FromWBMesh extends HEC_Creator {
 	 *            the neighbor
 	 * @return the int
 	 */
-	private int consistentOrder(final int i, final int j, final int[] face, final int[] neighbor) {
+	private int consistentOrder(final int i, final int j, final int[] face,
+			final int[] neighbor) {
 		for (int k = 0; k < neighbor.length; k++) {
-			if (neighbor[k] == face[i] && neighbor[(k + 1) % neighbor.length] == face[j]) {
+			if (neighbor[k] == face[i]
+					&& neighbor[(k + 1) % neighbor.length] == face[j]) {
 				return -1;
 			}
-			if (neighbor[k] == face[j] && neighbor[(k + 1) % neighbor.length] == face[i]) {
+			if (neighbor[k] == face[j]
+					&& neighbor[(k + 1) % neighbor.length] == face[i]) {
 				return 1;
 			}
 		}
@@ -284,11 +297,13 @@ public class HEC_FromWBMesh extends HEC_Creator {
 					if (neighbor > -1) {
 						if (visited[neighbor] == false) {
 							queue.add(neighbor);
-							if (consistentOrder(j, (j + 1) % fl, face, faces[neighbor]) == -1) {
+							if (consistentOrder(j, (j + 1) % fl, face,
+									faces[neighbor]) == -1) {
 								final int fln = faces[neighbor].length;
 								for (int k = 0; k < fln / 2; k++) {
 									temp = faces[neighbor][k];
-									faces[neighbor][k] = faces[neighbor][fln - k - 1];
+									faces[neighbor][k] = faces[neighbor][fln - k
+											- 1];
 									faces[neighbor][fln - k - 1] = temp;
 								}
 							}

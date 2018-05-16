@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import org.eclipse.collections.impl.map.mutable.primitive.LongLongHashMap;
@@ -25,9 +22,8 @@ public class HEM_Shell extends HEM_Modifier {
 	/**
 	 *
 	 */
-	private WB_ScalarParameter d;
-
-	private boolean useFace;
+	private WB_ScalarParameter	d;
+	private boolean				useFace;
 
 	/**
 	 *
@@ -45,7 +41,8 @@ public class HEM_Shell extends HEM_Modifier {
 	 * @return
 	 */
 	public HEM_Shell setThickness(final double d) {
-		this.d = d == 0.0 ? WB_ScalarParameter.ZERO : new WB_ConstantScalarParameter(d);
+		this.d = d == 0.0 ? WB_ScalarParameter.ZERO
+				: new WB_ConstantScalarParameter(d);
 		return this;
 	}
 
@@ -72,7 +69,6 @@ public class HEM_Shell extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Modifier#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
@@ -80,19 +76,20 @@ public class HEM_Shell extends HEM_Modifier {
 		if (d == WB_ScalarParameter.ZERO) {
 			return mesh;
 		}
-
 		HEC_Copy cc = new HEC_Copy().setMesh(mesh);
 		final HE_Mesh innerMesh = cc.create();
 		LongLongHashMap heCorrelation = cc.halfedgeCorrelation;
 		if (!useFace) {
-			final HEM_VertexExpand expm = new HEM_VertexExpand().setDistance(new WB_FactorScalarParameter(-1.0, d));
+			final HEM_VertexExpand expm = new HEM_VertexExpand()
+					.setDistance(new WB_FactorScalarParameter(-1.0, d));
 			innerMesh.modify(expm);
 		} else {
-			final HEM_FaceExpand expm = new HEM_FaceExpand().setDistance(new WB_FactorScalarParameter(-1.0, d));
+			final HEM_FaceExpand expm = new HEM_FaceExpand()
+					.setDistance(new WB_FactorScalarParameter(-1.0, d));
 			innerMesh.modify(expm);
 		}
 		mesh.selectAllFaces("outer");
-		HET_MeshOp.flipFaces(innerMesh);
+		HE_MeshOp.flipFaces(innerMesh);
 		innerMesh.selectAllFaces("inner");
 		mesh.add(innerMesh);
 		HE_Halfedge he1, he2, heio, heoi;
@@ -101,16 +98,17 @@ public class HEM_Shell extends HEM_Modifier {
 		long[] values = heCorrelation.values().toArray();
 		HE_Selection sel = mesh.getNewSelection("walls");
 		for (int i = 0; i < keys.length; i++) {
-
 			he1 = mesh.getHalfedgeWithKey(keys[i]);
 			if (he1.isOuterBoundary()) {
 				he2 = mesh.getHalfedgeWithKey(values[i]);
 				heio = new HE_Halfedge();
 				heoi = new HE_Halfedge();
 				mesh.setVertex(heio, he1.getPair().getVertex());
-				heio.setUVW(he1.getPair().getVertex().getUVW(he1.getPair().getFace()));
+				heio.setUVW(he1.getPair().getVertex()
+						.getUVW(he1.getPair().getFace()));
 				mesh.setVertex(heoi, he2.getPair().getVertex());
-				heoi.setUVW(he2.getPair().getVertex().getUVW(he2.getPair().getFace()));
+				heoi.setUVW(he2.getPair().getVertex()
+						.getUVW(he2.getPair().getFace()));
 				mesh.setNext(he1, heio);
 				mesh.setNext(heio, he2);
 				mesh.setNext(he2, heoi);
@@ -127,20 +125,18 @@ public class HEM_Shell extends HEM_Modifier {
 				mesh.add(heio);
 				mesh.add(heoi);
 			}
-
 		}
-		mesh.pairHalfedges();
-		mesh.capHalfedges();
+		HE_MeshOp.pairHalfedges(mesh);
+		HE_MeshOp.capHalfedges(mesh);
 		return mesh;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Modifier#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
-		return applySelf(selection.parent);
+		return applySelf(selection.getParent());
 	}
 }

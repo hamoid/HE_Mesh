@@ -1,4 +1,3 @@
-import wblut.*;
 import wblut.processing.*;
 import wblut.hemesh.*;
 import wblut.geom.*;
@@ -29,7 +28,7 @@ void setup() {
 }
 
 void draw() {
-  background(0);
+  background(25);
   translate(400, 400, 0);
   pos= new ArrayList<WB_Polygon>();
   neg= new ArrayList<WB_Polygon>();
@@ -39,13 +38,14 @@ void draw() {
   tree.partitionPolygon(star, pos,neg);
   strokeWeight(1.0);
   stroke(255);
-  noFill();
-  if (tree.pointLocation(mouseX-400, mouseY-400)>0) fill(0, 255, 0,50); else fill(255,0, 0,50);
+  fill(255,50);
   render.drawPolygonEdges(poly);
   strokeWeight(4.0);
   stroke(0, 255, 0);
+  fill(0,255,0,50);
   render.drawPolygonEdges(pos);
   stroke(255, 0, 0);
+  fill(255,0,0,50);
   render.drawPolygonEdges(neg);
 
 }

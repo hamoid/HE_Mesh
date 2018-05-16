@@ -125,6 +125,6 @@ public class HEM_Twist extends HEM_Modifier {
 			}
 		}
 
-		return selection.parent;
+		return selection.getParent();
 	}
 }

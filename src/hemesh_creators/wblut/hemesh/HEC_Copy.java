@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.Iterator;
@@ -26,10 +23,10 @@ public class HEC_Copy extends HEC_Creator {
 	/**
 	 *
 	 */
-	HE_HalfedgeStructure source;
-	public LongLongHashMap vertexCorrelation;
-	public LongLongHashMap faceCorrelation;
-	public LongLongHashMap halfedgeCorrelation;
+	HE_HalfedgeStructure	source;
+	public LongLongHashMap	vertexCorrelation;
+	public LongLongHashMap	faceCorrelation;
+	public LongLongHashMap	halfedgeCorrelation;
 
 	/**
 	 *
@@ -63,7 +60,6 @@ public class HEC_Copy extends HEC_Creator {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Creator#create()
 	 */
 	@Override
@@ -74,7 +70,6 @@ public class HEC_Copy extends HEC_Creator {
 			tracker.setStopStatus(this, "No source mesh. Exiting HEC_Copy.");
 			return result;
 		}
-
 		if (source instanceof HE_Mesh) {
 			final HE_Mesh mesh = (HE_Mesh) source;
 			result.copyProperties(mesh);
@@ -83,7 +78,8 @@ public class HEC_Copy extends HEC_Creator {
 			halfedgeCorrelation = new LongLongHashMap();
 			HE_Vertex rv;
 			HE_Vertex v;
-			WB_ProgressCounter counter = new WB_ProgressCounter(mesh.getNumberOfVertices(), 10);
+			WB_ProgressCounter counter = new WB_ProgressCounter(
+					mesh.getNumberOfVertices(), 10);
 			tracker.setCounterStatus(this, "Creating vertices.", counter);
 			final Iterator<HE_Vertex> vItr = mesh.vItr();
 			while (vItr.hasNext()) {
@@ -91,10 +87,9 @@ public class HEC_Copy extends HEC_Creator {
 				rv = new HE_Vertex(v);
 				result.add(rv);
 				rv.copyProperties(v);
-				vertexCorrelation.put(v.key(), rv.key());
+				vertexCorrelation.put(v.getKey(), rv.getKey());
 				counter.increment();
 			}
-
 			HE_Face rf;
 			HE_Face f;
 			counter = new WB_ProgressCounter(mesh.getNumberOfFaces(), 10);
@@ -105,10 +100,9 @@ public class HEC_Copy extends HEC_Creator {
 				rf = new HE_Face();
 				result.add(rf);
 				rf.copyProperties(f);
-				faceCorrelation.put(f.key(), rf.key());
+				faceCorrelation.put(f.getKey(), rf.getKey());
 				counter.increment();
 			}
-
 			HE_Halfedge rhe;
 			HE_Halfedge he;
 			counter = new WB_ProgressCounter(mesh.getNumberOfHalfedges(), 10);
@@ -120,12 +114,12 @@ public class HEC_Copy extends HEC_Creator {
 				rhe = new HE_Halfedge();
 				copyHalfedges.add(rhe);
 				rhe.copyProperties(he);
-				halfedgeCorrelation.put(he.key(), rhe.key());
+				halfedgeCorrelation.put(he.getKey(), rhe.getKey());
 				counter.increment();
 			}
-
 			counter = new WB_ProgressCounter(mesh.getNumberOfVertices(), 10);
-			tracker.setCounterStatus(this, "Setting vertex properties.", counter);
+			tracker.setCounterStatus(this, "Setting vertex properties.",
+					counter);
 			HE_Vertex sv;
 			HE_Vertex tv;
 			Iterator<HE_Vertex> svItr = mesh.vItr();
@@ -136,14 +130,13 @@ public class HEC_Copy extends HEC_Creator {
 				tv = tvItr.next();
 				tv.set(sv);
 				if (sv.getHalfedge() != null) {
-					key = halfedgeCorrelation.get(sv.getHalfedge().key());
+					key = halfedgeCorrelation.get(sv.getHalfedge().getKey());
 					if (key >= 0) {
 						result.setHalfedge(tv, copyHalfedges.getWithKey(key));
 					}
 				}
 				counter.increment();
 			}
-
 			counter = new WB_ProgressCounter(mesh.getNumberOfFaces(), 10);
 			tracker.setCounterStatus(this, "Setting face properties.", counter);
 			HE_Face sf;
@@ -154,16 +147,16 @@ public class HEC_Copy extends HEC_Creator {
 				sf = sfItr.next();
 				tf = tfItr.next();
 				if (sf.getHalfedge() != null) {
-					key = halfedgeCorrelation.get(sf.getHalfedge().key());
+					key = halfedgeCorrelation.get(sf.getHalfedge().getKey());
 					if (key >= 0) {
 						result.setHalfedge(tf, copyHalfedges.getWithKey(key));
 					}
 				}
 				counter.increment();
 			}
-
 			counter = new WB_ProgressCounter(mesh.getNumberOfHalfedges(), 10);
-			tracker.setCounterStatus(this, "Setting halfedge properties.", counter);
+			tracker.setCounterStatus(this, "Setting halfedge properties.",
+					counter);
 			HE_Halfedge she;
 			HE_Halfedge the;
 			Iterator<HE_Halfedge> sheItr = mesh.getHalfedges().iterator();
@@ -172,27 +165,27 @@ public class HEC_Copy extends HEC_Creator {
 				she = sheItr.next();
 				the = theItr.next();
 				if (she.getPair() != null) {
-					key = halfedgeCorrelation.get(she.getPair().key());
+					key = halfedgeCorrelation.get(she.getPair().getKey());
 					if (key >= 0) {
-						the._setPair(copyHalfedges.getWithKey(key));
-						the.getPair()._setPair(the);
+						the.setPair(copyHalfedges.getWithKey(key));
+						the.getPair().setPair(the);
 					}
 				}
 				if (she.getNextInFace() != null) {
-					key = halfedgeCorrelation.get(she.getNextInFace().key());
+					key = halfedgeCorrelation.get(she.getNextInFace().getKey());
 					if (key >= 0) {
-						the._setNext(copyHalfedges.getWithKey(key));
-						the.getNextInFace()._setPrev(the);
+						the.setNext(copyHalfedges.getWithKey(key));
+						the.getNextInFace().setPrev(the);
 					}
 				}
 				if (she.getVertex() != null) {
-					key = vertexCorrelation.get(she.getVertex().key());
+					key = vertexCorrelation.get(she.getVertex().getKey());
 					if (key >= 0) {
 						result.setVertex(the, result.getVertexWithKey(key));
 					}
 				}
 				if (she.getFace() != null) {
-					key = faceCorrelation.get(she.getFace().key());
+					key = faceCorrelation.get(she.getFace().getKey());
 					if (key >= 0) {
 						result.setFace(the, result.getFaceWithKey(key));
 					}
@@ -200,47 +193,42 @@ public class HEC_Copy extends HEC_Creator {
 				result.add(the);
 				counter.increment();
 			}
-
 			Set<String> names = mesh.getSelectionNames();
-
 			for (String name : names) {
-
 				HE_Selection source = mesh.getSelection(name);
 				HE_Selection target = HE_Selection.getSelection(result);
 				svItr = source.vItr();
 				while (svItr.hasNext()) {
 					sv = svItr.next();
-					key = vertexCorrelation.get(sv.key());
+					key = vertexCorrelation.get(sv.getKey());
 					target.add(result.getVertexWithKey(key));
 				}
 				sheItr = source.heItr();
 				while (sheItr.hasNext()) {
 					she = sheItr.next();
-					key = halfedgeCorrelation.get(she.key());
+					key = halfedgeCorrelation.get(she.getKey());
 					target.add(result.getHalfedgeWithKey(key));
 				}
 				sfItr = source.fItr();
 				while (sfItr.hasNext()) {
 					sf = sfItr.next();
-					key = faceCorrelation.get(sf.key());
+					key = faceCorrelation.get(sf.getKey());
 					target.add(result.getFaceWithKey(key));
 				}
 				result.addSelection(name, target);
-
 			}
-
 			tracker.setStopStatus(this, "Exiting HEC_Copy.");
 		} else if (source instanceof HE_Selection) {
 			final HE_Selection sel = ((HE_Selection) source).get();
 			result.copyProperties(sel);
 			sel.completeFromFaces();
-
 			vertexCorrelation = new LongLongHashMap();
 			faceCorrelation = new LongLongHashMap();
 			halfedgeCorrelation = new LongLongHashMap();
 			HE_Vertex rv;
 			HE_Vertex v;
-			WB_ProgressCounter counter = new WB_ProgressCounter(sel.getNumberOfVertices(), 10);
+			WB_ProgressCounter counter = new WB_ProgressCounter(
+					sel.getNumberOfVertices(), 10);
 			tracker.setCounterStatus(this, "Creating vertices.", counter);
 			final Iterator<HE_Vertex> vItr = sel.vItr();
 			while (vItr.hasNext()) {
@@ -248,7 +236,7 @@ public class HEC_Copy extends HEC_Creator {
 				rv = new HE_Vertex(v);
 				result.add(rv);
 				rv.copyProperties(v);
-				vertexCorrelation.put(v.key(), rv.key());
+				vertexCorrelation.put(v.getKey(), rv.getKey());
 				counter.increment();
 			}
 			HE_Face rf;
@@ -261,7 +249,7 @@ public class HEC_Copy extends HEC_Creator {
 				rf = new HE_Face();
 				result.add(rf);
 				rf.copyProperties(f);
-				faceCorrelation.put(f.key(), rf.key());
+				faceCorrelation.put(f.getKey(), rf.getKey());
 				counter.increment();
 			}
 			HE_Halfedge rhe;
@@ -275,11 +263,12 @@ public class HEC_Copy extends HEC_Creator {
 				rhe = new HE_Halfedge();
 				copyHalfedges.add(rhe);
 				rhe.copyProperties(he);
-				halfedgeCorrelation.put(he.key(), rhe.key());
+				halfedgeCorrelation.put(he.getKey(), rhe.getKey());
 				counter.increment();
 			}
 			counter = new WB_ProgressCounter(sel.getNumberOfVertices(), 10);
-			tracker.setCounterStatus(this, "Setting vertex properties.", counter);
+			tracker.setCounterStatus(this, "Setting vertex properties.",
+					counter);
 			HE_Vertex sv;
 			HE_Vertex tv;
 			final Iterator<HE_Vertex> svItr = sel.vItr();
@@ -290,7 +279,7 @@ public class HEC_Copy extends HEC_Creator {
 				tv = tvItr.next();
 				tv.set(sv);
 				if (sv.getHalfedge() != null) {
-					key = halfedgeCorrelation.get(sv.getHalfedge().key());
+					key = halfedgeCorrelation.get(sv.getHalfedge().getKey());
 					if (key >= 0) {
 						result.setHalfedge(tv, copyHalfedges.getWithKey(key));
 					}
@@ -307,7 +296,7 @@ public class HEC_Copy extends HEC_Creator {
 				sf = sfItr.next();
 				tf = tfItr.next();
 				if (sf.getHalfedge() != null) {
-					key = halfedgeCorrelation.get(sf.getHalfedge().key());
+					key = halfedgeCorrelation.get(sf.getHalfedge().getKey());
 					if (key >= 0) {
 						result.setHalfedge(tf, copyHalfedges.getWithKey(key));
 					}
@@ -315,7 +304,8 @@ public class HEC_Copy extends HEC_Creator {
 				counter.increment();
 			}
 			counter = new WB_ProgressCounter(sel.getNumberOfHalfedges(), 10);
-			tracker.setCounterStatus(this, "Setting halfedge properties.", counter);
+			tracker.setCounterStatus(this, "Setting halfedge properties.",
+					counter);
 			HE_Halfedge she;
 			HE_Halfedge the;
 			final Iterator<HE_Halfedge> sheItr = sel.heItr();
@@ -324,27 +314,27 @@ public class HEC_Copy extends HEC_Creator {
 				she = sheItr.next();
 				the = theItr.next();
 				if (she.getPair() != null) {
-					key = halfedgeCorrelation.get(she.getPair().key());
+					key = halfedgeCorrelation.get(she.getPair().getKey());
 					if (key >= 0) {
-						the._setPair(copyHalfedges.getWithKey(key));
-						the.getPair()._setPair(the);
+						the.setPair(copyHalfedges.getWithKey(key));
+						the.getPair().setPair(the);
 					}
 				}
 				if (she.getNextInFace() != null) {
-					key = halfedgeCorrelation.get(she.getNextInFace().key());
+					key = halfedgeCorrelation.get(she.getNextInFace().getKey());
 					if (key >= 0) {
-						the._setNext(copyHalfedges.getWithKey(key));
-						the.getNextInFace()._setPrev(the);
+						the.setNext(copyHalfedges.getWithKey(key));
+						the.getNextInFace().setPrev(the);
 					}
 				}
 				if (she.getVertex() != null) {
-					key = vertexCorrelation.get(she.getVertex().key());
+					key = vertexCorrelation.get(she.getVertex().getKey());
 					if (key >= 0) {
 						result.setVertex(the, result.getVertexWithKey(key));
 					}
 				}
 				if (she.getFace() != null) {
-					key = faceCorrelation.get(she.getFace().key());
+					key = faceCorrelation.get(she.getFace().getKey());
 					if (key >= 0) {
 						result.setFace(the, result.getFaceWithKey(key));
 					}
@@ -352,7 +342,7 @@ public class HEC_Copy extends HEC_Creator {
 				result.add(the);
 				counter.increment();
 			}
-			result.capHalfedges();
+			HE_MeshOp.capHalfedges(result);
 			tracker.setStopStatus(this, "Exiting HEC_Copy.");
 		}
 		return result;

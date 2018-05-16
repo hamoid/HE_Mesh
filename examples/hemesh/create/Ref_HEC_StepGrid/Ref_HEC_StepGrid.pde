@@ -27,6 +27,7 @@ void setup() {
   creator.setValues(values);// displacement of grid cells
   mesh=new HE_Mesh(creator);
   mesh.modify(new HEM_HideEdges());
+  mesh.stats();
   render=new WB_Render(this);
 }
 

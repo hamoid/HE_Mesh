@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.ArrayList;
@@ -25,38 +22,37 @@ import wblut.math.WB_Epsilon;
 public class HES_DooSabin extends HES_Subdividor {
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.hemesh.subdividors.HES_Subdividor#subdivide(wblut.hemesh.HE_Mesh)
 	 */
 	/**
 	 *
 	 */
-	private double faceFactor;
+	private double		faceFactor;
 	/**
 	 *
 	 */
-	private double edgeFactor;
+	private double		edgeFactor;
 	/**
 	 *
 	 */
-	private boolean absolute;
+	private boolean		absolute;
 	/**
 	 *
 	 */
-	private double d;
+	private double		d;
 	/**
 	 *
 	 */
-	public HE_Selection faceFaces;
+	public HE_Selection	faceFaces;
 	/**
 	 *
 	 */
-	public HE_Selection edgeFaces;
+	public HE_Selection	edgeFaces;
 	/**
 	 *
 	 */
-	public HE_Selection vertexFaces;
+	public HE_Selection	vertexFaces;
 
 	/**
 	 *
@@ -103,13 +99,13 @@ public class HES_DooSabin extends HES_Subdividor {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HES_Subdividor#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Mesh mesh) {
 		if (mesh.selectBoundaryEdges().getNumberOfEdges() > 0) {
-			throw new IllegalArgumentException("HES_DooSabin only supports closed meshes at this time.");
+			throw new IllegalArgumentException(
+					"HES_DooSabin only supports closed meshes at this time.");
 		}
 		Iterator<HE_Face> fItr = mesh.fItr();
 		final LongIntHashMap halfedgeCorrelation = new LongIntHashMap();
@@ -128,28 +124,35 @@ public class HES_DooSabin extends HES_Subdividor {
 		while (fItr.hasNext()) {
 			f = fItr.next();
 			he = f.getHalfedge();
-			fc = new WB_Point(f.getFaceCenter());
+			fc = new WB_Point(HE_MeshOp.getFaceCenter(f));
 			do {
 				final WB_Point p = fc.mul(faceFactor);
 				p.addSelf(he.getVertex());
-				p.addSelf(WB_Vector.mul(he.getHalfedgeCenter(), edgeFactor));
-				p.addSelf(WB_Vector.mul(he.getPrevInFace().getHalfedgeCenter(), edgeFactor));
+				p.addSelf(WB_Vector.mul(HE_MeshOp.getHalfedgeCenter(he),
+						edgeFactor));
+				p.addSelf(WB_Vector.mul(
+						HE_MeshOp.getHalfedgeCenter(he.getPrevInFace()),
+						edgeFactor));
 				p.divSelf(div);
 				if (absolute) {
-					final double dcurrent = WB_CoordOp3D.getDistance3D(p, he.getVertex());
+					final double dcurrent = WB_CoordOp3D.getDistance3D(p,
+							he.getVertex());
 					p.subSelf(he.getVertex());
 					p.mulSelf(d / dcurrent);
 					p.addSelf(he.getVertex());
 				}
-				halfedgeCorrelation.put(he.key(), vertexCount);
+				halfedgeCorrelation.put(he.getKey(), vertexCount);
 				vertexCount++;
 				newVertices.add(p);
 				he = he.getNextInFace();
 			} while (he != f.getHalfedge());
 		}
-		final int[][] faces = new int[mesh.getNumberOfFaces() + mesh.getNumberOfEdges() + mesh.getNumberOfVertices()][];
-		final int[] labels = new int[mesh.getNumberOfFaces() + mesh.getNumberOfEdges() + mesh.getNumberOfVertices()];
-		final int[] noe = { mesh.getNumberOfFaces(), mesh.getNumberOfEdges(), mesh.getNumberOfVertices() };
+		final int[][] faces = new int[mesh.getNumberOfFaces()
+				+ mesh.getNumberOfEdges() + mesh.getNumberOfVertices()][];
+		final int[] labels = new int[mesh.getNumberOfFaces()
+				+ mesh.getNumberOfEdges() + mesh.getNumberOfVertices()];
+		final int[] noe = { mesh.getNumberOfFaces(), mesh.getNumberOfEdges(),
+				mesh.getNumberOfVertices() };
 		int currentFace = 0;
 		fItr = mesh.fItr();
 		while (fItr.hasNext()) {
@@ -159,7 +162,7 @@ public class HES_DooSabin extends HES_Subdividor {
 			int i = 0;
 			labels[currentFace] = currentFace;
 			do {
-				faces[currentFace][i] = halfedgeCorrelation.get(he.key());
+				faces[currentFace][i] = halfedgeCorrelation.get(he.getKey());
 				he = he.getNextInFace();
 				i++;
 			} while (he != f.getHalfedge());
@@ -171,10 +174,13 @@ public class HES_DooSabin extends HES_Subdividor {
 		while (eItr.hasNext()) {
 			e = eItr.next();
 			faces[currentFace] = new int[4];
-			faces[currentFace][3] = halfedgeCorrelation.get(e.key());
-			faces[currentFace][2] = halfedgeCorrelation.get(e.getNextInFace().key());
-			faces[currentFace][1] = halfedgeCorrelation.get(e.getPair().key());
-			faces[currentFace][0] = halfedgeCorrelation.get(e.getPair().getNextInFace().key());
+			faces[currentFace][3] = halfedgeCorrelation.get(e.getKey());
+			faces[currentFace][2] = halfedgeCorrelation
+					.get(e.getNextInFace().getKey());
+			faces[currentFace][1] = halfedgeCorrelation
+					.get(e.getPair().getKey());
+			faces[currentFace][0] = halfedgeCorrelation
+					.get(e.getPair().getNextInFace().getKey());
 			labels[currentFace] = currentEdge;
 			currentEdge++;
 			currentFace++;
@@ -188,7 +194,7 @@ public class HES_DooSabin extends HES_Subdividor {
 			he = v.getHalfedge();
 			int i = v.getVertexDegree() - 1;
 			do {
-				faces[currentFace][i] = halfedgeCorrelation.get(he.key());
+				faces[currentFace][i] = halfedgeCorrelation.get(he.getKey());
 				he = he.getNextInVertex();
 				i--;
 			} while (he != v.getHalfedge());
@@ -196,7 +202,8 @@ public class HES_DooSabin extends HES_Subdividor {
 			currentVertex++;
 			currentFace++;
 		}
-		final HEC_FromFacelist fl = new HEC_FromFacelist().setFaces(faces).setVertices(newVertices).setDuplicate(false);
+		final HEC_FromFacelist fl = new HEC_FromFacelist().setFaces(faces)
+				.setVertices(newVertices).setDuplicate(false);
 		mesh.setNoCopy(fl.create());
 		fItr = mesh.fItr();
 		currentFace = 0;
@@ -220,13 +227,12 @@ public class HES_DooSabin extends HES_Subdividor {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.hemesh.subdividors.HES_Subdividor#subdivideSelected(wblut.hemesh
 	 * .HE_Mesh, wblut.hemesh.HE_Selection)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
-		return selection.parent;
+		return selection.getParent();
 	}
 }

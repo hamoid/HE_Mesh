@@ -1,12 +1,11 @@
 /**
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  *
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
  *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -17,11 +16,10 @@ import java.util.concurrent.atomic.AtomicLong;
  * never modified by HE_Mesh. The internalLabel is set and reset by HE_Mesh.
  */
 public abstract class HE_Element {
-
-	protected static AtomicLong currentKey = new AtomicLong(0);
-	protected final long key;
-	protected int internalLabel;
-	protected int userLabel;
+	private static AtomicLong	currentKey	= new AtomicLong(0);
+	private final long			key;
+	private int					internalLabel;
+	private int					userLabel;
 
 	/**
 	 *
@@ -30,20 +28,6 @@ public abstract class HE_Element {
 		key = currentKey.getAndAdd(1);
 		internalLabel = -1;
 		userLabel = -1;
-	}
-
-	protected final void setInternalLabel(final int label) {
-		internalLabel = label;
-	}
-
-	/**
-	 * Set the user label to an integer value. -1 is the default value.
-	 *
-	 * @param label
-	 */
-	public final void setUserLabel(final int label) {
-
-		userLabel = label;
 	}
 
 	/**
@@ -55,6 +39,10 @@ public abstract class HE_Element {
 		return key;
 	}
 
+	protected final void setInternalLabel(final int label) {
+		internalLabel = label;
+	}
+
 	/**
 	 *
 	 *
@@ -62,7 +50,15 @@ public abstract class HE_Element {
 	 */
 	public final int getInternalLabel() {
 		return internalLabel;
+	}
 
+	/**
+	 * Set the user label to an integer value. -1 is the default value.
+	 *
+	 * @param label
+	 */
+	public final void setUserLabel(final int label) {
+		userLabel = label;
 	}
 
 	/**
@@ -76,7 +72,6 @@ public abstract class HE_Element {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -86,7 +81,6 @@ public abstract class HE_Element {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override

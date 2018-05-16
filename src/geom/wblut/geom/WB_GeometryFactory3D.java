@@ -2658,7 +2658,7 @@ public class WB_GeometryFactory3D extends WB_GeometryFactory2D {
 	 * @param radius
 	 * @return
 	 */
-	public WB_Mesh createPolyhedron(String name, final double radius) {
+	public WB_Mesh createPolyhedronFromWRL(String name, final double radius) {
 		final BufferedReader br = new BufferedReader(new InputStreamReader(
 				this.getClass().getClassLoader().getResourceAsStream("resources/" + name + ".wrl")));
 

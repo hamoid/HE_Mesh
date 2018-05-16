@@ -54,16 +54,16 @@ abstract public class HES_Subdividor extends HE_Machine {
 			tracker.setStopStatus(this, "Nothing to subdivide.");
 			return new HE_Mesh();
 		}
-		HE_Mesh copy = selection.parent.get();
+		HE_Mesh copy = selection.getParent().get();
 		try {
 			HE_Mesh result = applySelf(selection);
 			tracker.setStopStatus(this, "Mesh subdivided.");
 			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
-			selection.parent.setNoCopy(copy);
+			selection.getParent().setNoCopy(copy);
 			tracker.setStopStatus(this, "Subdivision failed. Resetting mesh.");
-			return selection.parent;
+			return selection.getParent();
 		} finally {
 			copy = null;
 		}

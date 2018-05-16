@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.List;
@@ -21,22 +18,17 @@ import wblut.math.WB_Epsilon;
  *
  */
 public class HEM_Mirror extends HEM_Modifier {
-
-	private WB_Plane P;
-
-	private boolean reverse = false;
-
-	private boolean keepLargest = false;
-
-	private double offset;
+	private WB_Plane	P;
+	private boolean		reverse		= false;
+	private boolean		keepLargest	= false;
+	private double		offset;
 	// 1D array of vertex pairs, each vertex retained form original mesh is
 	// followed by corresponding mirrored vertex. If the vertex lies on the
 	// mirror plane, the original vertex is repeated.
-	public HE_Vertex[] pairs;
-
+	public HE_Vertex[]	pairs;
 	// 1D array of original-mirrored vertex pairs on the boundary of the
 	// resulting mesh.
-	public HE_Vertex[] boundaryPairs;
+	public HE_Vertex[]	boundaryPairs;
 
 	/**
 	 *
@@ -78,7 +70,8 @@ public class HEM_Mirror extends HEM_Modifier {
 	 * @param nz
 	 * @return
 	 */
-	public HEM_Mirror setPlane(final double ox, final double oy, final double oz, final double nx, final double ny,
+	public HEM_Mirror setPlane(final double ox, final double oy,
+			final double oz, final double nx, final double ny,
 			final double nz) {
 		P = new WB_Plane(ox, oy, oz, nx, ny, nz);
 		return this;
@@ -102,12 +95,10 @@ public class HEM_Mirror extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Modifier#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Mesh mesh) {
-
 		if (P == null) {
 			pairs = new HE_Vertex[0];
 			return mesh;
@@ -116,7 +107,6 @@ public class HEM_Mirror extends HEM_Modifier {
 			HE_Selection selF = mesh.selectFrontVertices(P);
 			HE_Selection selB = mesh.selectBackVertices(P);
 			reverse = selF.getNumberOfVertices() < selB.getNumberOfVertices();
-
 		}
 		HEM_Slice slice = new HEM_Slice();
 		slice.setPlane(P);
@@ -124,7 +114,6 @@ public class HEM_Mirror extends HEM_Modifier {
 		slice.setReverse(reverse);
 		slice.setCap(false);
 		mesh.modify(slice);
-
 		mesh.selectAllFaces("mirror0");
 		mesh.removeSelection("mirror1");
 		HE_Mesh mirrormesh = mesh.get();
@@ -143,25 +132,18 @@ public class HEM_Mirror extends HEM_Modifier {
 				}
 				pairs[2 * i] = origv;
 				pairs[2 * i + 1] = origv;
-
 			} else {
 				v.set(P.extractPoint2D(P.localPoint(v).scaleSelf(1, 1, -1)));
 				pairs[2 * i] = origv;
 				pairs[2 * i + 1] = v;
-
 			}
-
 		}
-
-		HET_MeshOp.flipFaces(mirrormesh);
-
+		HE_MeshOp.flipFaces(mirrormesh);
 		mesh.add(mirrormesh);
-
 		mesh.cleanUnusedElementsByFace();
 		mesh.uncapBoundaryHalfedges();
-		mesh.pairHalfedges();
-		mesh.capHalfedges();
-
+		HE_MeshOp.pairHalfedges(mesh);
+		HE_MeshOp.capHalfedges(mesh);
 		for (int i = 0; i < pairs.length; i += 2) {
 			v = pairs[i];
 			if (v.isBoundary()) {
@@ -176,17 +158,15 @@ public class HEM_Mirror extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.hemesh.modifiers.HEB_Modifier#modifySelected(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
-		return applySelf(selection.parent);
+		return applySelf(selection.getParent());
 	}
 
 	public static void main(final String[] args) {
-
 		HEC_Cylinder creator = new HEC_Cylinder();
 		creator.setFacets(32).setSteps(16).setRadius(50).setHeight(400);
 		HE_Mesh mesh = new HE_Mesh(creator);
@@ -197,6 +177,5 @@ public class HEM_Mirror extends HEM_Modifier {
 		modifier.setReverse(false);
 		modifier.setKeepLargest(true);
 		mesh.modify(modifier);
-
 	}
 }

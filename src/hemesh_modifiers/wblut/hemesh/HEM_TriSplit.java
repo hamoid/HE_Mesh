@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import wblut.core.WB_ProgressReporter.WB_ProgressCounter;
@@ -23,11 +20,11 @@ public class HEM_TriSplit extends HEM_Modifier {
 	/**
 	 *
 	 */
-	private double d;
+	private double			d;
 	/**
 	 *
 	 */
-	private HE_Selection selectionOut;
+	private HE_Selection	selectionOut;
 
 	/**
 	 *
@@ -50,7 +47,6 @@ public class HEM_TriSplit extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Modifier#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
@@ -63,7 +59,6 @@ public class HEM_TriSplit extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Modifier#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
@@ -71,7 +66,7 @@ public class HEM_TriSplit extends HEM_Modifier {
 		tracker.setStartStatus(this, "Starting HEM_TriSplit.");
 		splitFacesTri(selection, d);
 		tracker.setStopStatus(this, "Exiting HEM_TriSplit.");
-		return selection.parent;
+		return selection.getParent();
 	}
 
 	/**
@@ -84,13 +79,13 @@ public class HEM_TriSplit extends HEM_Modifier {
 	 * @return selection of new faces and new vertex
 	 */
 	private void splitFacesTri(final HE_Selection selection, final double d) {
-		selectionOut = HE_Selection.getSelection(selection.parent);
+		selectionOut = HE_Selection.getSelection(selection.getParent());
 		final HE_Face[] faces = selection.getFacesAsArray();
 		final int n = selection.getNumberOfFaces();
 		WB_ProgressCounter counter = new WB_ProgressCounter(n, 10);
 		tracker.setCounterStatus(this, "Splitting faces.", counter);
 		for (int i = 0; i < n; i++) {
-			HE_Selection sft = splitFaceTri(faces[i], d, selection.parent);
+			HE_Selection sft = splitFaceTri(faces[i], d, selection.getParent());
 			if (sft != null) {
 				selectionOut.add(sft);
 			}
@@ -109,8 +104,11 @@ public class HEM_TriSplit extends HEM_Modifier {
 	 * @param mesh
 	 * @return selection of new faces and new vertex
 	 */
-	private HE_Selection splitFaceTri(final HE_Face face, final double d, final HE_Mesh mesh) {
-		return splitFaceTri(mesh, face, WB_Point.addMul(face.getFaceCenter(), d, face.getFaceNormal()));
+	private HE_Selection splitFaceTri(final HE_Face face, final double d,
+			final HE_Mesh mesh) {
+		return splitFaceTri(mesh, face,
+				WB_Point.addMul(HE_MeshOp.getFaceCenter(face), d,
+						HE_MeshOp.getFaceNormal(face)));
 	}
 
 	/**
@@ -121,7 +119,8 @@ public class HEM_TriSplit extends HEM_Modifier {
 	 * @param p
 	 * @return
 	 */
-	public static HE_Selection splitFaceTri(final HE_Mesh mesh, final HE_Face face, final WB_Coord p) {
+	public static HE_Selection splitFaceTri(final HE_Mesh mesh,
+			final HE_Face face, final WB_Coord p) {
 		HE_Halfedge he = face.getHalfedge();
 		final HE_Vertex vi = new HE_Vertex(p);
 		vi.setInternalLabel(2);
@@ -149,7 +148,8 @@ public class HEM_TriSplit extends HEM_Modifier {
 		boolean onEdge = false;
 		do {
 			c++;
-			final WB_Plane P = new WB_Plane(he.getHalfedgeCenter(), he.getHalfedgeNormal());
+			final WB_Plane P = new WB_Plane(HE_MeshOp.getHalfedgeCenter(he),
+					HE_MeshOp.getHalfedgeNormal(he));
 			final double d = WB_GeometryOp3D.getDistance3D(p, P);
 			if (WB_Epsilon.isZero(d)) {
 				onEdge = true;
@@ -196,7 +196,6 @@ public class HEM_TriSplit extends HEM_Modifier {
 			for (int i = 0; i < c; i++) {
 				mesh.setNext(he0[i], he1[i]);
 				mesh.setPair(he1[i], he2[i == c - 1 ? 0 : i + 1]);
-
 			}
 			out.add(vi);
 			return out;

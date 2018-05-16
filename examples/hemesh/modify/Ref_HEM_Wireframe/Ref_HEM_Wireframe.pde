@@ -1,5 +1,3 @@
-import processing.opengl.*;
-
 import wblut.math.*;
 import wblut.processing.*;
 import wblut.core.*;

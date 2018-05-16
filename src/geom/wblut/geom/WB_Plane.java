@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.geom;
 
 import wblut.math.WB_Epsilon;
@@ -15,8 +12,7 @@ import wblut.math.WB_Math;
 /**
  *
  */
-public class WB_Plane {
-
+public class WB_Plane implements WB_Geometry3D {
 	/**
 	 *
 	 *
@@ -45,14 +41,13 @@ public class WB_Plane {
 	}
 
 	/** Plane normal. */
-	private WB_Vector n;
+	private WB_Vector	n;
 	/** Origin. */
-	private WB_Point origin;
-
+	private WB_Point	origin;
 	/**
 	 *
 	 */
-	private WB_Vector u, v;
+	private WB_Vector	u, v;
 
 	/**
 	 *
@@ -80,8 +75,8 @@ public class WB_Plane {
 	 * @param ny
 	 * @param nz
 	 */
-	public WB_Plane(final double ox, final double oy, final double oz, final double nx, final double ny,
-			final double nz) {
+	public WB_Plane(final double ox, final double oy, final double oz,
+			final double nx, final double ny, final double nz) {
 		origin = new WB_Point(ox, oy, oz);
 		n = new WB_Vector(nx, ny, nz);
 		n.normalizeSelf();
@@ -150,8 +145,8 @@ public class WB_Plane {
 	 * @param nz
 	 * @param d
 	 */
-	public WB_Plane(final double ox, final double oy, final double oz, final double nx, final double ny,
-			final double nz, final double d) {
+	public WB_Plane(final double ox, final double oy, final double oz,
+			final double nx, final double ny, final double nz, final double d) {
 		origin = new WB_Point(ox, oy, oz);
 		n = new WB_Vector(nx, ny, nz);
 		n.normalizeSelf();
@@ -182,7 +177,8 @@ public class WB_Plane {
 	 * @param p3
 	 * @param d
 	 */
-	public WB_Plane(final WB_Coord p1, final WB_Coord p2, final WB_Coord p3, final double d) {
+	public WB_Plane(final WB_Coord p1, final WB_Coord p2, final WB_Coord p3,
+			final double d) {
 		final WB_Vector v21 = new WB_Vector(p1, p2);
 		final WB_Vector v31 = new WB_Vector(p1, p3);
 		n = new WB_Vector(v21.cross(v31));
@@ -265,7 +261,6 @@ public class WB_Plane {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -298,9 +293,15 @@ public class WB_Plane {
 	 */
 	public WB_Point localPoint(final WB_Coord p) {
 		return new WB_Point(
-				u.xd() * (p.xd() - origin.xd()) + u.yd() * (p.yd() - origin.yd()) + u.zd() * (p.zd() - origin.zd()),
-				v.xd() * (p.xd() - origin.xd()) + v.yd() * (p.yd() - origin.yd()) + v.zd() * (p.zd() - origin.zd()),
-				n.xd() * (p.xd() - origin.xd()) + n.yd() * (p.yd() - origin.yd()) + n.zd() * (p.zd() - origin.zd()));
+				u.xd() * (p.xd() - origin.xd())
+						+ u.yd() * (p.yd() - origin.yd())
+						+ u.zd() * (p.zd() - origin.zd()),
+				v.xd() * (p.xd() - origin.xd())
+						+ v.yd() * (p.yd() - origin.yd())
+						+ v.zd() * (p.zd() - origin.zd()),
+				n.xd() * (p.xd() - origin.xd())
+						+ n.yd() * (p.yd() - origin.yd())
+						+ n.zd() * (p.zd() - origin.zd()));
 	}
 
 	// Return 2D coordinates relative to plane axes
@@ -313,8 +314,12 @@ public class WB_Plane {
 	 */
 	public WB_Point localPoint2D(final WB_Coord p) {
 		return new WB_Point(
-				u.xd() * (p.xd() - origin.xd()) + u.yd() * (p.yd() - origin.yd()) + u.zd() * (p.zd() - origin.zd()),
-				v.xd() * (p.xd() - origin.xd()) + v.yd() * (p.yd() - origin.yd()) + v.zd() * (p.zd() - origin.zd()));
+				u.xd() * (p.xd() - origin.xd())
+						+ u.yd() * (p.yd() - origin.yd())
+						+ u.zd() * (p.zd() - origin.zd()),
+				v.xd() * (p.xd() - origin.xd())
+						+ v.yd() * (p.yd() - origin.yd())
+						+ v.zd() * (p.zd() - origin.zd()));
 	}
 
 	// Return embedded point coordinates relative to world axes
@@ -327,7 +332,8 @@ public class WB_Plane {
 	 */
 	public WB_Point extractPoint(final WB_Coord p) {
 		return new WB_Point(origin.xd() + p.xd() * u.xd() + p.yd() * v.xd(),
-				origin.yd() + p.xd() * u.yd() + p.yd() * v.yd(), origin.zd() + p.xd() * u.zd() + p.yd() * v.zd());
+				origin.yd() + p.xd() * u.yd() + p.yd() * v.yd(),
+				origin.zd() + p.xd() * u.zd() + p.yd() * v.zd());
 	}
 
 	// Return embedded point coordinates relative to world axes
@@ -341,7 +347,8 @@ public class WB_Plane {
 	 * @return
 	 */
 	public WB_Point extractPoint(final double x, final double y) {
-		return new WB_Point(origin.xd() + x * u.xd() + y * v.xd(), origin.yd() + x * u.yd() + y * v.yd(),
+		return new WB_Point(origin.xd() + x * u.xd() + y * v.xd(),
+				origin.yd() + x * u.yd() + y * v.yd(),
 				origin.zd() + x * u.zd() + y * v.zd());
 	}
 
@@ -354,9 +361,13 @@ public class WB_Plane {
 	 * @return
 	 */
 	public WB_Point extractPoint2D(final WB_Coord p) {
-		return new WB_Point(origin.xd() + p.xd() * u.xd() + p.yd() * v.xd() + p.zd() * n.xd(),
-				origin.yd() + p.xd() * u.yd() + p.yd() * v.yd() + p.zd() * n.yd(),
-				origin.zd() + p.xd() * u.zd() + p.yd() * v.zd() + p.zd() * n.zd());
+		return new WB_Point(
+				origin.xd() + p.xd() * u.xd() + p.yd() * v.xd()
+						+ p.zd() * n.xd(),
+				origin.yd() + p.xd() * u.yd() + p.yd() * v.yd()
+						+ p.zd() * n.yd(),
+				origin.zd() + p.xd() * u.zd() + p.yd() * v.zd()
+						+ p.zd() * n.zd());
 	}
 
 	// Return coordinates relative to world axes
@@ -371,9 +382,11 @@ public class WB_Plane {
 	 *
 	 * @return
 	 */
-	public WB_Point extractPoint(final double x, final double y, final double z) {
+	public WB_Point extractPoint(final double x, final double y,
+			final double z) {
 		return new WB_Point(origin.xd() + x * u.xd() + y * v.xd() + z * n.xd(),
-				origin.yd() + x * u.yd() + y * v.yd() + z * n.yd(), origin.zd() + x * u.zd() + y * v.zd() + z * n.zd());
+				origin.yd() + x * u.yd() + y * v.yd() + z * n.yd(),
+				origin.zd() + x * u.zd() + y * v.zd() + z * n.zd());
 	}
 
 	// Return new point mirrored across plane
@@ -419,5 +432,29 @@ public class WB_Plane {
 	 */
 	public WB_Vector getW() {
 		return getNormal();
+	}
+
+	@Override
+	public WB_Plane apply2D(WB_Transform2D T) {
+		return new WB_Plane(origin.apply2D(T), n.apply2D(T));
+	}
+
+	@Override
+	public WB_Plane apply2DSelf(WB_Transform2D T) {
+		origin.apply2DSelf(T);
+		n.apply2DSelf(T);
+		return this;
+	}
+
+	@Override
+	public WB_Plane apply(WB_Transform T) {
+		return new WB_Plane(origin.apply(T), n.apply(T));
+	}
+
+	@Override
+	public WB_Plane applySelf(WB_Transform T) {
+		origin.applySelf(T);
+		n.applySelf(T);
+		return this;
 	}
 }

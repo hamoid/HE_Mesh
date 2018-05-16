@@ -9,7 +9,7 @@ WB_Render3D render;
 int[] tris;
 WB_CoordCollection points;
 WB_AABBTree2D tree;
-WB_Danzer danzerC;
+WB_Danzer2D danzerC;
 void setup() {
   size(1000, 1000, P3D);
   smooth(8);
@@ -18,7 +18,7 @@ void setup() {
   render=new WB_Render3D(this);
   println(WB_Version.version());
   println(WB_Disclaimer.disclaimer());
-  danzerC=new WB_Danzer(800.0, WB_Danzer.Type.C, new WB_Point(width/2, height/2));
+  danzerC=new WB_Danzer2D(800.0, WB_Danzer2D.Type.C, new WB_Point(width/2, height/2));
   danzerC.inflate(3);
   points=danzerC.getPoints();
   tris=danzerC.getTriangles();

@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.ArrayList;
@@ -36,12 +33,10 @@ public class HEC_FromPolyhedron extends HEC_Creator {
 	public HEC_FromPolyhedron(final WB_Polyhedron source) {
 		super();
 		this.source = source;
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Creator#create()
 	 */
 	@Override
@@ -54,9 +49,7 @@ public class HEC_FromPolyhedron extends HEC_Creator {
 			return mesh;
 		}
 		final int[][] faces = source.getFaces();
-
 		final List<HE_Vertex> vertices = new FastList<HE_Vertex>();
-
 		HE_Vertex v;
 		for (int i = 0; i < source.getNumberOfVertices(); i++) {
 			v = new HE_Vertex(source.getVertex(i));
@@ -64,7 +57,6 @@ public class HEC_FromPolyhedron extends HEC_Creator {
 			vertices.add(v);
 			mesh.add(v);
 		}
-
 		int id = 0;
 		HE_Halfedge he;
 		for (final int[] face : faces) {
@@ -97,12 +89,12 @@ public class HEC_FromPolyhedron extends HEC_Creator {
 					mesh.setHalfedge(he.getVertex(), he);
 				}
 				mesh.add(hef);
-				mesh.cycleHalfedges(faceEdges);
+				HE_MeshOp.cycleHalfedges(mesh, faceEdges);
 				mesh.addHalfedges(faceEdges);
 			}
 		}
-		mesh.pairHalfedges();
-		mesh.capHalfedges();
+		HE_MeshOp.pairHalfedges(mesh);
+		HE_MeshOp.capHalfedges(mesh);
 		mesh.scaleSelf(source.getScale());
 		return mesh;
 	}

@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.Iterator;
@@ -25,26 +22,24 @@ import wblut.geom.WB_Plane;
  */
 public class HEM_Slice extends HEM_Modifier {
 	/** Cut plane. */
-	private WB_Plane P;
+	private WB_Plane	P;
 	/**
 	 * HEM_slice keeps the part of the mesh on the positive side of the plane.
 	 * Reverse planar cut.
 	 */
-	private boolean reverse = false;
+	private boolean		reverse		= false;
 	/**
 	 * Cap holes?. Capping holes does not work properly with
 	 * self-intersection...
 	 */
-	private boolean capHoles = true;
-
-	private boolean optimizeCap = false;
-
+	private boolean		capHoles	= true;
+	private boolean		optimizeCap	= false;
 	/** The offset. */
-	private double offset;
+	private double		offset;
 	/**
 	 *
 	 */
-	HEM_SliceSurface ss;
+	HEM_SliceSurface	ss;
 
 	/**
 	 * Set offset.
@@ -94,8 +89,8 @@ public class HEM_Slice extends HEM_Modifier {
 	 *            the nz
 	 * @return the hE m_ slice
 	 */
-	public HEM_Slice setPlane(final double ox, final double oy, final double oz, final double nx, final double ny,
-			final double nz) {
+	public HEM_Slice setPlane(final double ox, final double oy, final double oz,
+			final double nx, final double ny, final double nz) {
 		P = new WB_Plane(ox, oy, oz, nx, ny, nz);
 		return this;
 	}
@@ -131,16 +126,15 @@ public class HEM_Slice extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Modifier#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Mesh mesh) {
 		tracker.setStartStatus(this, "Starting HEM_Slice.");
-
 		// no plane defined
 		if (P == null) {
-			tracker.setStopStatus(this, "No cutplane defined. Exiting HEM_Slice.");
+			tracker.setStopStatus(this,
+					"No cutplane defined. Exiting HEM_Slice.");
 			return mesh;
 		}
 		// empty mesh
@@ -155,47 +149,41 @@ public class HEM_Slice extends HEM_Modifier {
 		lP = new WB_Plane(lP.getNormal(), -lP.d() + offset);
 		ss = new HEM_SliceSurface().setPlane(lP);
 		mesh.modify(ss);
-
 		final HE_Selection newFaces = HE_Selection.getSelection(mesh);
 		final HE_Selection facesToRemove = HE_Selection.getSelection(mesh);
 		HE_Face face;
-		WB_ProgressCounter counter = new WB_ProgressCounter(mesh.getNumberOfFaces(), 10);
+		WB_ProgressCounter counter = new WB_ProgressCounter(
+				mesh.getNumberOfFaces(), 10);
 		tracker.setCounterStatus(this, "Classifying faces.", counter);
 		Iterator<HE_Face> fItr = mesh.fItr();
 		while (fItr.hasNext()) {
 			face = fItr.next();
-			final WB_Classification cptp = WB_GeometryOp3D.classifyPointToPlane3D(face.getFaceCenter(), lP);
-			if (cptp == WB_Classification.FRONT || cptp == WB_Classification.ON) {
+			final WB_Classification cptp = WB_GeometryOp3D
+					.classifyPointToPlane3D(HE_MeshOp.getFaceCenter(face), lP);
+			if (cptp == WB_Classification.FRONT) {// || cptp ==
+													// WB_Classification.ON) {
 				if (face.isDegenerate()) {
 					// DO NOTHING
 				}
 				newFaces.add(face);
-
 			} else {
-
 				facesToRemove.add(face);
 			}
 			counter.increment();
 		}
-
 		mesh.removeFaces(facesToRemove.getFaces());
-
 		mesh.cleanUnusedElementsByFace();
-
 		if (capHoles) {
 			tracker.setDuringStatus(this, "Capping holes.");
-
 			final List<HE_Path> cutpaths = ss.getPaths();
-
 			if (cutpaths.size() == 1) {
 				HEM_CapHoles ch = new HEM_CapHoles();
 				mesh.modify(ch);
-
 			} else {
-
 				tracker.setDuringStatus(this, "Triangulating cut paths.");
 				HE_Selection caps = HE_Selection.getSelection(mesh);
-				final long[] triKeys = HET_PlanarPathTriangulator.getTriangleKeys(cutpaths, lP);
+				final long[] triKeys = HET_PlanarPathTriangulator
+						.getTriangleKeys(cutpaths, lP);
 				HE_Face tri = null;
 				HE_Vertex v0, v1, v2;
 				HE_Halfedge he0, he1, he2;
@@ -228,15 +216,11 @@ public class HEM_Slice extends HEM_Modifier {
 				}
 				mesh.addSelection("caps", this, caps);
 			}
-
 		}
-
-		mesh.pairHalfedges();
-		mesh.capHalfedges();
-
+		HE_MeshOp.pairHalfedges(mesh);
+		HE_MeshOp.capHalfedges(mesh);
 		if (optimizeCap) {
-			HET_MeshOp.improveTriangulation(mesh, mesh.getSelection("caps"));
-
+			HE_MeshOp.improveTriangulation(mesh, mesh.getSelection("caps"));
 		}
 		tracker.setStopStatus(this, "Ending HEM_Slice.");
 		return mesh;
@@ -244,29 +228,23 @@ public class HEM_Slice extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.hemesh.modifiers.HEB_Modifier#modifySelected(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
-		return applySelf(selection.parent);
+		return applySelf(selection.getParent());
 	}
 
 	public static void main(final String[] args) {
 		HEC_Torus creator = new HEC_Torus(80, 200, 6, 16);
 		HE_Mesh mesh = new HE_Mesh(creator);
-
 		HEM_Slice modifier = new HEM_Slice();
-
 		WB_Plane P = new WB_Plane(0, 0, 0, 0, 0, 1);
 		modifier.setPlane(P);
 		modifier.setOffset(0);
 		modifier.setCap(true);
-
 		modifier.setReverse(false);
-
 		mesh.modify(modifier);
-
 	}
 }

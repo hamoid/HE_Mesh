@@ -28,7 +28,7 @@ public class HEM_MidEdgeSplit extends HEM_Modifier {
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Mesh mesh) {
-		HET_MeshOp.splitFacesMidEdge(mesh);
+		HE_MeshOp.splitFacesMidEdge(mesh);
 		return mesh;
 	}
 
@@ -39,7 +39,7 @@ public class HEM_MidEdgeSplit extends HEM_Modifier {
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
-		HET_MeshOp.splitFacesMidEdge(selection);
-		return selection.parent;
+		HE_MeshOp.splitFacesMidEdge(selection);
+		return selection.getParent();
 	}
 }

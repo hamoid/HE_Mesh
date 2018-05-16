@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.Iterator;
@@ -40,8 +37,8 @@ public class HEM_FaceExpand extends HEM_Modifier {
 	/**
 	 *
 	 */
-	private WB_ScalarParameter d;
-	double cutoff2;
+	private WB_ScalarParameter	d;
+	double						cutoff2;
 
 	/**
 	 *
@@ -59,7 +56,8 @@ public class HEM_FaceExpand extends HEM_Modifier {
 	 * @return
 	 */
 	public HEM_FaceExpand setDistance(final double d) {
-		this.d = d == 0 ? WB_ScalarParameter.ZERO : new WB_ConstantScalarParameter(d);
+		this.d = d == 0 ? WB_ScalarParameter.ZERO
+				: new WB_ConstantScalarParameter(d);
 		return this;
 	}
 
@@ -75,7 +73,6 @@ public class HEM_FaceExpand extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Modifier#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
@@ -85,7 +82,6 @@ public class HEM_FaceExpand extends HEM_Modifier {
 		}
 		HE_Vertex v;
 		Iterator<HE_Vertex> vItr = mesh.vItr();
-
 		final List<WB_Plane> planes = new FastList<WB_Plane>();
 		final List<WB_Plane> uniquePlanes = new FastList<WB_Plane>();
 		final List<WB_Coord> pos = new FastList<WB_Coord>();
@@ -95,14 +91,12 @@ public class HEM_FaceExpand extends HEM_Modifier {
 			LS = null;
 			v = vItr.next();
 			double ld = d.evaluate(v.xd(), v.yd(), v.zd());
-
 			faces = v.getFaceStar();
 			planes.clear();
 			uniquePlanes.clear();
 			for (HE_Face f : faces) {
-				planes.add(f.getPlane());
+				planes.add(HE_MeshOp.getPlane(f));
 			}
-
 			boolean unique = true;
 			WB_Plane Pi, Pj;
 			HE_Face Fi;
@@ -127,32 +121,28 @@ public class HEM_FaceExpand extends HEM_Modifier {
 				}
 			}
 			if (uniquePlanes.size() == 1 && v.isBoundary()) {
-				LS = WB_Point.addMul(v, ld, v.getVertexNormal());
-
+				LS = WB_Point.addMul(v, ld, HE_MeshOp.getVertexNormal(v));
 			} else if (uniquePlanes.size() == 2) {
 				HE_Halfedge edge = Fi.getHalfedge(Fj);
 				if (edge != null) {
-					LS = WB_Point.addMul(v, ld / Math.cos(0.5 * (edge.getEdgeDihedralAngle() - Math.PI)),
-							edge.getEdgeNormal());
+					LS = WB_Point.addMul(v, ld / Math.cos(0.5
+							* (HE_MeshOp.getEdgeDihedralAngle(edge) - Math.PI)),
+							HE_MeshOp.getEdgeNormal(edge));
 				}
 			} else {
 				LS = WB_GeometryOp3D.getClosestPoint3D(uniquePlanes, ld);
 			}
-
 			if (LS == null) {// least-square multiplane intersection point or
 								// plane/plane intersection line not found
-				LS = WB_Point.addMul(v, ld, v.getVertexNormal());
-			} else if (WB_CoordOp3D.getSqDistance3D(v, LS) > cutoff2 * ld * ld) {
+				LS = WB_Point.addMul(v, ld, HE_MeshOp.getVertexNormal(v));
+			} else if (WB_CoordOp3D.getSqDistance3D(v, LS) > cutoff2 * ld
+					* ld) {
 				// potential precision problem
-				LS = WB_Point.addMul(v, ld, v.getVertexNormal());
-
+				LS = WB_Point.addMul(v, ld, HE_MeshOp.getVertexNormal(v));
 			}
-
 			pos.add(LS);
 		}
-
 		vItr = mesh.vItr();
-
 		Iterator<WB_Coord> pItr = pos.iterator();
 		while (vItr.hasNext()) {
 			vItr.next().set(pItr.next());
@@ -162,13 +152,12 @@ public class HEM_FaceExpand extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.HE_Modifier#apply(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
 		if (d == null) {
-			return selection.parent;
+			return selection.getParent();
 		}
 		selection.collectVertices();
 		HE_Vertex v;
@@ -185,9 +174,8 @@ public class HEM_FaceExpand extends HEM_Modifier {
 			planes.clear();
 			uniquePlanes.clear();
 			for (HE_Face f : faces) {
-				planes.add(f.getPlane());
+				planes.add(HE_MeshOp.getPlane(f));
 			}
-
 			boolean unique = true;
 			WB_Plane Pi, Pj;
 			HE_Face Fi;
@@ -212,27 +200,25 @@ public class HEM_FaceExpand extends HEM_Modifier {
 				}
 			}
 			if (uniquePlanes.size() == 1) {
-				LS = WB_Point.addMul(v, ld, v.getVertexNormal());
-
+				LS = WB_Point.addMul(v, ld, HE_MeshOp.getVertexNormal(v));
 			} else if (uniquePlanes.size() == 2) {
 				HE_Halfedge edge = Fi.getHalfedge(Fj);
 				if (edge != null) {
-					LS = WB_Point.addMul(v, ld / Math.cos(0.5 * (edge.getEdgeDihedralAngle() - Math.PI)),
-							edge.getEdgeNormal());
+					LS = WB_Point.addMul(v, ld / Math.cos(0.5
+							* (HE_MeshOp.getEdgeDihedralAngle(edge) - Math.PI)),
+							HE_MeshOp.getEdgeNormal(edge));
 				}
 			} else {
 				LS = WB_GeometryOp3D.getClosestPoint3D(uniquePlanes, ld);
 			}
-
 			if (LS == null) {// least-square multiplane intersection point or
 								// plane/plane intersection line not found
-				LS = WB_Point.addMul(v, ld, v.getVertexNormal());
-			} else if (WB_CoordOp3D.getSqDistance3D(v, LS) > cutoff2 * ld * ld) {
+				LS = WB_Point.addMul(v, ld, HE_MeshOp.getVertexNormal(v));
+			} else if (WB_CoordOp3D.getSqDistance3D(v, LS) > cutoff2 * ld
+					* ld) {
 				// potential precision problem
-				LS = WB_Point.addMul(v, ld, v.getVertexNormal());
-
+				LS = WB_Point.addMul(v, ld, HE_MeshOp.getVertexNormal(v));
 			}
-
 			pos.add(LS);
 		}
 		vItr = selection.vItr();
@@ -240,6 +226,6 @@ public class HEM_FaceExpand extends HEM_Modifier {
 		while (vItr.hasNext()) {
 			vItr.next().set(pItr.next());
 		}
-		return selection.parent;
+		return selection.getParent();
 	}
 }

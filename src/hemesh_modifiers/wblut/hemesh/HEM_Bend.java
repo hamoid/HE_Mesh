@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- *
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- *
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.hemesh;
 
 import java.util.Iterator;
@@ -14,6 +11,8 @@ import java.util.Iterator;
 import wblut.geom.WB_GeometryOp3D;
 import wblut.geom.WB_Line;
 import wblut.geom.WB_Plane;
+import wblut.math.WB_ConstantScalarParameter;
+import wblut.math.WB_ScalarParameter;
 
 /**
  * Bend a mesh. Determined by a ground plane, a bend axis and an angle factor.
@@ -23,19 +22,20 @@ import wblut.geom.WB_Plane;
  */
 public class HEM_Bend extends HEM_Modifier {
 	/** Ground plane. */
-	private WB_Plane groundPlane;
+	private WB_Plane			groundPlane;
 	/** Bend axis. */
-	private WB_Line bendAxis;
+	private WB_Line				bendAxis;
 	/** Angle factor. */
-	private double angleFactor;
+	private WB_ScalarParameter	angleFactor;
 	/** Positive side of plane only?. */
-	private boolean posOnly;
+	private boolean				posOnly;
 
 	/**
 	 * Instantiates a new HEM_Bend.
 	 */
 	public HEM_Bend() {
 		super();
+		angleFactor = WB_ScalarParameter.ZERO;
 	}
 
 	/**
@@ -61,7 +61,8 @@ public class HEM_Bend extends HEM_Modifier {
 	 * @param nz
 	 * @return self
 	 */
-	public HEM_Bend setGroundPlane(final double ox, final double oy, final double oz, final double nx, final double ny,
+	public HEM_Bend setGroundPlane(final double ox, final double oy,
+			final double oz, final double nx, final double ny,
 			final double nz) {
 		groundPlane = new WB_Plane(ox, oy, oz, nx, ny, nz);
 		return this;
@@ -90,8 +91,9 @@ public class HEM_Bend extends HEM_Modifier {
 	 * @param p2z
 	 * @return self
 	 */
-	public HEM_Bend setBendAxis(final double p1x, final double p1y, final double p1z, final double p2x,
-			final double p2y, final double p2z) {
+	public HEM_Bend setBendAxis(final double p1x, final double p1y,
+			final double p1z, final double p2x, final double p2y,
+			final double p2z) {
 		bendAxis = new WB_Line(p1x, p1y, p1z, p2x - p1x, p2y - p1y, p2z - p2y);
 		return this;
 	}
@@ -105,7 +107,12 @@ public class HEM_Bend extends HEM_Modifier {
 	 * @return self
 	 */
 	public HEM_Bend setAngleFactor(final double f) {
-		angleFactor = f * (Math.PI / 180);
+		angleFactor = new WB_ConstantScalarParameter(f * (Math.PI / 180));
+		return this;
+	}
+
+	public HEM_Bend setAngleFactor(final WB_ScalarParameter f) {
+		angleFactor = f;
 		return this;
 	}
 
@@ -123,19 +130,21 @@ public class HEM_Bend extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.hemesh.modifiers.HEB_Modifier#modify(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Mesh mesh) {
-		if (groundPlane != null && bendAxis != null && angleFactor != 0) {
+		if (groundPlane != null && bendAxis != null
+				&& angleFactor != WB_ScalarParameter.ZERO) {
 			HE_Vertex v;
 			final Iterator<HE_Vertex> vItr = mesh.vItr();
 			while (vItr.hasNext()) {
 				v = vItr.next();
 				final double d = WB_GeometryOp3D.getDistance3D(v, groundPlane);
 				if (!posOnly || d > 0) {
-					v.getPosition().rotateAboutAxisSelf(d * angleFactor, bendAxis.getOrigin(), bendAxis.getDirection());
+					v.getPosition().rotateAboutAxisSelf(
+							d * angleFactor.evaluate(v.xd(), v.yd(), v.zd()),
+							bendAxis.getOrigin(), bendAxis.getDirection());
 				}
 			}
 		}
@@ -144,23 +153,25 @@ public class HEM_Bend extends HEM_Modifier {
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.hemesh.modifiers.HEB_Modifier#modifySelected(wblut.hemesh.HE_Mesh)
 	 */
 	@Override
 	protected HE_Mesh applySelf(final HE_Selection selection) {
-		if (groundPlane != null && bendAxis != null && angleFactor != 0) {
+		if (groundPlane != null && bendAxis != null
+				&& angleFactor != WB_ScalarParameter.ZERO) {
 			HE_Vertex v;
 			final Iterator<HE_Vertex> vItr = selection.vItr();
 			while (vItr.hasNext()) {
 				v = vItr.next();
 				final double d = WB_GeometryOp3D.getDistance3D(v, groundPlane);
 				if (!posOnly || d > 0) {
-					v.getPosition().rotateAboutAxisSelf(d * angleFactor, bendAxis.getOrigin(), bendAxis.getDirection());
+					v.getPosition().rotateAboutAxisSelf(
+							d * angleFactor.evaluate(v.xd(), v.yd(), v.zd()),
+							bendAxis.getOrigin(), bendAxis.getDirection());
 				}
 			}
 		}
-		return selection.parent;
+		return selection.getParent();
 	}
 }

@@ -1,12 +1,9 @@
 /*
- * HE_Mesh  Frederik Vanhoutte - www.wblut.com
- * 
+ * HE_Mesh Frederik Vanhoutte - www.wblut.com
  * https://github.com/wblut/HE_Mesh
  * A Processing/Java library for for creating and manipulating polygonal meshes.
- * 
  * Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
  */
-
 package wblut.geom;
 
 import wblut.math.WB_Ease;
@@ -18,12 +15,14 @@ import wblut.math.WB_Math;
 /**
  *
  */
-public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, WB_MutableCoordMath3D, WB_MutableCoordTransform3D, WB_CoordMetric3D {
-	private static final WB_Coord X = new WB_MutableCoordinate(1, 0, 0);
-	private static final WB_Coord Y = new WB_MutableCoordinate(0, 1, 0);
-	private static final WB_Coord Z = new WB_MutableCoordinate(0, 0, 1);
-	private static final WB_Coord ORIGIN = new WB_MutableCoordinate(0, 0, 0);
-	private static final WB_Coord ZERO = new WB_MutableCoordinate(0, 0, 0);
+public class WB_Vector extends WB_MutableCoordinate
+		implements WB_MutableCoord, WB_MutableCoordMath3D,
+		WB_MutableCoordTransform3D, WB_CoordMetric3D, WB_Geometry3D {
+	private static final WB_Coord	X		= new WB_MutableCoordinate(1, 0, 0);
+	private static final WB_Coord	Y		= new WB_MutableCoordinate(0, 1, 0);
+	private static final WB_Coord	Z		= new WB_MutableCoordinate(0, 0, 1);
+	private static final WB_Coord	ORIGIN	= new WB_MutableCoordinate(0, 0, 0);
+	private static final WB_Coord	ZERO	= new WB_MutableCoordinate(0, 0, 0);
 
 	/**
 	 *
@@ -180,11 +179,13 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 		return new WB_Vector(p.xd() - q.xd(), p.yd() - q.yd(), p.zd() - q.zd());
 	}
 
-	public static WB_Vector subToVector2D(final WB_Coord p, final double x, final double y) {
+	public static WB_Vector subToVector2D(final WB_Coord p, final double x,
+			final double y) {
 		return new WB_Vector(p.xd() - x, p.yd() - y);
 	}
 
-	public static WB_Vector subToVector3D(final WB_Coord p, final double x, final double y, final double z) {
+	public static WB_Vector subToVector3D(final WB_Coord p, final double x,
+			final double y, final double z) {
 		return new WB_Vector(p.xd() - x, p.yd() - y, p.zd() - z);
 	}
 
@@ -218,8 +219,10 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param q
 	 * @return
 	 */
-	public static WB_Vector addMul(final WB_Coord p, final double f, final WB_Coord q) {
-		return new WB_Vector(p.xd() + f * q.xd(), p.yd() + f * q.yd(), p.zd() + f * q.zd());
+	public static WB_Vector addMul(final WB_Coord p, final double f,
+			final WB_Coord q) {
+		return new WB_Vector(p.xd() + f * q.xd(), p.yd() + f * q.yd(),
+				p.zd() + f * q.zd());
 	}
 
 	/**
@@ -231,8 +234,10 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param q
 	 * @return
 	 */
-	public static WB_Vector mulAddMul(final double f, final WB_Coord p, final double g, final WB_Coord q) {
-		return new WB_Vector(f * p.xd() + g * q.xd(), f * p.yd() + g * q.yd(), f * p.zd() + g * q.zd());
+	public static WB_Vector mulAddMul(final double f, final WB_Coord p,
+			final double g, final WB_Coord q) {
+		return new WB_Vector(f * p.xd() + g * q.xd(), f * p.yd() + g * q.yd(),
+				f * p.zd() + g * q.zd());
 	}
 
 	/**
@@ -254,7 +259,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @return
 	 */
 	public static double absDot2D(final WB_Coord p, final WB_Coord q) {
-		return WB_Math.fastAbs(WB_CoordOp2D.dot2D(p.xd(), p.yd(), q.xd(), q.yd()));
+		return WB_Math
+				.fastAbs(WB_CoordOp2D.dot2D(p.xd(), p.yd(), q.xd(), q.yd()));
 	}
 
 	/**
@@ -276,7 +282,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @return
 	 */
 	public static double absDot(final WB_Coord p, final WB_Coord q) {
-		return WB_Math.fastAbs(WB_CoordOp3D.dot(p.xd(), p.yd(), p.zd(), q.xd(), q.yd(), q.zd()));
+		return WB_Math.fastAbs(WB_CoordOp3D.dot(p.xd(), p.yd(), p.zd(), q.xd(),
+				q.yd(), q.zd()));
 	}
 
 	/**
@@ -287,7 +294,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @return
 	 */
 	public static WB_Vector cross(final WB_Coord p, final WB_Coord q) {
-		return new WB_Vector(p.yd() * q.zd() - p.zd() * q.yd(), p.zd() * q.xd() - p.xd() * q.zd(),
+		return new WB_Vector(p.yd() * q.zd() - p.zd() * q.yd(),
+				p.zd() * q.xd() - p.xd() * q.zd(),
 				p.xd() * q.yd() - p.yd() * q.xd());
 	}
 
@@ -299,7 +307,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @return
 	 */
 	public static WB_M33 tensor(final WB_Coord u, final WB_Coord v) {
-		return new WB_M33(WB_CoordOp3D.tensor3D(u.xd(), u.yd(), u.zd(), v.xd(), v.yd(), v.zd()));
+		return new WB_M33(WB_CoordOp3D.tensor3D(u.xd(), u.yd(), u.zd(), v.xd(),
+				v.yd(), v.zd()));
 	}
 
 	/**
@@ -310,8 +319,10 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param w
 	 * @return
 	 */
-	public static double scalarTriple(final WB_Coord u, final WB_Coord v, final WB_Coord w) {
-		return WB_CoordOp3D.scalarTriple(u.xd(), u.yd(), u.zd(), v.xd(), v.yd(), v.zd(), w.xd(), w.yd(), w.zd());
+	public static double scalarTriple(final WB_Coord u, final WB_Coord v,
+			final WB_Coord w) {
+		return WB_CoordOp3D.scalarTriple(u.xd(), u.yd(), u.zd(), v.xd(), v.yd(),
+				v.zd(), w.xd(), w.yd(), w.zd());
 	}
 
 	/**
@@ -333,7 +344,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @return
 	 */
 	public static double getDistance3D(final WB_Coord q, final WB_Coord p) {
-		return WB_CoordOp3D.getDistance3D(q.xd(), q.yd(), q.zd(), p.xd(), p.yd(), p.zd());
+		return WB_CoordOp3D.getDistance3D(q.xd(), q.yd(), q.zd(), p.xd(),
+				p.yd(), p.zd());
 	}
 
 	/**
@@ -344,7 +356,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @return
 	 */
 	public static double getDistance(final WB_Coord q, final WB_Coord p) {
-		return WB_CoordOp3D.getDistance3D(q.xd(), q.yd(), q.zd(), p.xd(), p.yd(), p.zd());
+		return WB_CoordOp3D.getDistance3D(q.xd(), q.yd(), q.zd(), p.xd(),
+				p.yd(), p.zd());
 	}
 
 	/**
@@ -366,7 +379,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @return
 	 */
 	public static double getSqDistance3D(final WB_Coord q, final WB_Coord p) {
-		return WB_CoordOp3D.getSqDistance3D(q.xd(), q.yd(), q.zd(), p.xd(), p.yd(), p.zd());
+		return WB_CoordOp3D.getSqDistance3D(q.xd(), q.yd(), q.zd(), p.xd(),
+				p.yd(), p.zd());
 	}
 
 	/**
@@ -377,7 +391,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @return
 	 */
 	public static double getSqDistance(final WB_Coord q, final WB_Coord p) {
-		return WB_CoordOp3D.getSqDistance3D(q.xd(), q.yd(), q.zd(), p.xd(), p.yd(), p.zd());
+		return WB_CoordOp3D.getSqDistance3D(q.xd(), q.yd(), q.zd(), p.xd(),
+				p.yd(), p.zd());
 	}
 
 	/**
@@ -448,7 +463,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @return
 	 */
 	public static double getAngle(final WB_Coord q, final WB_Coord p) {
-		return WB_CoordOp3D.getAngleBetween(q.xd(), q.yd(), q.zd(), p.xd(), p.yd(), p.zd());
+		return WB_CoordOp3D.getAngleBetween(q.xd(), q.yd(), q.zd(), p.xd(),
+				p.yd(), p.zd());
 	}
 
 	/**
@@ -459,7 +475,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @return
 	 */
 	public static double getAngleNorm(final WB_Coord q, final WB_Coord p) {
-		return WB_CoordOp3D.getAngleBetweenNorm(q.xd(), q.yd(), q.zd(), p.xd(), p.yd(), p.zd());
+		return WB_CoordOp3D.getAngleBetweenNorm(q.xd(), q.yd(), q.zd(), p.xd(),
+				p.yd(), p.zd());
 	}
 
 	/**
@@ -480,7 +497,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param q
 	 * @return
 	 */
-	public static boolean isCollinear(final WB_Coord o, final WB_Coord p, final WB_Coord q) {
+	public static boolean isCollinear(final WB_Coord o, final WB_Coord p,
+			final WB_Coord q) {
 		return WB_CoordOp3D.isCollinear(o, p, q);
 	}
 
@@ -492,7 +510,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param q
 	 * @return
 	 */
-	public static boolean isCollinear2D(final WB_Coord o, final WB_Coord p, final WB_Coord q) {
+	public static boolean isCollinear2D(final WB_Coord o, final WB_Coord p,
+			final WB_Coord q) {
 		return WB_CoordOp2D.isCollinear2D(o, p, q);
 	}
 
@@ -515,7 +534,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param t
 	 * @return
 	 */
-	public static boolean isParallel(final WB_Coord p, final WB_Coord q, final double t) {
+	public static boolean isParallel(final WB_Coord p, final WB_Coord q,
+			final double t) {
 		return WB_CoordOp3D.isParallel(p, q, t);
 	}
 
@@ -538,7 +558,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param t
 	 * @return
 	 */
-	public static boolean isParallelNorm(final WB_Coord p, final WB_Coord q, final double t) {
+	public static boolean isParallelNorm(final WB_Coord p, final WB_Coord q,
+			final double t) {
 		return WB_CoordOp3D.isParallelNorm(p, q, t);
 	}
 
@@ -561,7 +582,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param t
 	 * @return
 	 */
-	public static boolean isParallel2D(final WB_Coord p, final WB_Coord q, final double t) {
+	public static boolean isParallel2D(final WB_Coord p, final WB_Coord q,
+			final double t) {
 		return WB_CoordOp2D.isParallel2D(p, q, t);
 	}
 
@@ -584,7 +606,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param t
 	 * @return
 	 */
-	public static boolean isParallelNorm2D(final WB_Coord p, final WB_Coord q, final double t) {
+	public static boolean isParallelNorm2D(final WB_Coord p, final WB_Coord q,
+			final double t) {
 		return WB_CoordOp2D.isParallelNorm2D(p, q, t);
 	}
 
@@ -607,7 +630,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param t
 	 * @return
 	 */
-	public static boolean isOrthogonal(final WB_Coord p, final WB_Coord q, final double t) {
+	public static boolean isOrthogonal(final WB_Coord p, final WB_Coord q,
+			final double t) {
 		return WB_CoordOp3D.isOrthogonal(p, q, t);
 	}
 
@@ -630,7 +654,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param t
 	 * @return
 	 */
-	public static boolean isOrthogonalNorm(final WB_Coord p, final WB_Coord q, final double t) {
+	public static boolean isOrthogonalNorm(final WB_Coord p, final WB_Coord q,
+			final double t) {
 		return WB_CoordOp3D.isOrthogonalNorm(p, q, t);
 	}
 
@@ -653,7 +678,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param t
 	 * @return
 	 */
-	public static boolean isOrthogonal2D(final WB_Coord p, final WB_Coord q, final double t) {
+	public static boolean isOrthogonal2D(final WB_Coord p, final WB_Coord q,
+			final double t) {
 		return WB_CoordOp2D.isOrthogonal2D(p, q, t);
 	}
 
@@ -664,7 +690,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param q
 	 * @return
 	 */
-	public static boolean isOrthogonalNorm2D(final WB_Coord p, final WB_Coord q) {
+	public static boolean isOrthogonalNorm2D(final WB_Coord p,
+			final WB_Coord q) {
 		return WB_CoordOp2D.isOrthogonalNorm2D(p, q);
 	}
 
@@ -676,7 +703,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param t
 	 * @return
 	 */
-	public static boolean isOrthogonalNorm2D(final WB_Coord p, final WB_Coord q, final double t) {
+	public static boolean isOrthogonalNorm2D(final WB_Coord p, final WB_Coord q,
+			final double t) {
 		return WB_CoordOp2D.isOrthogonalNorm2D(p, q, t);
 	}
 
@@ -724,35 +752,35 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 		}
 	}
 
-	public static WB_Vector interpolate(final WB_Coord v, final WB_Coord w, final double f) {
-		return new WB_Vector(WB_CoordOp3D.interpolate(v.xd(), v.yd(), v.zd(), w.xd(), w.yd(), w.zd(), f));
+	public static WB_Vector interpolate(final WB_Coord v, final WB_Coord w,
+			final double f) {
+		return new WB_Vector(WB_CoordOp3D.interpolate(v.xd(), v.yd(), v.zd(),
+				w.xd(), w.yd(), w.zd(), f));
 	}
 
-	public static WB_Vector interpolateEase(final WB_Coord v, final WB_Coord w, final double f, final WB_Ease ease,
-			final WB_Ease.EaseType type) {
-		return new WB_Vector(
-				WB_CoordOp3D.interpolateEase(v.xd(), v.yd(), v.zd(), w.xd(), w.yd(), w.zd(), f, ease, type));
+	public static WB_Vector interpolateEase(final WB_Coord v, final WB_Coord w,
+			final double f, final WB_Ease ease, final WB_Ease.EaseType type) {
+		return new WB_Vector(WB_CoordOp3D.interpolateEase(v.xd(), v.yd(),
+				v.zd(), w.xd(), w.yd(), w.zd(), f, ease, type));
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#add(double, double, double)
 	 */
 	@Override
 	public WB_Vector add(final double... x) {
 		if (x.length == 3) {
-			return new WB_Vector(this.xd() + x[0], this.yd() + x[1], this.zd() + x[2]);
+			return new WB_Vector(this.xd() + x[0], this.yd() + x[1],
+					this.zd() + x[2]);
 		} else if (x.length == 2) {
 			return new WB_Vector(this.xd() + x[0], this.yd() + x[1], this.zd());
-
 		}
 		throw new IllegalArgumentException("Array should be length 2 or 3.");
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#add(wblut.geom.WB_Coordinate)
 	 */
 	@Override
@@ -762,33 +790,31 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#sub(double[])
 	 */
 	@Override
 	public WB_Vector sub(final double... x) {
 		if (x.length == 3) {
-			return new WB_Vector(this.xd() - x[0], this.yd() - x[1], this.zd() - x[2]);
+			return new WB_Vector(this.xd() - x[0], this.yd() - x[1],
+					this.zd() - x[2]);
 		} else if (x.length == 2) {
 			return new WB_Vector(this.xd() - x[0], this.yd() - x[1], this.zd());
-
 		}
 		throw new IllegalArgumentException("Array should be length 2 or 3.");
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#sub(wblut.geom.WB_Coordinate)
 	 */
 	@Override
 	public WB_Vector sub(final WB_Coord p) {
-		return new WB_Vector(this.xd() - p.xd(), this.yd() - p.yd(), this.zd() - p.zd());
+		return new WB_Vector(this.xd() - p.xd(), this.yd() - p.yd(),
+				this.zd() - p.zd());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#mul(double)
 	 */
 	@Override
@@ -798,7 +824,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#div(double)
 	 */
 	@Override
@@ -808,60 +833,62 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#addMul(double, double, double, double)
 	 */
 	@Override
 	public WB_Vector addMul(final double f, final double... x) {
 		if (x.length == 3) {
-			return new WB_Vector(this.xd() + f * x[0], this.yd() + f * x[1], this.zd() + f * x[2]);
+			return new WB_Vector(this.xd() + f * x[0], this.yd() + f * x[1],
+					this.zd() + f * x[2]);
 		} else if (x.length == 2) {
-			return new WB_Vector(this.xd() + f * x[0], this.yd() + f * x[1], this.zd());
+			return new WB_Vector(this.xd() + f * x[0], this.yd() + f * x[1],
+					this.zd());
 		}
 		throw new IllegalArgumentException("Array should be length 2 or 3.");
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#addMul(double,
 	 * wblut.geom.WB_Coordinate)
 	 */
 	@Override
 	public WB_Vector addMul(final double f, final WB_Coord p) {
-		return new WB_Vector(xd() + f * p.xd(), yd() + f * p.yd(), zd() + f * p.zd());
+		return new WB_Vector(xd() + f * p.xd(), yd() + f * p.yd(),
+				zd() + f * p.zd());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#mulAddMul(double, double,
 	 * wblut.geom.WB_Coordinate)
 	 */
 	@Override
-	public WB_Vector mulAddMul(final double f, final double g, final WB_Coord p) {
-		return new WB_Vector(f * xd() + g * p.xd(), f * yd() + g * p.yd(), f * zd() + g * p.zd());
+	public WB_Vector mulAddMul(final double f, final double g,
+			final WB_Coord p) {
+		return new WB_Vector(f * xd() + g * p.xd(), f * yd() + g * p.yd(),
+				f * zd() + g * p.zd());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#mulAddMul(double, double, double[])
 	 */
 	@Override
-	public WB_Vector mulAddMul(final double f, final double g, final double... x) {
+	public WB_Vector mulAddMul(final double f, final double g,
+			final double... x) {
 		if (x.length == 3) {
-			return new WB_Vector(f * this.xd() + g * x[0], f * this.yd() + g * x[1], f * this.zd() + g * x[2]);
+			return new WB_Vector(f * this.xd() + g * x[0],
+					f * this.yd() + g * x[1], f * this.zd() + g * x[2]);
 		} else if (x.length == 2) {
-			return new WB_Vector(f * this.xd() + g * x[0], f * this.yd() + g * x[1], this.zd());
+			return new WB_Vector(f * this.xd() + g * x[0],
+					f * this.yd() + g * x[1], this.zd());
 		}
 		throw new IllegalArgumentException("Array should be length 2 or 3.");
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#addInto(double, double, double,
 	 * wblut.geom.WB_MutableCoordinate)
 	 */
@@ -872,15 +899,13 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 		} else if (x.length == 2) {
 			result.set(xd() + x[0], yd() + x[1], zd());
 		} else {
-
-			throw new IllegalArgumentException("Array should be length 2 or 3.");
+			throw new IllegalArgumentException(
+					"Array should be length 2 or 3.");
 		}
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#addInto(wblut.geom.WB_Coordinate,
 	 * wblut.geom.WB_MutableCoordinate)
 	 */
@@ -891,7 +916,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#subInto(wblut.geom.WB_MutableCoord,
 	 * double[])
 	 */
@@ -902,14 +926,13 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 		} else if (x.length == 2) {
 			result.set(xd() - x[0], yd() - x[1], zd());
 		} else {
-
-			throw new IllegalArgumentException("Array should be length 2 or 3.");
+			throw new IllegalArgumentException(
+					"Array should be length 2 or 3.");
 		}
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#subInto(wblut.geom.WB_Coordinate,
 	 * wblut.geom.WB_MutableCoordinate)
 	 */
@@ -920,7 +943,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#mulInto(double,
 	 * wblut.geom.WB_MutableCoordinate)
 	 */
@@ -931,7 +953,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#divInto(double,
 	 * wblut.geom.WB_MutableCoordinate)
 	 */
@@ -942,69 +963,68 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#addMulInto(double, double, double,
 	 * double, wblut.geom.WB_MutableCoordinate)
 	 */
 	@Override
-	public void addMulInto(final WB_MutableCoord result, final double f, final double... x) {
+	public void addMulInto(final WB_MutableCoord result, final double f,
+			final double... x) {
 		if (x.length == 3) {
 			result.set(xd() + f * x[0], yd() + f * x[1], zd() + f * x[2]);
-
 		} else if (x.length == 2) {
 			result.set(xd() + f * x[0], yd() + f * x[1], zd());
 		} else {
-
-			throw new IllegalArgumentException("Array should be length 2 or 3.");
+			throw new IllegalArgumentException(
+					"Array should be length 2 or 3.");
 		}
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#addMulInto(double,
 	 * wblut.geom.WB_Coordinate, wblut.geom.WB_MutableCoordinate)
 	 */
 	@Override
-	public void addMulInto(final WB_MutableCoord result, final double f, final WB_Coord p) {
+	public void addMulInto(final WB_MutableCoord result, final double f,
+			final WB_Coord p) {
 		result.set(xd() + f * p.xd(), yd() + f * p.yd(), zd() + f * p.zd());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#mulAddMulInto(double, double,
 	 * wblut.geom.WB_Coordinate, wblut.geom.WB_MutableCoordinate)
 	 */
 	@Override
-	public void mulAddMulInto(final WB_MutableCoord result, final double f, final double g, final WB_Coord p) {
-		result.set(f * xd() + g * p.xd(), f * yd() + g * p.yd(), f * zd() + g * p.zd());
+	public void mulAddMulInto(final WB_MutableCoord result, final double f,
+			final double g, final WB_Coord p) {
+		result.set(f * xd() + g * p.xd(), f * yd() + g * p.yd(),
+				f * zd() + g * p.zd());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateMath#mulAddMulInto(wblut.geom.WB_MutableCoord,
 	 * double, double, double[])
 	 */
 	@Override
-	public void mulAddMulInto(final WB_MutableCoord result, final double f, final double g, final double... x) {
+	public void mulAddMulInto(final WB_MutableCoord result, final double f,
+			final double g, final double... x) {
 		if (x.length == 3) {
-			result.set(f * this.xd() + g * x[0], f * this.yd() + g * x[1], f * this.zd() + g * x[2]);
-
+			result.set(f * this.xd() + g * x[0], f * this.yd() + g * x[1],
+					f * this.zd() + g * x[2]);
 		} else if (x.length == 2) {
-			result.set(f * this.xd() + g * x[0], f * this.yd() + g * x[1], this.zd());
-
+			result.set(f * this.xd() + g * x[0], f * this.yd() + g * x[1],
+					this.zd());
 		} else {
-			throw new IllegalArgumentException("Array should be length 2 or 3.");
+			throw new IllegalArgumentException(
+					"Array should be length 2 or 3.");
 		}
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#dot2D(wblut.geom.WB_Coordinate)
 	 */
 	@Override
@@ -1014,7 +1034,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#absDot2D(wblut.geom.WB_Coordinate)
 	 */
 	@Override
@@ -1024,7 +1043,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#dot(wblut.geom.WB_Coordinate)
 	 */
 	@Override
@@ -1034,60 +1052,58 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#absDot(wblut.geom.WB_Coordinate)
 	 */
 	@Override
 	public double absDot(final WB_Coord p) {
-		return WB_Math.fastAbs(WB_CoordOp3D.dot(xd(), yd(), zd(), p.xd(), p.yd(), p.zd()));
+		return WB_Math.fastAbs(
+				WB_CoordOp3D.dot(xd(), yd(), zd(), p.xd(), p.yd(), p.zd()));
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#cross(wblut.geom.WB_Coordinate)
 	 */
 	@Override
 	public WB_Vector cross(final WB_Coord p) {
-		return new WB_Vector(yd() * p.zd() - zd() * p.yd(), zd() * p.xd() - xd() * p.zd(),
-				xd() * p.yd() - yd() * p.xd());
+		return new WB_Vector(yd() * p.zd() - zd() * p.yd(),
+				zd() * p.xd() - xd() * p.zd(), xd() * p.yd() - yd() * p.xd());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#crossInto(wblut.geom.WB_Coordinate,
 	 * wblut.geom.WB_MutableCoordinate)
 	 */
 	@Override
 	public void crossInto(final WB_MutableCoord result, final WB_Coord p) {
-		result.set(yd() * p.zd() - zd() * p.yd(), zd() * p.xd() - xd() * p.zd(), xd() * p.yd() - yd() * p.xd());
+		result.set(yd() * p.zd() - zd() * p.yd(), zd() * p.xd() - xd() * p.zd(),
+				xd() * p.yd() - yd() * p.xd());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#tensor(wblut.geom.WB_Coordinate)
 	 */
 	@Override
 	public WB_M33 tensor(final WB_Coord v) {
-		return new WB_M33(WB_CoordOp3D.tensor3D(xd(), yd(), zd(), v.xd(), v.yd(), v.zd()));
+		return new WB_M33(WB_CoordOp3D.tensor3D(xd(), yd(), zd(), v.xd(),
+				v.yd(), v.zd()));
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMath#scalarTriple(wblut.geom.WB_Coordinate,
 	 * wblut.geom.WB_Coordinate)
 	 */
 	@Override
 	public double scalarTriple(final WB_Coord v, final WB_Coord w) {
-		return WB_CoordOp3D.scalarTriple(xd(), yd(), zd(), v.xd(), v.yd(), v.zd(), w.xd(), w.yd(), w.zd());
+		return WB_CoordOp3D.scalarTriple(xd(), yd(), zd(), v.xd(), v.yd(),
+				v.zd(), w.xd(), w.yd(), w.zd());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_MutableCoordinateMath#addSelf(wblut.geom.WB_Coordinate)
 	 */
@@ -1099,7 +1115,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateMath#subSelf(double, double, double)
 	 */
 	@Override
@@ -1116,7 +1131,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_MutableCoordinateMath#subSelf(wblut.geom.WB_Coordinate)
 	 */
@@ -1128,7 +1142,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateMath#mulSelf(double)
 	 */
 	@Override
@@ -1139,7 +1152,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateMath#divSelf(double)
 	 */
 	@Override
@@ -1149,7 +1161,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateMath#addMulSelf(double, double,
 	 * double, double)
 	 */
@@ -1161,16 +1172,12 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 		} else if (x.length == 2) {
 			set(xd() + f * x[0], yd() + f * x[1], zd());
 			return this;
-
 		}
-
 		throw new IllegalArgumentException("Array should be length 2 or 3.");
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateMath#addMulSelf(double,
 	 * wblut.geom.WB_Coordinate)
 	 */
@@ -1182,7 +1189,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateMath#addSelf(double, double, double)
 	 */
 	@Override
@@ -1193,11 +1199,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 		} else if (x.length == 2) {
 			set(xd() + x[0], yd() + x[1], zd());
 			return this;
-
 		}
-
 		throw new IllegalArgumentException("Array should be length 2 or 3.");
-
 	}
 
 	public WB_Vector addSelf(final double x, final double y, final double z) {
@@ -1207,51 +1210,51 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateMath#mulAddMulSelf(double, double,
 	 * double[])
 	 */
 	@Override
-	public WB_Vector mulAddMulSelf(final double f, final double g, final double... x) {
+	public WB_Vector mulAddMulSelf(final double f, final double g,
+			final double... x) {
 		if (x.length == 3) {
-			set(f * this.xd() + g * x[0], f * this.yd() + g * x[1], f * this.zd() + g * x[2]);
+			set(f * this.xd() + g * x[0], f * this.yd() + g * x[1],
+					f * this.zd() + g * x[2]);
 			return this;
 		} else if (x.length == 2) {
 			set(f * this.xd() + g * x[0], f * this.yd() + g * x[1], this.zd());
 			return this;
 		}
 		throw new IllegalArgumentException("Array should be length 2 or 3.");
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateMath#mulAddMulSelf(double, double,
 	 * wblut.geom.WB_Coordinate)
 	 */
 	@Override
-	public WB_Vector mulAddMulSelf(final double f, final double g, final WB_Coord p) {
-		set(f * xd() + g * p.xd(), f * yd() + g * p.yd(), f * zd() + g * p.zd());
+	public WB_Vector mulAddMulSelf(final double f, final double g,
+			final WB_Coord p) {
+		set(f * xd() + g * p.xd(), f * yd() + g * p.yd(),
+				f * zd() + g * p.zd());
 		return this;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_MutableCoordinateMath#crossSelf(wblut.geom.WB_Coordinate)
 	 */
 	@Override
 	public WB_Vector crossSelf(final WB_Coord p) {
-		set(yd() * p.zd() - this.zd() * p.yd(), this.zd() * p.xd() - this.xd() * p.zd(),
+		set(yd() * p.zd() - this.zd() * p.yd(),
+				this.zd() * p.xd() - this.xd() * p.zd(),
 				this.xd() * p.yd() - yd() * p.xd());
 		return this;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateMath#normalizeSelf()
 	 */
 	@Override
@@ -1267,7 +1270,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateMath#trimSelf(double)
 	 */
 	@Override
@@ -1300,72 +1302,72 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	}
 
 	@Override
-	public void apply2DInto(final WB_MutableCoord result, final WB_Transform2D T) {
+	public void apply2DInto(final WB_MutableCoord result,
+			final WB_Transform2D T) {
 		T.applyAsVector2DInto(this, result);
 	}
 
 	@Override
-	public void applyAsPoint2DInto(final WB_MutableCoord result, final WB_Transform2D T) {
+	public void applyAsPoint2DInto(final WB_MutableCoord result,
+			final WB_Transform2D T) {
 		T.applyAsPoint2DInto(this, result);
 	}
 
 	@Override
-	public void applyAsVector2DInto(final WB_MutableCoord result, final WB_Transform2D T) {
+	public void applyAsVector2DInto(final WB_MutableCoord result,
+			final WB_Transform2D T) {
 		T.applyAsVector2DInto(this, result);
 	}
 
 	@Override
-	public void applyAsNormal2DInto(final WB_MutableCoord result, final WB_Transform2D T) {
+	public void applyAsNormal2DInto(final WB_MutableCoord result,
+			final WB_Transform2D T) {
 		T.applyAsNormal2DInto(this, result);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform2D#translate2D(double, double)
 	 */
 	@Override
-	public WB_Coord translate2D(final double px, final double py) {
+	public WB_Vector translate2D(final double px, final double py) {
 		return new WB_Vector(this.xd() + px, this.yd() + py);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform2D#translate2DInto(wblut.geom.
 	 * WB_MutableCoord, double, double)
 	 */
 	@Override
-	public void translate2DInto(final WB_MutableCoord result, final double px, final double py) {
+	public void translate2DInto(final WB_MutableCoord result, final double px,
+			final double py) {
 		result.set(this.xd() + px, this.yd() + py, 0);
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform2D#translate2D(wblut.geom.WB_Coord)
 	 */
 	@Override
-	public WB_Coord translate2D(final WB_Coord p) {
+	public WB_Vector translate2D(final WB_Coord p) {
 		return new WB_Vector(this.xd() + p.xd(), this.yd() + p.yd());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform2D#translate2DInto(wblut.geom.
 	 * WB_MutableCoord, wblut.geom.WB_Coord)
 	 */
 	@Override
-	public void translate2DInto(final WB_MutableCoord result, final WB_Coord p) {
+	public void translate2DInto(final WB_MutableCoord result,
+			final WB_Coord p) {
 		result.set(this.xd() + p.xd(), this.yd() + p.yd(), 0);
-
 	}
 
 	@Override
-
-	public WB_Vector rotateAboutPoint2D(final double angle, final double px, final double py) {
+	public WB_Vector rotateAboutPoint2D(final double angle, final double px,
+			final double py) {
 		final WB_Transform2D raa = new WB_Transform2D();
 		raa.addRotateAboutPoint(angle, new WB_Point(px, py));
 		WB_Vector result = new WB_Vector(this);
@@ -1375,14 +1377,13 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateTransform2D#rotateAboutPoint2DInto(wblut.geom.
 	 * WB_MutableCoord, double, double, double)
 	 */
 	@Override
-	public void rotateAboutPoint2DInto(final WB_MutableCoord result, final double angle, final double px,
-			final double py) {
+	public void rotateAboutPoint2DInto(final WB_MutableCoord result,
+			final double angle, final double px, final double py) {
 		final WB_Transform2D raa = new WB_Transform2D();
 		raa.addRotateAboutPoint(angle, new WB_Point(px, py));
 		raa.applyAsVector2DInto(this, result);
@@ -1399,18 +1400,16 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateTransform2D#rotateAboutPoint2DInto(wblut.geom.
 	 * WB_MutableCoord, double, wblut.geom.WB_Coord)
 	 */
 	@Override
-	public void rotateAboutPoint2DInto(final WB_MutableCoord result, final double angle, final WB_Coord p) {
+	public void rotateAboutPoint2DInto(final WB_MutableCoord result,
+			final double angle, final WB_Coord p) {
 		final WB_Transform2D raa = new WB_Transform2D();
 		raa.addRotateAboutPoint(angle, p);
-
 		raa.applyAsVector2DInto(this, result);
-
 	}
 
 	@Override
@@ -1424,18 +1423,16 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateTransform2D#rotateAboutOrigin2DInto(wblut.geom.
 	 * WB_MutableCoord, double)
 	 */
 	@Override
-	public void rotateAboutOrigin2DInto(final WB_MutableCoord result, final double angle) {
+	public void rotateAboutOrigin2DInto(final WB_MutableCoord result,
+			final double angle) {
 		final WB_Transform2D raa = new WB_Transform2D();
 		raa.addRotateAboutOrigin(angle);
-
 		raa.applyAsVector2DInto(this, result);
-
 	}
 
 	@Override
@@ -1445,7 +1442,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateTransform#scaleInto(wblut.geom.WB_MutableCoord,
 	 * double)
@@ -1462,13 +1458,13 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateTransform#scaleInto(wblut.geom.WB_MutableCoord,
 	 * double, double, double)
 	 */
 	@Override
-	public void scale2DInto(final WB_MutableCoord result, final double fx, final double fy) {
+	public void scale2DInto(final WB_MutableCoord result, final double fx,
+			final double fy) {
 		result.set(xd() * fx, yd() * fy, 0);
 	}
 
@@ -1498,31 +1494,30 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateTransform3D#translate2DSelf(double,
 	 * double)
 	 */
 	@Override
-	public WB_Coord translate2DSelf(final double px, final double py) {
+	public WB_Vector translate2DSelf(final double px, final double py) {
 		set(xd() + px, yd() + py, 0);
 		return this;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_MutableCoordinateTransform3D#translate2DSelf(wblut.geom.
 	 * WB_Coord)
 	 */
 	@Override
-	public WB_Coord translate2DSelf(final WB_Coord p) {
+	public WB_Vector translate2DSelf(final WB_Coord p) {
 		set(xd() + p.xd(), yd() + p.yd(), 0);
 		return this;
 	}
 
 	@Override
-	public WB_Vector rotateAboutPoint2DSelf(final double angle, final double px, final double py) {
+	public WB_Vector rotateAboutPoint2DSelf(final double angle, final double px,
+			final double py) {
 		final WB_Transform2D raa = new WB_Transform2D();
 		raa.addRotateAboutPoint(angle, new WB_Point(px, py));
 		raa.applyAsVector2DSelf(this);
@@ -1536,7 +1531,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param p
 	 * @return
 	 */
-	public WB_Vector rotateAboutPoint2DSelf(final double angle, final WB_Coord p) {
+	public WB_Vector rotateAboutPoint2DSelf(final double angle,
+			final WB_Coord p) {
 		final WB_Transform2D raa = new WB_Transform2D();
 		raa.addRotateAboutPoint(angle, p);
 		raa.applyAsVector2DSelf(this);
@@ -1565,7 +1561,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform#apply(wblut.geom.WB_Transform)
 	 */
 	@Override
@@ -1575,7 +1570,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateTransform#applyAsPoint(wblut.geom.WB_Transform)
 	 */
@@ -1586,7 +1580,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateTransform#applyAsNormal(wblut.geom.WB_Transform)
 	 */
@@ -1597,7 +1590,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateTransform#applyAsVector(wblut.geom.WB_Transform)
 	 */
@@ -1608,7 +1600,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform#applyInto(wblut.geom.WB_Transform,
 	 * wblut.geom.WB_MutableCoordinate)
 	 */
@@ -1619,116 +1610,116 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform#applyAsPointInto(wblut.geom.
 	 * WB_Transform , wblut.geom.WB_MutableCoordinate)
 	 */
 	@Override
-	public void applyAsPointInto(final WB_MutableCoord result, final WB_Transform T) {
+	public void applyAsPointInto(final WB_MutableCoord result,
+			final WB_Transform T) {
 		T.applyAsPointInto(this, result);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform#applyAsNormalInto(wblut.geom.
 	 * WB_Transform , wblut.geom.WB_MutableCoordinate)
 	 */
 	@Override
-	public void applyAsNormalInto(final WB_MutableCoord result, final WB_Transform T) {
+	public void applyAsNormalInto(final WB_MutableCoord result,
+			final WB_Transform T) {
 		T.applyAsNormalInto(this, result);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform#applyAsVectorInto(wblut.geom.
 	 * WB_Transform , wblut.geom.WB_MutableCoordinate)
 	 */
 	@Override
-	public void applyAsVectorInto(final WB_MutableCoord result, final WB_Transform T) {
+	public void applyAsVectorInto(final WB_MutableCoord result,
+			final WB_Transform T) {
 		T.applyAsVectorInto(this, result);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform3D#translate(double, double)
 	 */
 	@Override
-	public WB_Coord translate(final double px, final double py, final double pz) {
+	public WB_Vector translate(final double px, final double py,
+			final double pz) {
 		return new WB_Vector(this.xd() + px, this.yd() + py, this.zd() + pz);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform3D#translateInto(wblut.geom.
 	 * WB_MutableCoord, double, double)
 	 */
 	@Override
-	public WB_Coord translateInto(final WB_MutableCoord result, final double px, final double py, final double pz) {
+	public WB_Coord translateInto(final WB_MutableCoord result, final double px,
+			final double py, final double pz) {
 		result.set(xd() + px, yd() + py, zd() + pz);
 		return result;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform3D#translate(wblut.geom.WB_Coord)
 	 */
 	@Override
-	public WB_Coord translate(final WB_Coord p) {
+	public WB_Vector translate(final WB_Coord p) {
 		return new WB_Vector(xd() + p.xd(), yd() + p.yd(), zd() + p.zd());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform3D#translateInto(wblut.geom.
 	 * WB_MutableCoord, wblut.geom.WB_Coord)
 	 */
 	@Override
-	public WB_Coord translateInto(final WB_MutableCoord result, final WB_Coord p) {
+	public WB_Coord translateInto(final WB_MutableCoord result,
+			final WB_Coord p) {
 		result.set(xd() + p.xd(), yd() + p.yd(), zd() + p.zd());
 		return result;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform#rotateAbout2PointAxis(double,
 	 * double, double, double, double, double, double)
 	 */
 	@Override
-	public WB_Vector rotateAboutAxis2P(final double angle, final double p1x, final double p1y, final double p1z,
-			final double p2x, final double p2y, final double p2z) {
+	public WB_Vector rotateAboutAxis2P(final double angle, final double p1x,
+			final double p1y, final double p1z, final double p2x,
+			final double p2y, final double p2z) {
 		final WB_Vector result = new WB_Vector(this);
 		final WB_Transform raa = new WB_Transform();
-		raa.addRotateAboutAxis(angle, new WB_Vector(p1x, p1y, p1z), new WB_Vector(p2x - p1x, p2y - p1y, p2z - p1z));
+		raa.addRotateAboutAxis(angle, new WB_Vector(p1x, p1y, p1z),
+				new WB_Vector(p2x - p1x, p2y - p1y, p2z - p1z));
 		raa.applyAsVectorSelf(result);
 		return result;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateTransform3D#rotateAboutAxis2PInto(wblut.geom.
 	 * WB_MutableCoord, double, double, double, double, double, double, double)
 	 */
 	@Override
-	public void rotateAboutAxis2PInto(final WB_MutableCoord result, final double angle, final double p1x,
-			final double p1y, final double p1z, final double p2x, final double p2y, final double p2z) {
+	public void rotateAboutAxis2PInto(final WB_MutableCoord result,
+			final double angle, final double p1x, final double p1y,
+			final double p1z, final double p2x, final double p2y,
+			final double p2z) {
 		final WB_Transform raa = new WB_Transform();
-		raa.addRotateAboutAxis(angle, new WB_Vector(p1x, p1y, p1z), new WB_Vector(p2x - p1x, p2y - p1y, p2z - p1z));
+		raa.addRotateAboutAxis(angle, new WB_Vector(p1x, p1y, p1z),
+				new WB_Vector(p2x - p1x, p2y - p1y, p2z - p1z));
 		raa.applyAsVectorInto(this, result);
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform#rotateAbout2PointAxis(double,
 	 * wblut.geom.WB_Coordinate, wblut.geom.WB_Coordinate)
 	 */
@@ -1740,7 +1731,8 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param p2
 	 * @return
 	 */
-	public WB_Vector rotateAboutAxis2P(final double angle, final WB_Coord p1, final WB_Coord p2) {
+	public WB_Vector rotateAboutAxis2P(final double angle, final WB_Coord p1,
+			final WB_Coord p2) {
 		final WB_Vector result = new WB_Vector(this);
 		final WB_Transform raa = new WB_Transform();
 		raa.addRotateAboutAxis(angle, p1, new WB_Vector(p1, p2));
@@ -1750,62 +1742,60 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateTransform3D#rotateAboutAxis2PInto(wblut.geom.
 	 * WB_MutableCoord, double, wblut.geom.WB_Coord, wblut.geom.WB_Coord)
 	 */
 	@Override
-	public void rotateAboutAxis2PInto(final WB_MutableCoord result, final double angle, final WB_Coord p1,
-			final WB_Coord p2) {
-
+	public void rotateAboutAxis2PInto(final WB_MutableCoord result,
+			final double angle, final WB_Coord p1, final WB_Coord p2) {
 		final WB_Transform raa = new WB_Transform();
 		raa.addRotateAboutAxis(angle, p1, new WB_Vector(p1, p2));
 		raa.applyAsVectorInto(result, this);
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_MutableCoordinateTransform#rotateAbout2PointAxisSelf(double
 	 * , double, double, double, double, double, double)
 	 */
 	@Override
-	public WB_Vector rotateAboutAxis(final double angle, final double px, final double py, final double pz,
-			final double ax, final double ay, final double az) {
+	public WB_Vector rotateAboutAxis(final double angle, final double px,
+			final double py, final double pz, final double ax, final double ay,
+			final double az) {
 		final WB_Vector result = new WB_Vector(this);
 		final WB_Transform raa = new WB_Transform();
-		raa.addRotateAboutAxis(angle, new WB_Vector(px, py, pz), new WB_Vector(ax, ay, az));
+		raa.addRotateAboutAxis(angle, new WB_Vector(px, py, pz),
+				new WB_Vector(ax, ay, az));
 		raa.applyAsVectorSelf(result);
 		return result;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform3D#rotateAboutAxisInto(wblut.geom.
 	 * WB_MutableCoord, double, double, double, double, double, double, double)
 	 */
 	@Override
-	public void rotateAboutAxisInto(final WB_MutableCoord result, final double angle, final double px, final double py,
-			final double pz, final double ax, final double ay, final double az) {
-
+	public void rotateAboutAxisInto(final WB_MutableCoord result,
+			final double angle, final double px, final double py,
+			final double pz, final double ax, final double ay,
+			final double az) {
 		final WB_Transform raa = new WB_Transform();
-		raa.addRotateAboutAxis(angle, new WB_Vector(px, py, pz), new WB_Vector(ax, ay, az));
+		raa.addRotateAboutAxis(angle, new WB_Vector(px, py, pz),
+				new WB_Vector(ax, ay, az));
 		raa.applyAsVectorInto(result, this);
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform#rotateAboutAxis(double,
 	 * wblut.geom.WB_Coordinate, wblut.geom.WB_Coordinate)
 	 */
 	@Override
-	public WB_Vector rotateAboutAxis(final double angle, final WB_Coord p, final WB_Coord a) {
+	public WB_Vector rotateAboutAxis(final double angle, final WB_Coord p,
+			final WB_Coord a) {
 		final WB_Vector result = new WB_Vector(this);
 		final WB_Transform raa = new WB_Transform();
 		raa.addRotateAboutAxis(angle, p, a);
@@ -1815,28 +1805,26 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform3D#rotateAboutAxisInto(wblut.geom.
 	 * WB_MutableCoord, double, wblut.geom.WB_Coord, wblut.geom.WB_Coord)
 	 */
 	@Override
-	public void rotateAboutAxisInto(final WB_MutableCoord result, final double angle, final WB_Coord p,
-			final WB_Coord a) {
+	public void rotateAboutAxisInto(final WB_MutableCoord result,
+			final double angle, final WB_Coord p, final WB_Coord a) {
 		final WB_Transform raa = new WB_Transform();
 		raa.addRotateAboutAxis(angle, p, a);
 		raa.applyAsVectorInto(result, this);
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_MutableCoordinateTransform#rotateAbout2PointAxisSelf(double
 	 * , double, double, double, double, double, double)
 	 */
 	@Override
-	public WB_Vector rotateAboutOrigin(final double angle, final double x, final double y, final double z) {
+	public WB_Vector rotateAboutOrigin(final double angle, final double x,
+			final double y, final double z) {
 		final WB_Vector result = new WB_Vector(this);
 		final WB_Transform raa = new WB_Transform();
 		raa.addRotateAboutOrigin(angle, new WB_Vector(x, y, z));
@@ -1846,23 +1834,21 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateTransform3D#rotateAboutOriginInto(wblut.geom.
 	 * WB_MutableCoord, double, double, double, double)
 	 */
 	@Override
-	public void rotateAboutOriginInto(final WB_MutableCoord result, final double angle, final double x, final double y,
+	public void rotateAboutOriginInto(final WB_MutableCoord result,
+			final double angle, final double x, final double y,
 			final double z) {
 		final WB_Transform raa = new WB_Transform();
 		raa.addRotateAboutOrigin(angle, new WB_Vector(x, y, z));
 		raa.applyAsVectorInto(result, this);
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform#rotateAboutAxis(double,
 	 * wblut.geom.WB_Coordinate, wblut.geom.WB_Coordinate)
 	 */
@@ -1877,22 +1863,20 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateTransform3D#rotateAboutOriginInto(wblut.geom.
 	 * WB_MutableCoord, double, wblut.geom.WB_Coord)
 	 */
 	@Override
-	public void rotateAboutOriginInto(final WB_MutableCoord result, final double angle, final WB_Coord v) {
+	public void rotateAboutOriginInto(final WB_MutableCoord result,
+			final double angle, final WB_Coord v) {
 		final WB_Transform raa = new WB_Transform();
 		raa.addRotateAboutOrigin(angle, v);
 		raa.applyAsVectorInto(result, this);
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform#scale(double)
 	 */
 	@Override
@@ -1907,7 +1891,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateTransform#scaleInto(wblut.geom.WB_MutableCoord,
 	 * double)
@@ -1919,7 +1902,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform#scale(double, double, double)
 	 */
 	@Override
@@ -1936,19 +1918,18 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateTransform#scaleInto(wblut.geom.WB_MutableCoord,
 	 * double, double, double)
 	 */
 	@Override
-	public void scaleInto(final WB_MutableCoord result, final double fx, final double fy, final double fz) {
+	public void scaleInto(final WB_MutableCoord result, final double fx,
+			final double fy, final double fz) {
 		result.set(xd() * fx, yd() * fy, zd() * fz);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_MutableCoordinateMath#applySelf(wblut.geom.WB_Transform)
 	 */
@@ -1959,7 +1940,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateMath#applyAsPointSelf(wblut.geom.
 	 * WB_Transform )
 	 */
@@ -1971,7 +1951,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateMath#applyAsVectorSelf(wblut.geom.
 	 * WB_Transform )
 	 */
@@ -1983,7 +1962,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateMath#applyAsNormalSelf(wblut.geom.
 	 * WB_Transform )
 	 */
@@ -1995,53 +1973,53 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateTransform3D#translateSelf(double,
 	 * double, double)
 	 */
 	@Override
-	public WB_Coord translateSelf(final double px, final double py, final double pz) {
+	public WB_Vector translateSelf(final double px, final double py,
+			final double pz) {
 		set(xd() + px, yd() + py, zd() + pz);
 		return this;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateTransform3D#translateSelf(wblut.geom.
 	 * WB_Coord)
 	 */
 	@Override
-	public WB_Coord translateSelf(final WB_Coord p) {
+	public WB_Vector translateSelf(final WB_Coord p) {
 		set(xd() + p.xd(), yd() + p.yd(), zd() + p.zd());
 		return this;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_MutableCoordinateTransform#rotateAbout2PointAxisSelf(double
 	 * , double, double, double, double, double, double)
 	 */
 	@Override
-	public WB_Vector rotateAboutAxis2PSelf(final double angle, final double p1x, final double p1y, final double p1z,
-			final double p2x, final double p2y, final double p2z) {
+	public WB_Vector rotateAboutAxis2PSelf(final double angle, final double p1x,
+			final double p1y, final double p1z, final double p2x,
+			final double p2y, final double p2z) {
 		final WB_Transform raa = new WB_Transform();
-		raa.addRotateAboutAxis(angle, new WB_Vector(p1x, p1y, p1z), new WB_Vector(p2x - p1x, p2y - p1y, p2z - p1z));
+		raa.addRotateAboutAxis(angle, new WB_Vector(p1x, p1y, p1z),
+				new WB_Vector(p2x - p1x, p2y - p1y, p2z - p1z));
 		raa.applyAsVectorSelf(this);
 		return this;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_MutableCoordinateTransform#rotateAbout2PointAxisSelf(double
 	 * , wblut.geom.WB_Coordinate, wblut.geom.WB_Coordinate)
 	 */
 	@Override
-	public WB_Vector rotateAboutAxis2PSelf(final double angle, final WB_Coord p1, final WB_Coord p2) {
+	public WB_Vector rotateAboutAxis2PSelf(final double angle,
+			final WB_Coord p1, final WB_Coord p2) {
 		final WB_Transform raa = new WB_Transform();
 		raa.addRotateAboutAxis(angle, p1, new WB_Vector(p1, p2));
 		raa.applyAsVectorSelf(this);
@@ -2050,12 +2028,12 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateTransform#rotateAboutAxisSelf(double,
 	 * wblut.geom.WB_Coordinate, wblut.geom.WB_Coordinate)
 	 */
 	@Override
-	public WB_Vector rotateAboutAxisSelf(final double angle, final WB_Coord p, final WB_Coord a) {
+	public WB_Vector rotateAboutAxisSelf(final double angle, final WB_Coord p,
+			final WB_Coord a) {
 		final WB_Transform raa = new WB_Transform();
 		raa.addRotateAboutAxis(angle, p, a);
 		raa.applyAsVectorSelf(this);
@@ -2064,30 +2042,30 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_MutableCoordinateTransform#rotateAbout2PointAxisSelf(double
 	 * , double, double, double, double, double, double)
 	 */
 	@Override
-	public WB_Vector rotateAboutAxisSelf(final double angle, final double px, final double py, final double pz,
-			final double ax, final double ay, final double az) {
+	public WB_Vector rotateAboutAxisSelf(final double angle, final double px,
+			final double py, final double pz, final double ax, final double ay,
+			final double az) {
 		final WB_Transform raa = new WB_Transform();
-		raa.addRotateAboutAxis(angle, new WB_Vector(px, py, pz), new WB_Vector(ax, ay, az));
+		raa.addRotateAboutAxis(angle, new WB_Vector(px, py, pz),
+				new WB_Vector(ax, ay, az));
 		raa.applyAsVectorSelf(this);
 		return this;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_MutableCoordinateTransform#rotateAbout2PointAxisSelf(double
 	 * , double, double, double, double, double, double)
 	 */
 	@Override
-	public WB_Vector rotateAboutOriginSelf(final double angle, final double x, final double y, final double z) {
-
+	public WB_Vector rotateAboutOriginSelf(final double angle, final double x,
+			final double y, final double z) {
 		final WB_Transform raa = new WB_Transform();
 		raa.addRotateAboutOrigin(angle, new WB_Vector(x, y, z));
 		raa.applyAsVectorSelf(this);
@@ -2096,13 +2074,12 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateTransform#rotateAboutAxis(double,
 	 * wblut.geom.WB_Coordinate, wblut.geom.WB_Coordinate)
 	 */
 	@Override
-	public WB_Vector rotateAboutOriginSelf(final double angle, final WB_Coord a) {
-
+	public WB_Vector rotateAboutOriginSelf(final double angle,
+			final WB_Coord a) {
 		final WB_Transform raa = new WB_Transform();
 		raa.addRotateAboutOrigin(angle, a);
 		raa.applyAsVectorSelf(this);
@@ -2111,7 +2088,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateTransform#scaleSelf(double)
 	 */
 	@Override
@@ -2122,12 +2098,12 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_MutableCoordinateTransform#scaleSelf(double, double,
 	 * double)
 	 */
 	@Override
-	public WB_Vector scaleSelf(final double fx, final double fy, final double fz) {
+	public WB_Vector scaleSelf(final double fx, final double fy,
+			final double fz) {
 		set(xd() * fx, yd() * fy, zd() * fz);
 		return this;
 	}
@@ -2159,7 +2135,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateMetric#getDistance2D(wblut.geom.WB_Coordinate)
 	 */
@@ -2170,7 +2145,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateMetric#getSqDistance2D(wblut.geom.WB_Coordinate)
 	 */
@@ -2181,7 +2155,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMetric#getLength2D()
 	 */
 	@Override
@@ -2191,7 +2164,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMetric#getSqLength2D()
 	 */
 	@Override
@@ -2201,7 +2173,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMetric#heading2D()
 	 */
 	@Override
@@ -2211,7 +2182,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMetric#getOrthoNormal2D()
 	 */
 	@Override
@@ -2327,7 +2297,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateMetric#getDistance3D(wblut.geom.WB_Coordinate)
 	 */
@@ -2343,18 +2312,17 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateMetric#getDistance3D(wblut.geom.WB_Coordinate)
 	 */
 	@Override
 	public double getDistance(final WB_Coord p) {
-		return WB_CoordOp3D.getDistance3D(xd(), yd(), zd(), p.xd(), p.yd(), p.zd());
+		return WB_CoordOp3D.getDistance3D(xd(), yd(), zd(), p.xd(), p.yd(),
+				p.zd());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateMetric#getSqDistance3D(wblut.geom.WB_Coordinate)
 	 */
@@ -2370,21 +2338,19 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateMetric#getSqDistance3D(wblut.geom.WB_Coordinate)
 	 */
 	@Override
 	public double getSqDistance(final WB_Coord p) {
-		return WB_CoordOp3D.getSqDistance3D(xd(), yd(), zd(), p.xd(), p.yd(), p.zd());
+		return WB_CoordOp3D.getSqDistance3D(xd(), yd(), zd(), p.xd(), p.yd(),
+				p.zd());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMetric#getLength3D()
 	 */
-
 	@Override
 	public double getLength3D() {
 		return getLength();
@@ -2392,7 +2358,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMetric#getLength3D()
 	 */
 	@Override
@@ -2402,13 +2367,11 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMetric#getSqLength3D()
 	 */
 	/**
 	 * @deprecated Use {@link #getSqLength()} instead
 	 */
-
 	@Deprecated
 	@Override
 	public double getSqLength3D() {
@@ -2417,7 +2380,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMetric#getSqLength3D()
 	 */
 	@Override
@@ -2427,31 +2389,29 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMetric#getAngle(wblut.geom.WB_Coordinate)
 	 */
 	@Override
 	public double getAngle(final WB_Coord p) {
-		return WB_CoordOp3D.getAngleBetween(xd(), yd(), zd(), p.xd(), p.yd(), p.zd());
+		return WB_CoordOp3D.getAngleBetween(xd(), yd(), zd(), p.xd(), p.yd(),
+				p.zd());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see
 	 * wblut.geom.WB_CoordinateMetric#getAngleNorm(wblut.geom.WB_Coordinate)
 	 */
 	@Override
 	public double getAngleNorm(final WB_Coord p) {
-		return WB_CoordOp3D.getAngleBetweenNorm(xd(), yd(), zd(), p.xd(), p.yd(), p.zd());
+		return WB_CoordOp3D.getAngleBetweenNorm(xd(), yd(), zd(), p.xd(),
+				p.yd(), p.zd());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMetric#getOrthoNormal3D()
 	 */
-
 	@Override
 	public WB_Vector getOrthoNormal3D() {
 		return getOrthoNormal();
@@ -2459,7 +2419,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMetric#getOrthoNormal3D()
 	 */
 	@Override
@@ -2579,7 +2538,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see wblut.geom.WB_CoordinateMetric#isZero()
 	 */
 	@Override
@@ -2608,7 +2566,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
 	@Override
@@ -2634,7 +2591,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 	 * @param p
 	 * @return
 	 */
-
 	@Override
 	public int compareToY1st(final WB_Coord p) {
 		int cmp = Double.compare(yd(), p.yd());
@@ -2654,7 +2610,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -2686,7 +2641,6 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -2696,12 +2650,10 @@ public class WB_Vector extends WB_MutableCoordinate implements WB_MutableCoord, 
 
 	/*
 	 * (non-Javadoc)
-	 *
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return "WB_Vector3D [x=" + xd() + ", y=" + yd() + ", z=" + zd() + "]";
 	}
-
 }
