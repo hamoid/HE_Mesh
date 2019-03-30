@@ -9,7 +9,7 @@ package wblut.processing;
 import java.util.Iterator;
 import java.util.List;
 
-import processing.core.PApplet;
+import processing.core.PGraphics;
 import processing.core.PConstants;
 import processing.core.PImage;
 import processing.core.PShape;
@@ -41,7 +41,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createFacetedPShape(final HE_Mesh mesh,
-			final PApplet home) {
+			final PGraphics home) {
 		final PShape retained = home.createShape();
 		retained.beginShape(PConstants.TRIANGLES);
 		List<HE_Vertex> vertices;
@@ -76,7 +76,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createFacetedPShape(final HE_Mesh mesh,
-			final PImage img, final PApplet home) {
+			final PImage img, final PGraphics home) {
 		final PShape retained = home.createShape();
 		retained.beginShape(PConstants.TRIANGLES);
 		retained.texture(img);
@@ -112,7 +112,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createFacetedPShape(final HE_Mesh mesh,
-			final PImage[] img, final PApplet home) {
+			final PImage[] img, final PGraphics home) {
 		final PShape retained = home.createShape();
 		retained.beginShape(PConstants.TRIANGLES);
 		List<HE_Vertex> vertices;
@@ -148,7 +148,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createFacetedPShape(final HE_HalfedgeStructure mesh,
-			final double offset, final PApplet home) {
+			final double offset, final PGraphics home) {
 		final PShape retained = home.createShape();
 		retained.beginShape(PConstants.TRIANGLES);
 		final Iterator<HE_Face> fItr = mesh.fItr();
@@ -192,7 +192,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createFacetedPShape(final WB_Mesh mesh,
-			final PApplet home) {
+			final PGraphics home) {
 		final PShape retained = home.createShape();
 		retained.beginShape(PConstants.TRIANGLES);
 		final WB_Mesh lmesh = geometryfactory.createTriMesh(mesh);
@@ -221,7 +221,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createFacetedPShapeWithFaceColor(final HE_Mesh mesh,
-			final PApplet home) {
+			final PGraphics home) {
 		final PShape retained = home.createShape();
 		retained.beginShape(PConstants.TRIANGLES);
 		List<HE_Vertex> vertices;
@@ -256,7 +256,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createFacetedPShapeWithVertexColor(final HE_Mesh mesh,
-			final PApplet home) {
+			final PGraphics home) {
 		final PShape retained = home.createShape();
 		retained.beginShape(PConstants.TRIANGLES);
 		List<HE_Vertex> vertices;
@@ -293,7 +293,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createFacettedPShape(final HE_Mesh mesh,
-			final PApplet home) {
+			final PGraphics home) {
 		return createFacetedPShape(mesh, home);
 	}
 
@@ -305,7 +305,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createFacettedPShape(final HE_Mesh mesh,
-			final PImage img, final PApplet home) {
+			final PImage img, final PGraphics home) {
 		return createFacetedPShape(mesh, img, home);
 	}
 
@@ -317,7 +317,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createFacettedPShape(final HE_Mesh mesh,
-			final PImage[] img, final PApplet home) {
+			final PImage[] img, final PGraphics home) {
 		return createFacetedPShape(mesh, img, home);
 	}
 
@@ -329,7 +329,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createFacettedPShape(final HE_HalfedgeStructure mesh,
-			final double offset, final PApplet home) {
+			final double offset, final PGraphics home) {
 		return createFacetedPShape(mesh, offset, home);
 	}
 
@@ -340,7 +340,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createFacettedPShape(final WB_Mesh mesh,
-			final PApplet home) {
+			final PGraphics home) {
 		return createFacetedPShape(mesh, home);
 	}
 
@@ -351,7 +351,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createFacettedPShapeWithFaceColor(final HE_Mesh mesh,
-			final PApplet home) {
+			final PGraphics home) {
 		return createFacetedPShapeWithFaceColor(mesh, home);
 	}
 
@@ -362,7 +362,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createFacettedPShapeWithVertexColor(final HE_Mesh mesh,
-			final PApplet home) {
+			final PGraphics home) {
 		return createFacetedPShapeWithVertexColor(mesh, home);
 	}
 
@@ -373,7 +373,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createSmoothPShape(final HE_Mesh mesh,
-			final PApplet home) {
+			final PGraphics home) {
 		final PShape retained = home.createShape();
 		retained.beginShape(PConstants.TRIANGLES);
 		List<HE_Vertex> vertices;
@@ -415,7 +415,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createSmoothPShape(final HE_Mesh mesh,
-			final PImage img, final PApplet home) {
+			final PImage img, final PGraphics home) {
 		final PShape retained = home.createShape();
 		retained.beginShape(PConstants.TRIANGLES);
 		retained.texture(img);
@@ -458,7 +458,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createSmoothPShape(final HE_Mesh mesh,
-			final PImage[] img, final PApplet home) {
+			final PImage[] img, final PGraphics home) {
 		final PShape retained = home.createShape();
 		retained.beginShape(PConstants.TRIANGLES);
 		List<HE_Vertex> vertices;
@@ -500,7 +500,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createSmoothPShape(final WB_Mesh mesh,
-			final PApplet home) {
+			final PGraphics home) {
 		final PShape retained = home.createShape();
 		retained.beginShape(PConstants.TRIANGLES);
 		final WB_Mesh lmesh = geometryfactory.createTriMesh(mesh);
@@ -535,7 +535,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createSmoothPShapeWithFaceColor(final HE_Mesh mesh,
-			final PApplet home) {
+			final PGraphics home) {
 		final PShape retained = home.createShape();
 		retained.beginShape(PConstants.TRIANGLES);
 		List<HE_Vertex> vertices;
@@ -577,7 +577,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createSmoothPShapeWithVertexColor(final HE_Mesh mesh,
-			final PApplet home) {
+			final PGraphics home) {
 		final PShape retained = home.createShape();
 		retained.beginShape(PConstants.TRIANGLES);
 		List<HE_Vertex> vertices;
@@ -614,7 +614,7 @@ public class WB_PShapeFactory {
 	 * @return
 	 */
 	public static PShape createWireframePShape(final HE_HalfedgeStructure mesh,
-			final PApplet home) {
+			final PGraphics home) {
 		final PShape retained = home.createShape();
 		if (mesh instanceof HE_Selection) {
 			((HE_Selection) mesh).collectEdgesByFace();
@@ -635,9 +635,9 @@ public class WB_PShapeFactory {
 	}
 
 	public static PShape createSubstratePShape(final HEC_IsoSkin skin,
-			final PApplet home) {
+			final PGraphics home) {
 		final PShape retained = home.createShape();
-		retained.beginShape(PApplet.LINES);
+		retained.beginShape(PConstants.LINES);
 		WB_Coord v;
 		wblut.hemesh.HEC_IsoSkin.Cell cell;
 		for (int i = 0; i < skin.getNumberOfLayers(); i++) {
